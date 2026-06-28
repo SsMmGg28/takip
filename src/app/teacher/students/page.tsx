@@ -1,3 +1,4 @@
+import { Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import {
   Table,
@@ -8,6 +9,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/page-header";
+import { EmptyState } from "@/components/empty-state";
 import { CreateAccountDialog } from "@/components/teacher/create-account-dialog";
 import { ResetPasswordButton } from "@/components/teacher/reset-password-button";
 import type { Profile } from "@/lib/types";
@@ -32,97 +36,106 @@ export default async function TeacherStudentsPage() {
   const studentNameById = new Map((students ?? []).map((s: Profile) => [s.id, s.full_name]));
 
   return (
-    <div className="flex flex-col gap-8">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Öğrenciler ve Veliler</h1>
-        <CreateAccountDialog students={(students as Profile[]) ?? []} />
-      </div>
+    <>
+      <PageHeader
+        title="Öğrenciler ve Veliler"
+        description="Hesap oluştur, şifre sıfırla, kim kimin velisi takip et."
+        action={<CreateAccountDialog students={(students as Profile[]) ?? []} />}
+      />
 
-      <section>
-        <h2 className="mb-2 font-medium text-muted-foreground">Öğrenciler</h2>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Ad Soyad</TableHead>
-              <TableHead>Kullanıcı adı</TableHead>
-              <TableHead>Durum</TableHead>
-              <TableHead className="text-right">İşlem</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {(students ?? []).map((s: Profile) => (
-              <TableRow key={s.id}>
-                <TableCell>{s.full_name}</TableCell>
-                <TableCell className="text-muted-foreground">{s.username}</TableCell>
-                <TableCell>
-                  {s.must_change_password ? (
-                    <Badge variant="outline">Şifre değiştirilmedi</Badge>
-                  ) : (
-                    <Badge>Aktif</Badge>
-                  )}
-                </TableCell>
-                <TableCell className="text-right">
-                  <ResetPasswordButton profileId={s.id} />
-                </TableCell>
-              </TableRow>
-            ))}
-            {(students ?? []).length === 0 && (
-              <TableRow>
-                <TableCell colSpan={4} className="text-center text-muted-foreground">
-                  Henüz öğrenci eklenmedi.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </section>
-
-      <section>
-        <h2 className="mb-2 font-medium text-muted-foreground">Veliler</h2>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Ad Soyad</TableHead>
-              <TableHead>Kullanıcı adı</TableHead>
-              <TableHead>Çocuğu</TableHead>
-              <TableHead>Durum</TableHead>
-              <TableHead className="text-right">İşlem</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {(parents ?? []).map((p: Profile) => {
-              const childIds = (links ?? [])
-                .filter((l) => l.parent_id === p.id)
-                .map((l) => l.student_id);
-              const childNames = childIds.map((id) => studentNameById.get(id)).filter(Boolean);
-              return (
-                <TableRow key={p.id}>
-                  <TableCell>{p.full_name}</TableCell>
-                  <TableCell className="text-muted-foreground">{p.username}</TableCell>
-                  <TableCell>{childNames.join(", ") || "—"}</TableCell>
-                  <TableCell>
-                    {p.must_change_password ? (
-                      <Badge variant="outline">Şifre değiştirilmedi</Badge>
-                    ) : (
-                      <Badge>Aktif</Badge>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <ResetPasswordButton profileId={p.id} />
-                  </TableCell>
+      <section className="space-y-3">
+        <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
+          Öğrenciler
+        </h2>
+        {students?.length ? (
+          <Card className="overflow-hidden p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Ad Soyad</TableHead>
+                  <TableHead>Kullanıcı adı</TableHead>
+                  <TableHead>Durum</TableHead>
+                  <TableHead className="text-right">İşlem</TableHead>
                 </TableRow>
-              );
-            })}
-            {(parents ?? []).length === 0 && (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center text-muted-foreground">
-                  Henüz veli eklenmedi.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+              </TableHeader>
+              <TableBody>
+                {students.map((s: Profile) => (
+                  <TableRow key={s.id}>
+                    <TableCell className="font-medium">{s.full_name}</TableCell>
+                    <TableCell className="text-muted-foreground">{s.username}</TableCell>
+                    <TableCell>
+                      {s.must_change_password ? (
+                        <Badge variant="outline">Şifre değiştirilmedi</Badge>
+                      ) : (
+                        <Badge>Aktif</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <ResetPasswordButton profileId={s.id} />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
+        ) : (
+          <EmptyState
+            icon={Users}
+            title="Henüz öğrenci yok"
+            description="Yukarıdaki “Yeni Hesap Oluştur” ile başla."
+          />
+        )}
       </section>
-    </div>
+
+      <section className="space-y-3">
+        <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
+          Veliler
+        </h2>
+        {parents?.length ? (
+          <Card className="overflow-hidden p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Ad Soyad</TableHead>
+                  <TableHead>Kullanıcı adı</TableHead>
+                  <TableHead>Çocuğu</TableHead>
+                  <TableHead>Durum</TableHead>
+                  <TableHead className="text-right">İşlem</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {parents.map((p: Profile) => {
+                  const childIds = (links ?? [])
+                    .filter((l) => l.parent_id === p.id)
+                    .map((l) => l.student_id);
+                  const childNames = childIds
+                    .map((id) => studentNameById.get(id))
+                    .filter(Boolean);
+                  return (
+                    <TableRow key={p.id}>
+                      <TableCell className="font-medium">{p.full_name}</TableCell>
+                      <TableCell className="text-muted-foreground">{p.username}</TableCell>
+                      <TableCell>{childNames.join(", ") || "—"}</TableCell>
+                      <TableCell>
+                        {p.must_change_password ? (
+                          <Badge variant="outline">Şifre değiştirilmedi</Badge>
+                        ) : (
+                          <Badge>Aktif</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <ResetPasswordButton profileId={p.id} />
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </Card>
+        ) : (
+          <EmptyState title="Henüz veli eklenmedi" />
+        )}
+      </section>
+    </>
   );
 }

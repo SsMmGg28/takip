@@ -1,6 +1,8 @@
-import Link from "next/link";
+import { Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageHeader } from "@/components/page-header";
+import { EmptyState } from "@/components/empty-state";
+import { StudentPickerGrid } from "@/components/student-picker-grid";
 import type { Profile } from "@/lib/types";
 
 export default async function TeacherExamsOverviewPage() {
@@ -12,28 +14,20 @@ export default async function TeacherExamsOverviewPage() {
     .order("full_name");
 
   return (
-    <div className="flex flex-col gap-4">
-      <h1 className="text-xl font-semibold">Deneme Analizi</h1>
-      <p className="text-sm text-muted-foreground">
-        Deneme sonuçlarını girmek veya analiz görmek için bir öğrenci seç.
-      </p>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {(students as Profile[] | null)?.map((s) => (
-          <Link key={s.id} href={`/teacher/exams/${s.id}`}>
-            <Card className="transition-colors hover:bg-accent">
-              <CardHeader>
-                <CardTitle className="text-base">{s.full_name}</CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm text-muted-foreground">
-                Denemeleri görüntüle
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
-        {!students?.length && (
-          <p className="text-muted-foreground">Henüz öğrenci eklenmedi.</p>
-        )}
-      </div>
-    </div>
+    <>
+      <PageHeader
+        title="Deneme Analizi"
+        description="Deneme sonuçlarını girmek veya analiz görmek için bir öğrenci seç."
+      />
+      {students?.length ? (
+        <StudentPickerGrid
+          students={students as Profile[]}
+          hrefPrefix="/teacher/exams"
+          ctaLabel="Denemeleri görüntüle"
+        />
+      ) : (
+        <EmptyState icon={Users} title="Henüz öğrenci yok" />
+      )}
+    </>
   );
 }

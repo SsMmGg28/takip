@@ -1,32 +1,29 @@
 import { requireRole } from "@/lib/auth";
 import { DashboardNav } from "@/components/dashboard-nav";
 import { SignOutButton } from "@/components/sign-out-button";
-
-const LINKS = [
-  { href: "/parent", label: "Panel" },
-  { href: "/parent/homework", label: "Ödevler" },
-  { href: "/parent/resources", label: "Kaynaklar" },
-  { href: "/parent/calendar", label: "Takvim" },
-  { href: "/parent/schedule", label: "Çalışma Programı" },
-  { href: "/parent/exams", label: "Deneme Analizi" },
-];
+import { Brand } from "@/components/brand";
 
 export default async function ParentLayout({ children }: { children: React.ReactNode }) {
   const profile = await requireRole(["parent"]);
 
   return (
     <div className="min-h-screen">
-      <header className="border-b">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 p-4">
-          <div>
-            <p className="text-sm text-muted-foreground">Hoş geldin,</p>
-            <p className="font-semibold">{profile.full_name}</p>
+      <header className="sticky top-0 z-30 border-b bg-background/85 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <Brand size="sm" />
+          <div className="flex flex-1 items-center justify-between gap-3 sm:justify-end">
+            <div className="text-right text-xs leading-tight sm:text-sm">
+              <p className="text-muted-foreground">Veli</p>
+              <p className="font-medium">{profile.full_name}</p>
+            </div>
+            <SignOutButton />
           </div>
-          <DashboardNav links={LINKS} />
-          <SignOutButton />
+        </div>
+        <div className="mx-auto max-w-6xl overflow-x-auto px-4 pb-2">
+          <DashboardNav role="parent" />
         </div>
       </header>
-      <main className="mx-auto max-w-6xl p-4">{children}</main>
+      <main className="mx-auto max-w-6xl space-y-6 p-4 sm:p-6">{children}</main>
     </div>
   );
 }

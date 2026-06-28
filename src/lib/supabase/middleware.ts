@@ -28,6 +28,15 @@ export async function updateSession(request: NextRequest) {
   const { data: userData } = await supabase.auth.getUser();
   const pathname = request.nextUrl.pathname;
   const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
+  const isApiRoute = pathname.startsWith("/api/");
+
+  // API route'lar kendi auth/rol kontrolünü route handler içinde yapıyor.
+  // Burada sayfa yönlendirmesi (redirect) uygulamak fetch'in JSON yerine
+  // HTML/redirect cevabı almasına yol açar, bu yüzden API isteklerini
+  // sadece oturum tazeleyip olduğu gibi geçiriyoruz.
+  if (isApiRoute) {
+    return supabaseResponse;
+  }
 
   if (!userData.user && !isPublic) {
     const url = request.nextUrl.clone();

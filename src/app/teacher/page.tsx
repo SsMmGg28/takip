@@ -1,5 +1,7 @@
+import { Users, UserCheck, ClipboardList } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageHeader } from "@/components/page-header";
+import { StatCard } from "@/components/stat-card";
 
 export default async function TeacherHomePage() {
   const supabase = await createClient();
@@ -15,27 +17,21 @@ export default async function TeacherHomePage() {
     ]);
 
   return (
-    <div className="grid gap-4 sm:grid-cols-3">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">Öğrenci</CardTitle>
-        </CardHeader>
-        <CardContent className="text-2xl font-bold">{studentCount ?? 0}</CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">Veli</CardTitle>
-        </CardHeader>
-        <CardContent className="text-2xl font-bold">{parentCount ?? 0}</CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">
-            Bekleyen Ödev
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="text-2xl font-bold">{homeworkCount ?? 0}</CardContent>
-      </Card>
-    </div>
+    <>
+      <PageHeader
+        title="Panel"
+        description="Sistemdeki güncel duruma hızlı bir bakış."
+      />
+      <div className="grid gap-4 sm:grid-cols-3">
+        <StatCard label="Öğrenci" value={studentCount ?? 0} icon={Users} />
+        <StatCard label="Veli" value={parentCount ?? 0} icon={UserCheck} />
+        <StatCard
+          label="Bekleyen Ödev"
+          value={homeworkCount ?? 0}
+          icon={ClipboardList}
+          hint="Tüm öğrenciler genelinde"
+        />
+      </div>
+    </>
   );
 }
