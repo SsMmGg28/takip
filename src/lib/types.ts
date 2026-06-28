@@ -23,6 +23,52 @@ export interface ParentStudentLink {
   created_at: string;
 }
 
+// Kaynak kitap kataloğu --------------------------------------------------
+
+export interface ResourceBook {
+  id: string;
+  name: string;
+  subject: string | null;
+  created_by: string;
+  created_at: string;
+  approved: boolean;
+  approved_by: string | null;
+  approved_at: string | null;
+}
+
+export interface ResourceBookSection {
+  id: string;
+  book_id: string;
+  name: string;
+  order_index: number;
+  test_count: number;
+}
+
+export interface StudentTestProgress {
+  id: string;
+  student_id: string;
+  section_id: string;
+  test_number: number;
+  completed_at: string;
+  marked_by: string;
+}
+
+export type BookRequestStatus = "pending" | "approved" | "rejected";
+
+export interface BookRequest {
+  id: string;
+  requested_by: string;
+  name: string;
+  subject: string | null;
+  note: string | null;
+  status: BookRequestStatus;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  created_at: string;
+}
+
+// Ödev sistemi -----------------------------------------------------------
+
 export type HomeworkStatus = "assigned" | "completed" | "overdue";
 
 export interface Homework {
@@ -30,26 +76,25 @@ export interface Homework {
   student_id: string;
   title: string;
   description: string | null;
-  assigned_date: string;
   due_date: string | null;
+  book_id: string | null;
+  attachment_path: string | null;
+  attachment_name: string | null;
+  attachment_uploaded_at: string | null;
   status: HomeworkStatus;
   created_by: string;
   created_at: string;
   updated_at: string;
 }
 
-export type ResourceProgressStatus = "not_started" | "in_progress" | "completed";
-
-export interface StudentResourceProgress {
+export interface HomeworkTest {
   id: string;
-  student_id: string;
-  subject: string;
-  book_title: string;
-  progress_note: string | null;
-  status: ResourceProgressStatus;
-  updated_by: string;
-  updated_at: string;
+  homework_id: string;
+  section_id: string;
+  test_number: number;
 }
+
+// Diğer (değişmeyen) ------------------------------------------------------
 
 export type CalendarEventType = "lesson" | "homework_deadline" | "reminder";
 

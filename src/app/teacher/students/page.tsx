@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -61,7 +62,11 @@ export default async function TeacherStudentsPage() {
               <TableBody>
                 {students.map((s: Profile) => (
                   <TableRow key={s.id}>
-                    <TableCell className="font-medium">{s.full_name}</TableCell>
+                    <TableCell className="font-medium">
+                      <Link href={`/teacher/students/${s.id}`} className="hover:underline">
+                        {s.full_name}
+                      </Link>
+                    </TableCell>
                     <TableCell className="text-muted-foreground">{s.username}</TableCell>
                     <TableCell>
                       {s.must_change_password ? (

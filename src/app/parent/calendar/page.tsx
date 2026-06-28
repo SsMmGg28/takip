@@ -1,29 +1,32 @@
 import { requireRole } from "@/lib/auth";
 import { getAccessibleStudents } from "@/lib/students";
 import { getStudentCalendarItems } from "@/lib/calendar";
-import { CalendarList } from "@/components/calendar-list";
+import { PageHeader } from "@/components/page-header";
+import { CalendarView } from "@/components/calendar/calendar-view";
+import { EmptyState } from "@/components/empty-state";
 
 export default async function ParentCalendarPage() {
   const profile = await requireRole(["parent"]);
   const students = await getAccessibleStudents(profile);
 
+  if (students.length === 0) {
+    return (
+      <>
+        <PageHeader title="Takvim" />
+        <EmptyState title="Henüz bir öğrenciyle eşleştirilmedin" />
+      </>
+    );
+  }
+
+  // Birden fazla çocuk varsa hepsinin etkinlikleri tek takvimde birleşir
+  const allItems = (
+    await Promise.all(students.map((s) => getStudentCalendarItems(s.id)))
+  ).flat();
+
   return (
-    <div className="flex flex-col gap-8">
-      <h1 className="text-xl font-semibold">Takvim</h1>
-      {students.length === 0 && (
-        <p className="text-muted-foreground">Eşleştirilmiş öğrenci bulunamadı.</p>
-      )}
-      {await Promise.all(
-        students.map(async (student) => {
-          const items = await getStudentCalendarItems(student.id);
-          return (
-            <section key={student.id} className="flex flex-col gap-2">
-              <h2 className="font-medium text-muted-foreground">{student.full_name}</h2>
-              <CalendarList items={items} />
-            </section>
-          );
-        }),
-      )}
-    </div>
+    <>
+      <PageHeader title="Takvim" description="Tüm dersler, ödev teslim tarihleri ve hatırlatmalar." />
+      <CalendarView items={allItems} />
+    </>
   );
 }

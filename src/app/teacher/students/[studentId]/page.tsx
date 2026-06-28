@@ -1,65 +1,41 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { BookOpen, ChevronRight } from "lucide-react";
-import { requireRole } from "@/lib/auth";
-import { getAccessibleStudents } from "@/lib/students";
-import { getStudentBookOverview } from "@/lib/books";
+import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
-import { AddBookDialog } from "@/components/resources/add-book-dialog";
+import { getStudentBookOverview } from "@/lib/books";
 
-export default async function ParentResourcesPage({
-  searchParams,
+export default async function TeacherStudentDetailPage({
+  params,
 }: {
-  searchParams: Promise<{ student?: string }>;
+  params: Promise<{ studentId: string }>;
 }) {
-  const profile = await requireRole(["parent"]);
-  const students = await getAccessibleStudents(profile);
-  const { student: selectedStudentId } = await searchParams;
+  const { studentId } = await params;
+  const supabase = await createClient();
 
-  if (students.length === 0) {
-    return (
-      <>
-        <PageHeader title="Kaynaklar" />
-        <EmptyState title="Henüz bir öğrenciyle eşleştirilmedin" />
-      </>
-    );
-  }
+  const { data: student } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", studentId)
+    .single();
+  if (!student) notFound();
 
-  const activeStudent =
-    students.find((s) => s.id === selectedStudentId) ?? students[0];
-
-  const books = await getStudentBookOverview(activeStudent.id);
+  const books = await getStudentBookOverview(studentId);
 
   return (
     <>
       <PageHeader
-        title="Kaynaklar"
-        description={`${activeStudent.full_name} için kataloğun ilerlemesi.`}
-        action={<AddBookDialog role="parent" />}
+        title={student.full_name}
+        description="Bu öğrencinin kataloğdaki tüm kitaplardaki ilerlemesi."
+        action={
+          <Link href="/teacher/students" className="text-sm text-muted-foreground hover:underline">
+            ← Öğrenciler
+          </Link>
+        }
       />
-
-      {students.length > 1 && (
-        <div className="flex flex-wrap gap-1.5">
-          {students.map((s) => {
-            const active = s.id === activeStudent.id;
-            return (
-              <Link
-                key={s.id}
-                href={`/parent/resources?student=${s.id}`}
-                className={`rounded-md border px-3 py-1.5 text-sm transition-colors ${
-                  active
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-input bg-background text-muted-foreground hover:bg-accent"
-                }`}
-              >
-                {s.full_name}
-              </Link>
-            );
-          })}
-        </div>
-      )}
 
       {books.length === 0 ? (
         <EmptyState icon={BookOpen} title="Katalogda henüz kitap yok" />
@@ -73,7 +49,7 @@ export default async function ParentResourcesPage({
             return (
               <Link
                 key={b.id}
-                href={`/parent/resources/${b.id}?student=${activeStudent.id}`}
+                href={`/teacher/students/${studentId}/${b.id}`}
                 className="block"
               >
                 <Card className="group h-full transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:bg-accent/40 hover:shadow-md">

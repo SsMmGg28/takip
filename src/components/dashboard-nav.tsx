@@ -10,6 +10,7 @@ import {
   Calendar,
   CalendarClock,
   LineChart,
+  Inbox,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -28,6 +29,7 @@ const LINKS_BY_ROLE: Record<Role, NavLinkDef[]> = {
     { href: "/teacher/students", label: "Öğrenciler", icon: Users },
     { href: "/teacher/homework", label: "Ödevler", icon: ClipboardList },
     { href: "/teacher/resources", label: "Kaynaklar", icon: BookOpen },
+    { href: "/teacher/book-requests", label: "İstekler", icon: Inbox },
     { href: "/teacher/calendar", label: "Takvim", icon: Calendar },
     { href: "/teacher/exams", label: "Deneme Analizi", icon: LineChart },
   ],

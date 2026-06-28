@@ -13,10 +13,10 @@ export function StudentPickerGrid({
   ctaLabel: string;
 }) {
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="stagger grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {students.map((s) => (
         <Link key={s.id} href={`${hrefPrefix}/${s.id}`} className="block">
-          <Card className="group transition-colors hover:border-primary/40 hover:bg-accent/40">
+          <Card className="group h-full transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:bg-accent/40 hover:shadow-md">
             <CardContent className="flex items-center justify-between p-4">
               <div>
                 <p className="font-medium">{s.full_name}</p>

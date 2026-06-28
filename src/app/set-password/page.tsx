@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Brand } from "@/components/brand";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function SetPasswordPage() {
   const router = useRouter();
@@ -57,7 +58,10 @@ export default function SetPasswordPage() {
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden p-4">
       <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,_var(--accent),_transparent_55%)]" />
-      <div className="w-full max-w-sm">
+      <div className="absolute right-4 top-4">
+        <ThemeToggle />
+      </div>
+      <div className="w-full max-w-sm animate-fade-up">
         <div className="mb-6 flex justify-center">
           <Brand size="lg" />
         </div>

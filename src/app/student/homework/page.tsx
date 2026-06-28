@@ -1,66 +1,36 @@
+import { ClipboardList } from "lucide-react";
 import { requireRole } from "@/lib/auth";
-import { createClient } from "@/lib/supabase/server";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import type { Homework } from "@/lib/types";
-
-const STATUS_LABEL: Record<string, string> = {
-  assigned: "Bekliyor",
-  completed: "Tamamlandı",
-  overdue: "Gecikti",
-};
+import { getHomeworkForStudent } from "@/lib/homework-fetch";
+import { PageHeader } from "@/components/page-header";
+import { EmptyState } from "@/components/empty-state";
+import { HomeworkCard } from "@/components/homework/homework-card";
 
 export default async function StudentHomeworkPage() {
   const profile = await requireRole(["student"]);
-  const supabase = await createClient();
-
-  const { data: homework } = await supabase
-    .from("homework")
-    .select("*")
-    .eq("student_id", profile.id)
-    .order("due_date", { ascending: true, nullsFirst: false });
+  const { items, sectionById } = await getHomeworkForStudent(profile.id);
 
   return (
-    <div className="flex flex-col gap-4">
-      <h1 className="text-xl font-semibold">Ödevlerim</h1>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Başlık</TableHead>
-            <TableHead>Açıklama</TableHead>
-            <TableHead>Teslim tarihi</TableHead>
-            <TableHead>Durum</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {((homework as Homework[]) ?? []).map((hw) => (
-            <TableRow key={hw.id}>
-              <TableCell className="font-medium">{hw.title}</TableCell>
-              <TableCell className="text-muted-foreground">{hw.description ?? "—"}</TableCell>
-              <TableCell>{hw.due_date ?? "—"}</TableCell>
-              <TableCell>
-                <Badge variant={hw.status === "completed" ? "default" : "outline"}>
-                  {STATUS_LABEL[hw.status]}
-                </Badge>
-              </TableCell>
-            </TableRow>
+    <>
+      <PageHeader
+        title="Ödevlerim"
+        description="Öğretmenin sana verdiği ödevler."
+      />
+
+      {items.length === 0 ? (
+        <EmptyState icon={ClipboardList} title="Henüz ödev yok" />
+      ) : (
+        <div className="space-y-3">
+          {items.map((it) => (
+            <HomeworkCard
+              key={it.homework.id}
+              homework={it.homework}
+              book={it.book}
+              tests={it.tests}
+              sectionById={sectionById}
+            />
           ))}
-          {!homework?.length && (
-            <TableRow>
-              <TableCell colSpan={4} className="text-center text-muted-foreground">
-                Henüz ödev eklenmedi.
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-    </div>
+        </div>
+      )}
+    </>
   );
 }
