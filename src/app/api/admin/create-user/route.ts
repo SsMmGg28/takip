@@ -1,0 +1,95 @@
+import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { generateTempPassword, normalizeUsername, usernameToEmail } from "@/lib/username";
+
+export async function POST(request: Request) {
+  const supabase = await createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData.user) {
+    return NextResponse.json({ error: "Yetkisiz." }, { status: 401 });
+  }
+
+  const { data: callerProfile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", userData.user.id)
+    .single();
+
+  if (callerProfile?.role !== "teacher") {
+    return NextResponse.json({ error: "Sadece öğretmen hesap oluşturabilir." }, { status: 403 });
+  }
+
+  const body = await request.json();
+  const { full_name, role, grade_level, parent_of } = body as {
+    full_name: string;
+    role: "student" | "parent";
+    grade_level?: number;
+    parent_of?: string;
+  };
+
+  if (!full_name?.trim() || !["student", "parent"].includes(role)) {
+    return NextResponse.json({ error: "Geçersiz bilgi." }, { status: 400 });
+  }
+
+  const admin = createAdminClient();
+
+  let username = normalizeUsername(full_name);
+  let suffix = 1;
+  while (true) {
+    const { data: existing } = await admin
+      .from("profiles")
+      .select("id")
+      .eq("username", username)
+      .maybeSingle();
+    if (!existing) break;
+    suffix += 1;
+    username = normalizeUsername(full_name, suffix);
+  }
+
+  const tempPassword = generateTempPassword();
+
+  const { data: created, error: createError } = await admin.auth.admin.createUser({
+    email: usernameToEmail(username),
+    password: tempPassword,
+    email_confirm: true,
+  });
+
+  if (createError || !created.user) {
+    return NextResponse.json(
+      { error: createError?.message ?? "Kullanıcı oluşturulamadı." },
+      { status: 500 },
+    );
+  }
+
+  const newUserId = created.user.id;
+
+  const { error: profileError } = await admin.from("profiles").insert({
+    id: newUserId,
+    role,
+    username,
+    full_name: full_name.trim(),
+    must_change_password: true,
+  });
+
+  if (profileError) {
+    await admin.auth.admin.deleteUser(newUserId);
+    return NextResponse.json({ error: profileError.message }, { status: 500 });
+  }
+
+  if (role === "student") {
+    await admin.from("student_profiles").insert({
+      id: newUserId,
+      grade_level: grade_level ?? null,
+    });
+  }
+
+  if (role === "parent" && parent_of) {
+    await admin.from("parent_student_links").insert({
+      parent_id: newUserId,
+      student_id: parent_of,
+    });
+  }
+
+  return NextResponse.json({ username, tempPassword });
+}
