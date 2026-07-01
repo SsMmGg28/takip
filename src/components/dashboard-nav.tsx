@@ -57,7 +57,7 @@ export function DashboardNav({ role }: { role: Role }) {
   const roleRoot = `/${role}`;
 
   return (
-    <nav className="flex flex-wrap gap-1">
+    <nav className="flex flex-nowrap gap-1">
       {links.map((link) => {
         const active =
           link.href === roleRoot
@@ -69,7 +69,7 @@ export function DashboardNav({ role }: { role: Role }) {
             key={link.href}
             href={link.href}
             className={cn(
-              "inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+              "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium transition-colors",
               active
                 ? "bg-primary text-primary-foreground shadow-sm"
                 : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
