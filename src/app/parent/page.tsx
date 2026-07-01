@@ -21,17 +21,17 @@ export default async function ParentHomePage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
           {students.map((s) => (
             <Card key={s.id}>
-              <CardContent className="flex items-center gap-3 p-5">
-                <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-accent text-accent-foreground">
+              <CardContent className="flex items-center gap-3 p-4 sm:p-5">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent text-accent-foreground sm:h-11 sm:w-11">
                   <GraduationCap className="h-5 w-5" />
                 </div>
-                <div>
-                  <p className="font-semibold">{s.full_name}</p>
+                <div className="min-w-0">
+                  <p className="truncate font-semibold">{s.full_name}</p>
                   <p className="text-xs text-muted-foreground">
-                    Ödev, kaynak, takvim ve deneme analizi üst menüde.
+                    Ödev, kaynak, takvim ve deneme analizi menüde.
                   </p>
                 </div>
               </CardContent>

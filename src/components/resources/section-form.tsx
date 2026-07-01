@@ -16,15 +16,15 @@ export function SectionForm({ bookId, nextOrder }: { bookId: string; nextOrder: 
         await addBookSection(formData);
         formRef.current?.reset();
       }}
-      className="flex flex-wrap items-end gap-3 rounded-lg border bg-muted/30 p-4"
+      className="flex flex-col gap-3 rounded-lg border bg-muted/30 p-3 sm:flex-row sm:flex-wrap sm:items-end sm:gap-3 sm:p-4"
     >
       <input type="hidden" name="book_id" value={bookId} />
       <input type="hidden" name="order_index" value={nextOrder} />
-      <div className="flex min-w-[200px] flex-1 flex-col gap-1.5">
+      <div className="flex flex-1 flex-col gap-1.5 sm:min-w-[200px]">
         <Label htmlFor="section-name">Bölüm adı</Label>
         <Input id="section-name" name="name" placeholder="Örn: Çarpanlar ve Katlar" required />
       </div>
-      <div className="flex w-32 flex-col gap-1.5">
+      <div className="flex flex-col gap-1.5 sm:w-32">
         <Label htmlFor="test-count">Test sayısı</Label>
         <Input
           id="test-count"
@@ -36,7 +36,9 @@ export function SectionForm({ bookId, nextOrder }: { bookId: string; nextOrder: 
           required
         />
       </div>
-      <Button type="submit">Bölüm Ekle</Button>
+      <Button type="submit" className="w-full sm:w-auto">
+        Bölüm Ekle
+      </Button>
     </form>
   );
 }

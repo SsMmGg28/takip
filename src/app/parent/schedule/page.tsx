@@ -11,8 +11,8 @@ export default async function ParentSchedulePage() {
   const supabase = await createClient();
 
   return (
-    <div className="flex flex-col gap-8">
-      <h1 className="text-xl font-semibold">Çalışma Programı</h1>
+    <div className="flex flex-col gap-6 sm:gap-8">
+      <h1 className="text-lg font-semibold sm:text-xl">Çalışma Programı</h1>
       {students.length === 0 && (
         <p className="text-muted-foreground">Eşleştirilmiş öğrenci bulunamadı.</p>
       )}
@@ -27,7 +27,7 @@ export default async function ParentSchedulePage() {
 
           return (
             <section key={student.id} className="flex flex-col gap-2">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <h2 className="font-medium text-muted-foreground">{student.full_name}</h2>
                 <AddScheduleEntryDialog studentId={student.id} redirectPath={redirectPath} />
               </div>

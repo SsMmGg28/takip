@@ -44,7 +44,7 @@ export function AddSubjectDialog({
             <Label htmlFor="subject_name">Ders</Label>
             <Input id="subject_name" name="subject_name" required placeholder="Örn: Matematik" />
           </div>
-          <div className="flex gap-4">
+          <div className="grid grid-cols-3 gap-2 sm:gap-4">
             <div className="flex flex-1 flex-col gap-2">
               <Label htmlFor="correct_count">Doğru</Label>
               <Input id="correct_count" name="correct_count" type="number" min={0} defaultValue={0} />

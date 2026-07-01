@@ -9,8 +9,8 @@ export default async function ParentExamsPage() {
   const students = await getAccessibleStudents(profile);
 
   return (
-    <div className="flex flex-col gap-12">
-      <h1 className="text-xl font-semibold">Deneme Analizi</h1>
+    <div className="flex flex-col gap-8 sm:gap-12">
+      <h1 className="text-lg font-semibold sm:text-xl">Deneme Analizi</h1>
       {students.length === 0 && (
         <p className="text-muted-foreground">Eşleştirilmiş öğrenci bulunamadı.</p>
       )}

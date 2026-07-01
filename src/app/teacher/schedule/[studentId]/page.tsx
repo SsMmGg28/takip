@@ -29,8 +29,10 @@ export default async function TeacherStudentSchedulePage({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">{student.full_name} — Çalışma Programı</h1>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-lg font-semibold sm:text-xl">
+          {student.full_name} — Çalışma Programı
+        </h1>
         <AddScheduleEntryDialog studentId={studentId} redirectPath={redirectPath} />
       </div>
       <WeeklySchedule

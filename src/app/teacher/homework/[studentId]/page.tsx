@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Paperclip, ClipboardList } from "lucide-react";
+import { ClipboardList } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -81,7 +81,7 @@ export default async function TeacherStudentHomeworkPage({
             return (
               <Card key={hw.id}>
                 <CardContent className="flex flex-col gap-3 p-4">
-                  <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
                     <div className="space-y-1">
                       <div className="flex flex-wrap items-center gap-2">
                         <p className="font-medium">{hw.title}</p>

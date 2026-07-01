@@ -40,8 +40,11 @@ export default async function TeacherBookDetailPage({
         title={book.name}
         description={`${book.subject ?? "Genel"} · ${sections?.length ?? 0} bölüm · ${totalTests} test`}
         action={
-          <div className="flex items-center gap-2">
-            <Link href="/teacher/resources" className="text-sm text-muted-foreground hover:underline">
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href="/teacher/resources"
+              className="text-sm text-muted-foreground hover:underline"
+            >
               ← Kataloga dön
             </Link>
             <form action={deleteBook}>

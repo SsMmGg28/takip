@@ -23,7 +23,7 @@ export function TestGrid({
   const [popped, setPopped] = useState<number | null>(null);
 
   return (
-    <div className="flex flex-wrap gap-1.5">
+    <div className="flex flex-wrap gap-1.5 sm:gap-2">
       {Array.from({ length: testCount }, (_, i) => i + 1).map((n) => {
         const done = completed.has(n);
         const isPopping = popped === n;

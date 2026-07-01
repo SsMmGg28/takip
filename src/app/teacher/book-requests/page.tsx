@@ -51,7 +51,7 @@ export default async function BookRequestsPage() {
           <div className="space-y-2">
             {pending.map((r) => (
               <Card key={r.id}>
-                <CardContent className="flex flex-wrap items-start justify-between gap-3 p-4">
+                <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
                   <div className="space-y-1">
                     <p className="font-medium">{r.name}</p>
                     {r.subject && (
@@ -65,16 +65,16 @@ export default async function BookRequestsPage() {
                       <p className="text-sm text-muted-foreground">“{r.note}”</p>
                     )}
                   </div>
-                  <div className="flex gap-2">
-                    <form action={rejectBookRequest}>
+                  <div className="flex flex-wrap gap-2">
+                    <form action={rejectBookRequest} className="flex-1 sm:flex-none">
                       <input type="hidden" name="id" value={r.id} />
-                      <Button type="submit" variant="ghost" size="sm">
+                      <Button type="submit" variant="ghost" size="sm" className="w-full sm:w-auto">
                         Reddet
                       </Button>
                     </form>
-                    <form action={approveBookRequest}>
+                    <form action={approveBookRequest} className="flex-1 sm:flex-none">
                       <input type="hidden" name="id" value={r.id} />
-                      <Button type="submit" size="sm">
+                      <Button type="submit" size="sm" className="w-full sm:w-auto">
                         Onayla ve Kataloga Ekle
                       </Button>
                     </form>

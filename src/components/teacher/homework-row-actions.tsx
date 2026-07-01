@@ -14,8 +14,8 @@ export function HomeworkRowActions({
   status: HomeworkStatus;
 }) {
   return (
-    <div className="flex justify-end gap-2">
-      <form action={updateHomeworkStatus}>
+    <div className="flex w-full flex-wrap justify-end gap-2 sm:w-auto">
+      <form action={updateHomeworkStatus} className="flex-1 sm:flex-none">
         <input type="hidden" name="id" value={id} />
         <input type="hidden" name="student_id" value={studentId} />
         <input
@@ -23,14 +23,24 @@ export function HomeworkRowActions({
           name="status"
           value={status === "completed" ? "assigned" : "completed"}
         />
-        <Button type="submit" variant="outline" size="sm">
-          {status === "completed" ? "Tamamlanmadı işaretle" : "Tamamlandı işaretle"}
+        <Button
+          type="submit"
+          variant="outline"
+          size="sm"
+          className="w-full sm:w-auto"
+        >
+          {status === "completed" ? "Tamamlanmadı" : "Tamamlandı"}
         </Button>
       </form>
-      <form action={deleteHomework}>
+      <form action={deleteHomework} className="shrink-0">
         <input type="hidden" name="id" value={id} />
         <input type="hidden" name="student_id" value={studentId} />
-        <Button type="submit" variant="ghost" size="sm" className="text-destructive">
+        <Button
+          type="submit"
+          variant="ghost"
+          size="sm"
+          className="text-destructive"
+        >
           Sil
         </Button>
       </form>

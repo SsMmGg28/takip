@@ -34,14 +34,21 @@ export function SubjectNetChart({
   }
 
   return (
-    <div className="h-80 w-full">
+    <div className="h-64 w-full sm:h-80">
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={rows} margin={{ top: 8, right: 16, bottom: 8, left: 0 }}>
+        <LineChart data={rows} margin={{ top: 8, right: 8, bottom: 8, left: -12 }}>
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="examLabel" tick={{ fontSize: 11 }} interval={0} angle={-15} dy={15} height={60} />
-          <YAxis tick={{ fontSize: 11 }} />
+          <XAxis
+            dataKey="examLabel"
+            tick={{ fontSize: 10 }}
+            interval={0}
+            angle={-25}
+            dy={12}
+            height={60}
+          />
+          <YAxis tick={{ fontSize: 10 }} width={32} />
           <Tooltip />
-          <Legend />
+          <Legend wrapperStyle={{ fontSize: 12 }} />
           {subjects.map((subject, i) => (
             <Line
               key={subject}

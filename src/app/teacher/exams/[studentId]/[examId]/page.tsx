@@ -28,9 +28,12 @@ export default async function TeacherExamDetailPage({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">
-          {exam.exam_name} <span className="text-muted-foreground">({exam.exam_date})</span>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-lg font-semibold sm:text-xl">
+          {exam.exam_name}{" "}
+          <span className="block text-sm font-normal text-muted-foreground sm:inline">
+            ({exam.exam_date})
+          </span>
         </h1>
         <AddSubjectDialog examId={examId} studentId={studentId} />
       </div>

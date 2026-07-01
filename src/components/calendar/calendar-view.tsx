@@ -129,7 +129,7 @@ export function CalendarView({ items }: { items: CalendarItem[] }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-3">
         <div className="flex items-center gap-1">
           <Button variant="outline" size="icon" onClick={() => nav(-1)} aria-label="Önceki">
             <ChevronLeft className="h-4 w-4" />
@@ -144,17 +144,19 @@ export function CalendarView({ items }: { items: CalendarItem[] }) {
           <Button variant="outline" size="icon" onClick={() => nav(1)} aria-label="Sonraki">
             <ChevronRight className="h-4 w-4" />
           </Button>
-          <p className="ml-3 font-medium">{title}</p>
+          <p className="ml-2 truncate text-sm font-medium sm:ml-3 sm:text-base">
+            {title}
+          </p>
         </div>
 
-        <div className="inline-flex rounded-md border bg-background p-0.5 text-sm">
+        <div className="inline-flex w-full rounded-md border bg-background p-0.5 text-sm sm:w-fit">
           {(["day", "week", "month"] as ViewMode[]).map((v) => (
             <button
               key={v}
               type="button"
               onClick={() => setView(v)}
               className={cn(
-                "rounded-sm px-3 py-1 font-medium transition-colors",
+                "flex-1 rounded-sm px-3 py-1 font-medium transition-colors sm:flex-none",
                 view === v
                   ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
@@ -248,7 +250,7 @@ function WeekView({
   const today = startOfDay(new Date());
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
   return (
-    <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-7">
+    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-7">
       {days.map((d, i) => {
         const dayItems = itemsFor(d);
         const isToday = sameDay(d, today);
@@ -258,7 +260,7 @@ function WeekView({
             type="button"
             onClick={() => onDayClick(d)}
             className={cn(
-              "flex min-h-[140px] flex-col gap-2 rounded-lg border bg-background p-3 text-left transition-colors hover:border-primary/40",
+              "flex min-h-[120px] flex-col gap-2 rounded-lg border bg-background p-2.5 text-left transition-colors hover:border-primary/40 sm:min-h-[140px] sm:p-3",
               isToday && "border-primary",
             )}
           >
@@ -329,7 +331,7 @@ function MonthView({
               type="button"
               onClick={() => onDayClick(d)}
               className={cn(
-                "flex h-20 flex-col items-start gap-1 rounded-md border bg-background p-1.5 text-left transition-colors hover:border-primary/40",
+                "flex h-14 flex-col items-start gap-1 rounded-md border bg-background p-1 text-left transition-colors hover:border-primary/40 sm:h-20 sm:p-1.5",
                 !inMonth && "opacity-40",
                 isToday && "border-primary",
               )}
