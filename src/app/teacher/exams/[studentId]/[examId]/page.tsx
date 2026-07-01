@@ -15,6 +15,12 @@ export default async function TeacherExamDetailPage({
   const { data: exam } = await supabase.from("exams").select("*").eq("id", examId).single();
   if (!exam) notFound();
 
+  const { data: studentProfile } = await supabase
+    .from("student_profiles")
+    .select("grade_level")
+    .eq("id", studentId)
+    .single();
+
   const { data: subjects } = await supabase
     .from("exam_subjects")
     .select("*")
@@ -45,6 +51,7 @@ export default async function TeacherExamDetailPage({
             )}
             examId={examId}
             studentId={studentId}
+            gradeLevel={studentProfile?.grade_level ?? null}
           />
         ))}
         {!subjects?.length && (

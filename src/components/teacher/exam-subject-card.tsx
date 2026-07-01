@@ -17,6 +17,7 @@ import {
   deleteExamSubject,
   deleteExamTopic,
 } from "@/app/teacher/exams/actions";
+import { getTopicSuggestions } from "@/lib/curriculum";
 import type { ExamSubject, ExamTopic } from "@/lib/types";
 
 export function ExamSubjectCard({
@@ -24,13 +25,17 @@ export function ExamSubjectCard({
   topics,
   examId,
   studentId,
+  gradeLevel,
 }: {
   subject: ExamSubject;
   topics: ExamTopic[];
   examId: string;
   studentId: string;
+  gradeLevel?: number | null;
 }) {
   const [showTopicForm, setShowTopicForm] = useState(false);
+  const topicSuggestions = getTopicSuggestions(gradeLevel, subject.subject_name);
+  const topicListId = `topic-suggestions-${subject.id}`;
 
   return (
     <Card>
@@ -101,7 +106,20 @@ export function ExamSubjectCard({
             <input type="hidden" name="exam_subject_id" value={subject.id} />
             <input type="hidden" name="exam_id" value={examId} />
             <input type="hidden" name="student_id" value={studentId} />
-            <Input name="topic_name" placeholder="Konu adı" required className="w-40" />
+            <Input
+              name="topic_name"
+              placeholder="Konu adı"
+              required
+              className="w-40"
+              list={topicSuggestions.length ? topicListId : undefined}
+            />
+            {topicSuggestions.length > 0 && (
+              <datalist id={topicListId}>
+                {topicSuggestions.map((outcome) => (
+                  <option key={outcome.code} value={`${outcome.code} ${outcome.description}`} />
+                ))}
+              </datalist>
+            )}
             <Input name="correct_count" type="number" min={0} defaultValue={0} placeholder="Doğru" className="w-20" />
             <Input name="incorrect_count" type="number" min={0} defaultValue={0} placeholder="Yanlış" className="w-20" />
             <Input name="blank_count" type="number" min={0} defaultValue={0} placeholder="Boş" className="w-20" />
