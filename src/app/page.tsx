@@ -4,12 +4,13 @@ import {
   BookOpen,
   Calendar,
   CalendarClock,
-  CheckCircle2,
   ClipboardList,
   GraduationCap,
+  KeyRound,
+  LayoutDashboard,
   LineChart,
   LogIn,
-  Sparkles,
+  MonitorSmartphone,
   Users,
 } from "lucide-react";
 import { Brand } from "@/components/brand";
@@ -17,42 +18,63 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Reveal } from "@/components/landing/reveal";
 
+const QUICK_START = [
+  {
+    icon: KeyRound,
+    title: "1. Hesap bilgilerini al",
+    description:
+      "Hesaplar öğretmen tarafından oluşturulur. Kullanıcı adını ve geçici şifreni öğretmeninden al; siteye kayıt olman gerekmez.",
+  },
+  {
+    icon: LogIn,
+    title: "2. Giriş yap, şifreni belirle",
+    description:
+      "Sağ üstteki Giriş Yap butonuyla oturum aç. İlk girişte sistem güvenlik için senden yeni bir şifre belirlemeni ister.",
+  },
+  {
+    icon: LayoutDashboard,
+    title: "3. Paneline yönlendirilirsin",
+    description:
+      "Rolüne göre öğretmen, öğrenci veya veli paneli otomatik açılır. Tüm bölümlere üstteki menüden (mobilde alt çubuktan) ulaşırsın.",
+  },
+];
+
 const FEATURES = [
   {
     icon: ClipboardList,
     title: "Ödev Takibi",
     description:
-      "Öğretmen ödevi dosya ekiyle birlikte atar, öğrenci teslim eder, veli süreci anlık izler. Bekleyen ve tamamlanan ödevler tek bakışta görünür.",
+      "Ödevler menüsünde sana atanan ödevler listelenir. Ekli dosyayı indirir, ödevi bitirince teslim olarak işaretlersin. Öğretmen teslimi aynı ekrandan görür, veli süreci anlık izler.",
   },
   {
     icon: BookOpen,
     title: "Kaynak Kütüphanesi",
     description:
-      "Kitaplar bölüm bölüm ve test test tanımlanır. Öğrenci çözdüğü testleri işaretler, ilerleme çubukları kitap bazında otomatik güncellenir.",
+      "Kaynaklar menüsünde kitapların bölüm ve test listesi yer alır. Çözdüğün testin kutusuna tıklayarak işaretlersin; kitap ilerleme çubuğu otomatik dolar. Yeni kitap talebini de buradan gönderirsin.",
   },
   {
     icon: Calendar,
     title: "Ortak Takvim",
     description:
-      "Ders saatleri ve genel hatırlatmalar tek takvimde toplanır. Öğrenciye özel etkinlikler yalnızca ilgili öğrenci ve velisine görünür.",
+      "Takvim menüsünde ders saatleri ve hatırlatmalar görünür. Öğretmen \"Yeni Etkinlik Ekle\" ile ders saati veya genel hatırlatma oluşturur; öğrenciye özel etkinlik yalnızca o öğrenciye ve velisine görünür.",
   },
   {
     icon: CalendarClock,
     title: "Çalışma Programı",
     description:
-      "Haftalık çalışma programı gün gün ve saat saat planlanır. Öğrenci hangi gün hangi konuya çalışacağını her zaman bilir.",
+      "Çalışma Programı menüsünde haftalık planın gün gün, saat saat listelenir. Programı öğretmen hazırlar; sen hangi gün hangi konuya çalışacağını buradan takip edersin.",
   },
   {
     icon: LineChart,
     title: "Deneme Analizi",
     description:
-      "Deneme sonuçları ders bazında girilir; net grafikleri ve zayıf konu tabloları ile gelişim somut verilerle takip edilir.",
+      "Deneme Analizi menüsünde öğretmenin girdiği deneme sonuçları ders bazında net grafiklerine dönüşür. Yanlış yaptığın konular zayıf konu tablosunda listelenir; neye çalışacağını buradan görürsün.",
   },
   {
     icon: Users,
-    title: "Üç Rollü Sistem",
+    title: "Üç Ayrı Panel",
     description:
-      "Öğretmen, öğrenci ve veli için ayrı paneller. Herkes yalnızca kendi yetkisindeki bilgiyi görür; veliler çocuklarının tüm sürecini izleyebilir.",
+      "Giriş yaptığında sistem seni rolüne göre doğru panele yönlendirir: öğretmen tüm öğrencilerini yönetir, öğrenci kendi verilerini görür, veli çocuğunun tüm sürecini okuma modunda izler.",
   },
 ];
 
@@ -65,30 +87,32 @@ const HOW_IT_WORKS: {
     role: "Öğretmen",
     icon: GraduationCap,
     steps: [
-      "Öğrenci ve veli hesaplarını tek tıkla oluştur, geçici şifreleri paylaş.",
-      "Ödev ata, kaynak kitapları ve testleri tanımla, ders saatlerini takvime ekle.",
-      "Deneme sonuçlarını gir; net grafikleri ve zayıf konular otomatik hesaplansın.",
-      "Panelden tüm öğrencilerin ilerlemesini tek ekrandan yönet.",
+      "Öğrenciler menüsünden öğrenci ve veli hesaplarını oluştur; geçici şifreleri kendilerine ilet.",
+      "Ödevler menüsünden öğrenci seçip dosya ekiyle ödev ata; teslimleri aynı ekrandan takip et.",
+      "Kaynaklar'da kitap, bölüm ve test tanımla; İstekler kutusuna düşen kitap taleplerini yanıtla.",
+      "Takvim'e ders saatlerini ekle, her öğrenci için haftalık çalışma programı hazırla.",
+      "Deneme Analizi'nde sonuçları gir; net grafikleri ve zayıf konu listesi otomatik hesaplanır.",
     ],
   },
   {
     role: "Öğrenci",
     icon: BookOpen,
     steps: [
-      "Sana verilen kullanıcı adı ve şifreyle giriş yap, ilk girişte şifreni yenile.",
-      "Ödevlerini gör, tamamladıklarını teslim et.",
-      "Çözdüğün testleri işaretle, kitap ilerlemeni anlık takip et.",
-      "Takvimden ders saatlerini, programından haftalık planını izle.",
+      "Öğretmenin verdiği kullanıcı adı ve şifreyle giriş yap; ilk girişte yeni şifreni belirle.",
+      "Ödevlerim'de bekleyen ödevlerini gör, ekleri indir, bitirince teslim olarak işaretle.",
+      "Kaynaklarım'da çözdüğün testlere tıklayıp işaretle; kitap ilerlemen kendiliğinden güncellenir.",
+      "Takvim'den ders saatlerini, Çalışma Programım'dan haftalık planını takip et.",
+      "Deneme Analizim'de netlerini ve zayıf konularını grafiklerle incele.",
     ],
   },
   {
     role: "Veli",
     icon: Users,
     steps: [
-      "Velilere özel hesabınla giriş yap.",
-      "Çocuğunun ödev durumunu ve kaynak ilerlemesini görüntüle.",
-      "Ders takvimini ve haftalık çalışma programını takip et.",
-      "Deneme analizleriyle gelişimi somut verilerle izle.",
+      "Sana verilen veli hesabıyla giriş yap; ilk girişte şifreni yenile.",
+      "Ödevler'de çocuğunun bekleyen ve teslim edilen ödevlerini görüntüle.",
+      "Kaynaklar'da kitap ilerlemesini, Takvim'de ders saatlerini takip et.",
+      "Çalışma Programı'nda haftalık planı, Deneme Analizi'nde net grafiklerini incele.",
     ],
   },
 ];
@@ -115,10 +139,13 @@ export default function LandingPage() {
           <Brand size="sm" />
           <nav className="hidden items-center gap-1 sm:flex">
             <Button variant="ghost" size="sm" asChild>
-              <a href="#ozellikler">Özellikler</a>
+              <a href="#hizli-baslangic">Hızlı Başlangıç</a>
             </Button>
             <Button variant="ghost" size="sm" asChild>
-              <a href="#nasil-calisir">Nasıl Çalışır?</a>
+              <a href="#bolumler">Bölümler</a>
+            </Button>
+            <Button variant="ghost" size="sm" asChild>
+              <a href="#kullanim-rehberi">Kullanım Rehberi</a>
             </Button>
           </nav>
           <div className="flex items-center gap-2">
@@ -134,27 +161,27 @@ export default function LandingPage() {
       </header>
 
       {/* Hero */}
-      <section className="mx-auto max-w-6xl px-4 pb-20 pt-16 text-center sm:pb-28 sm:pt-24">
+      <section className="mx-auto max-w-6xl px-4 pb-16 pt-16 text-center sm:pb-24 sm:pt-24">
         <div className="animate-fade-up mx-auto mb-6 flex w-fit items-center gap-2 rounded-full border bg-card/60 px-4 py-1.5 text-sm shadow-sm">
-          <Sparkles className="h-4 w-4 text-primary" />
+          <Users className="h-4 w-4 text-primary" />
           <span className="text-muted-foreground">
-            Ders takibinin en kolay yolu
+            Öğretmen · Öğrenci · Veli paneli
           </span>
         </div>
         <h1
           className="animate-fade-up mx-auto max-w-3xl text-4xl font-extrabold leading-tight tracking-tight sm:text-6xl"
           style={{ animationDelay: "80ms" }}
         >
-          Ders sürecini{" "}
-          <span className="gradient-text animate-gradient">tek panelden</span>{" "}
-          yönet
+          <span className="gradient-text animate-gradient">Ders Takip</span>{" "}
+          nasıl kullanılır?
         </h1>
         <p
           className="animate-fade-up mx-auto mt-6 max-w-2xl text-base text-muted-foreground sm:text-lg"
           style={{ animationDelay: "160ms" }}
         >
-          Ödevler, kaynak kitaplar, takvim, haftalık çalışma programı ve deneme
-          analizleri — öğretmen, öğrenci ve veli için tek bir modern platformda.
+          Bu sitede ödevlerini, kaynak kitaplarını, ders takvimini, haftalık
+          çalışma programını ve deneme sonuçlarını takip edersin. Aşağıda her
+          bölümün ne işe yaradığını ve adım adım nasıl kullanıldığını bulacaksın.
         </p>
         <div
           className="animate-fade-up mt-8 flex flex-wrap items-center justify-center gap-3"
@@ -162,16 +189,16 @@ export default function LandingPage() {
         >
           <Button size="lg" asChild>
             <Link href="/login">
-              Hemen Başla
+              Giriş Yap
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
           <Button size="lg" variant="outline" asChild>
-            <a href="#ozellikler">Özellikleri Keşfet</a>
+            <a href="#kullanim-rehberi">Kullanım Rehberine Git</a>
           </Button>
         </div>
 
-        {/* Süzülen mini kartlar */}
+        {/* Panelde göreceklerine örnekler */}
         <div className="relative mx-auto mt-16 hidden max-w-3xl items-center justify-center gap-6 sm:flex">
           {[
             { icon: ClipboardList, label: "5 ödev teslim edildi", delay: "0s" },
@@ -191,17 +218,52 @@ export default function LandingPage() {
             </div>
           ))}
         </div>
+        <p className="animate-fade-in mt-6 hidden text-xs text-muted-foreground sm:block">
+          Panelinde bu tür özet kartları ve bildirimlerle karşılaşacaksın.
+        </p>
       </section>
 
-      {/* Özellikler */}
-      <section id="ozellikler" className="mx-auto max-w-6xl scroll-mt-20 px-4 pb-20 sm:pb-28">
+      {/* Hızlı başlangıç */}
+      <section
+        id="hizli-baslangic"
+        className="mx-auto max-w-6xl scroll-mt-20 px-4 pb-20 sm:pb-28"
+      >
         <Reveal className="mx-auto mb-12 max-w-2xl text-center">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            İhtiyacın olan her şey <span className="gradient-text">tek yerde</span>
+            Üç adımda <span className="gradient-text">başla</span>
           </h2>
           <p className="mt-3 text-muted-foreground">
-            Dağınık mesajlar ve kağıt listeler yerine, ders sürecinin tamamını
-            düzenli tutan altı güçlü modül.
+            Siteye kayıt olma adımı yoktur; hesabını öğretmenin oluşturur ve
+            bilgilerini seninle paylaşır.
+          </p>
+        </Reveal>
+        <div className="grid gap-5 sm:grid-cols-3">
+          {QUICK_START.map((step, i) => (
+            <Reveal key={step.title} delay={i * 110}>
+              <div className="hover-lift group h-full rounded-2xl border bg-card/70 p-6 text-center shadow-sm">
+                <div className="gradient-surface mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl text-white shadow-lg shadow-primary/25 transition-transform duration-300 group-hover:scale-110">
+                  <step.icon className="h-5 w-5" />
+                </div>
+                <h3 className="mb-2 font-semibold">{step.title}</h3>
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  {step.description}
+                </p>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      </section>
+
+      {/* Bölümler ve kullanımları */}
+      <section id="bolumler" className="mx-auto max-w-6xl scroll-mt-20 px-4 pb-20 sm:pb-28">
+        <Reveal className="mx-auto mb-12 max-w-2xl text-center">
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+            Sitedeki <span className="gradient-text">bölümler</span> ve
+            kullanımları
+          </h2>
+          <p className="mt-3 text-muted-foreground">
+            Menüde gördüğün her bölümün ne işe yaradığı ve içinde neler
+            yapabileceğin aşağıda açıklanıyor.
           </p>
         </Reveal>
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -221,18 +283,18 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Nasıl çalışır */}
+      {/* Rol bazlı kullanım rehberi */}
       <section
-        id="nasil-calisir"
+        id="kullanim-rehberi"
         className="mx-auto max-w-6xl scroll-mt-20 px-4 pb-20 sm:pb-28"
       >
         <Reveal className="mx-auto mb-12 max-w-2xl text-center">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Nasıl <span className="gradient-text">çalışır?</span>
+            Rolüne göre <span className="gradient-text">adım adım</span> kullanım
           </h2>
           <p className="mt-3 text-muted-foreground">
-            Her rol için basit ve net bir akış. Giriş yaptığında sistem seni
-            doğrudan kendi paneline yönlendirir.
+            Giriş yaptığında sistem seni rolüne uygun panele yönlendirir.
+            Aşağıdaki adımlar kendi panelinde izleyeceğin sırayı gösterir.
           </p>
         </Reveal>
         <div className="grid gap-5 lg:grid-cols-3">
@@ -263,18 +325,18 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* CTA */}
+      {/* Giriş bölümü */}
       <section className="mx-auto max-w-6xl px-4 pb-20 sm:pb-28">
         <Reveal>
           <div className="gradient-surface animate-gradient relative overflow-hidden rounded-3xl px-6 py-14 text-center text-white shadow-2xl shadow-primary/30 sm:px-12">
             <div className="pointer-events-none absolute -left-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
             <div className="pointer-events-none absolute -bottom-12 -right-8 h-48 w-48 rounded-full bg-white/10 blur-2xl" />
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              Hazırsan hemen başlayalım
+              Kullanmaya başlamak için giriş yap
             </h2>
             <p className="mx-auto mt-3 max-w-xl text-white/85">
-              Öğretmenin sana verdiği hesapla giriş yap; ödevlerin, programın ve
-              deneme sonuçların seni bekliyor.
+              Öğretmeninden aldığın kullanıcı adı ve şifreyle oturum aç. Şifreni
+              unutursan yeni şifreni yine öğretmenin oluşturur.
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
               <Button
@@ -288,8 +350,8 @@ export default function LandingPage() {
                 </Link>
               </Button>
               <div className="flex items-center gap-2 text-sm text-white/85">
-                <CheckCircle2 className="h-4 w-4" />
-                Kurulum gerekmez, tarayıcıdan çalışır
+                <MonitorSmartphone className="h-4 w-4" />
+                Telefon, tablet ve bilgisayar tarayıcısından kullanılır
               </div>
             </div>
           </div>
@@ -301,8 +363,8 @@ export default function LandingPage() {
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 py-8 text-center sm:flex-row sm:text-left">
           <Brand size="sm" />
           <p className="text-xs text-muted-foreground">
-            Ders Takip — ödev, kaynak, takvim, program ve deneme analizi tek
-            platformda.
+            Ders Takip — ödev, kaynak, takvim, çalışma programı ve deneme
+            analizi tek panelde.
           </p>
         </div>
       </footer>
