@@ -1,46 +1,41 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { GraduationCap, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
+import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/page-header";
-import { EmptyState } from "@/components/empty-state";
 import { Button } from "@/components/ui/button";
 import { ExamAnalysisSection } from "@/components/exams/exam-analysis-section";
 import { ExamList } from "@/components/exams/exam-list";
 import { getExamOverview } from "@/lib/exam-analysis";
+import { getEditRequestsForStudent } from "@/lib/exams";
 import { getStudentGrade } from "@/lib/students";
 import { examsEnabledForGrade } from "@/lib/kazanim";
 
-export default async function TeacherStudentExamsPage({
+export default async function ParentStudentExamsPage({
   params,
 }: {
   params: Promise<{ studentId: string }>;
 }) {
+  await requireRole(["parent"]);
   const { studentId } = await params;
   const supabase = await createClient();
 
+  // RLS: veli yalnızca kendi çocuğunun profilini görebilir.
   const { data: student } = await supabase
     .from("profiles")
-    .select("*")
+    .select("full_name")
     .eq("id", studentId)
     .single();
   if (!student) notFound();
 
   const grade = await getStudentGrade(studentId);
-  if (!examsEnabledForGrade(grade)) {
-    return (
-      <>
-        <PageHeader title={student.full_name} description="Deneme Analizi" />
-        <EmptyState
-          icon={GraduationCap}
-          title="Deneme takibi bu sınıf düzeyinde kapalı"
-          description="Deneme takibi yalnızca 7. ve 8. sınıf öğrencileri için aktiftir."
-        />
-      </>
-    );
-  }
+  if (!examsEnabledForGrade(grade)) notFound();
 
-  const overview = await getExamOverview(studentId);
+  const [overview, editRequests] = await Promise.all([
+    getExamOverview(studentId),
+    getEditRequestsForStudent(studentId),
+  ]);
 
   return (
     <>
@@ -49,9 +44,9 @@ export default async function TeacherStudentExamsPage({
         description={`${grade}. sınıf — deneme analizi ve geçmiş denemeler`}
         action={
           <Button asChild>
-            <Link href={`/teacher/exams/${studentId}/new`}>
+            <Link href={`/parent/exams/${studentId}/new`}>
               <Plus className="h-4 w-4" />
-              Yeni Deneme
+              Yeni Deneme Ekle
             </Link>
           </Button>
         }
@@ -61,10 +56,15 @@ export default async function TeacherStudentExamsPage({
 
       <section className="flex flex-col gap-3">
         <h2 className="text-lg font-semibold">Geçmiş Denemeler</h2>
+        <p className="text-sm text-muted-foreground">
+          Girilmiş bir denemede değişiklik veya silme için öğretmene düzenleme
+          talebi gönderebilirsin; onaylandığında düzenleme açılır.
+        </p>
         <ExamList
           exams={overview.exams}
-          detailHrefPrefix={`/teacher/exams/${studentId}`}
-          role="teacher"
+          detailHrefPrefix={`/parent/exams/${studentId}`}
+          role="parent"
+          editRequests={editRequests}
         />
       </section>
     </>

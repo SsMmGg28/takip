@@ -49,6 +49,10 @@ export function CreateAccountDialog({ students }: { students: Profile[] }) {
       setError("Velinin hangi öğrenciye ait olduğunu seçmelisin.");
       return;
     }
+    if (role === "student" && !gradeLevel) {
+      setError("Öğrencinin sınıf düzeyini seçmelisin.");
+      return;
+    }
 
     setLoading(true);
     const res = await fetch("/api/admin/create-user", {
@@ -132,15 +136,21 @@ export function CreateAccountDialog({ students }: { students: Profile[] }) {
 
             {role === "student" && (
               <div className="flex flex-col gap-2">
-                <Label htmlFor="grade_level">Sınıf (opsiyonel)</Label>
-                <Input
-                  id="grade_level"
-                  type="number"
-                  min={5}
-                  max={8}
-                  value={gradeLevel}
-                  onChange={(e) => setGradeLevel(e.target.value)}
-                />
+                <Label>Sınıf düzeyi *</Label>
+                <Select value={gradeLevel} onValueChange={setGradeLevel}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sınıf seç" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="5">5. Sınıf</SelectItem>
+                    <SelectItem value="6">6. Sınıf</SelectItem>
+                    <SelectItem value="7">7. Sınıf</SelectItem>
+                    <SelectItem value="8">8. Sınıf</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Deneme takibi yalnızca 7. ve 8. sınıflar için açılır.
+                </p>
               </div>
             )}
 

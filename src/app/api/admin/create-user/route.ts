@@ -32,6 +32,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Geçersiz bilgi." }, { status: 400 });
   }
 
+  // Öğrenci için sınıf düzeyi zorunlu: 5, 6, 7 veya 8.
+  if (role === "student" && ![5, 6, 7, 8].includes(Number(grade_level))) {
+    return NextResponse.json(
+      { error: "Öğrenci için sınıf düzeyi (5-8) seçilmeli." },
+      { status: 400 },
+    );
+  }
+
   const admin = createAdminClient();
 
   let username = normalizeUsername(full_name);
@@ -80,7 +88,7 @@ export async function POST(request: Request) {
   if (role === "student") {
     await admin.from("student_profiles").insert({
       id: newUserId,
-      grade_level: grade_level ?? null,
+      grade_level: Number(grade_level),
     });
   }
 

@@ -2,7 +2,19 @@ import { DashboardNav, MobileNav } from "@/components/dashboard-nav";
 import { SignOutButton } from "@/components/sign-out-button";
 import { Brand } from "@/components/brand";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { getAccessibleStudents, getStudentGrade, withGrades } from "@/lib/students";
+import { examsEnabledForGrade } from "@/lib/kazanim";
 import type { Profile, Role } from "@/lib/types";
+
+/** Deneme sekmesi yalnızca 7-8. sınıf bağlamında gösterilir. */
+async function shouldShowExams(role: Role, profile: Profile): Promise<boolean> {
+  if (role === "teacher") return true;
+  if (role === "student") {
+    return examsEnabledForGrade(await getStudentGrade(profile.id));
+  }
+  const students = await withGrades(await getAccessibleStudents(profile));
+  return students.some((s) => examsEnabledForGrade(s.grade_level));
+}
 
 const ROLE_LABELS: Record<Role, string> = {
   teacher: "Öğretmen",
@@ -19,7 +31,7 @@ function initials(name: string) {
     .join("");
 }
 
-export function DashboardShell({
+export async function DashboardShell({
   role,
   profile,
   children,
@@ -28,6 +40,8 @@ export function DashboardShell({
   profile: Profile;
   children: React.ReactNode;
 }) {
+  const showExams = await shouldShowExams(role, profile);
+
   return (
     <div className="relative min-h-screen">
       {/* Dekoratif arka plan ışıltıları */}
@@ -60,7 +74,7 @@ export function DashboardShell({
           </div>
         </div>
         <div className="mx-auto hidden max-w-6xl overflow-x-auto px-4 pb-3 sm:block">
-          <DashboardNav role={role} />
+          <DashboardNav role={role} showExams={showExams} />
         </div>
       </header>
 
@@ -68,7 +82,7 @@ export function DashboardShell({
         {children}
       </main>
 
-      <MobileNav role={role} />
+      <MobileNav role={role} showExams={showExams} />
     </div>
   );
 }

@@ -1,6 +1,33 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Profile } from "@/lib/types";
 
+/** Öğrencinin sınıf düzeyini döner (bulunamazsa null). */
+export async function getStudentGrade(studentId: string): Promise<number | null> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("student_profiles")
+    .select("grade_level")
+    .eq("id", studentId)
+    .single();
+  return data?.grade_level ?? null;
+}
+
+export interface StudentWithGrade extends Profile {
+  grade_level: number | null;
+}
+
+/** Profillere sınıf düzeyini ekler. */
+export async function withGrades(students: Profile[]): Promise<StudentWithGrade[]> {
+  if (students.length === 0) return [];
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("student_profiles")
+    .select("id, grade_level")
+    .in("id", students.map((s) => s.id));
+  const gradeById = new Map((data ?? []).map((row) => [row.id, row.grade_level]));
+  return students.map((s) => ({ ...s, grade_level: gradeById.get(s.id) ?? null }));
+}
+
 /** Mevcut kullanıcının görebileceği öğrenci profillerini döner (öğretmen: hepsi, öğrenci: kendisi, veli: çocukları). */
 export async function getAccessibleStudents(profile: Profile): Promise<Profile[]> {
   const supabase = await createClient();

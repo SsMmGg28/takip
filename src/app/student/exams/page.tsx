@@ -1,25 +1,49 @@
+import { GraduationCap } from "lucide-react";
 import { requireRole } from "@/lib/auth";
-import { getExamAnalysis } from "@/lib/exam-analysis";
-import { SubjectNetChart } from "@/components/exams/subject-net-chart";
-import { WeakTopicsTable } from "@/components/exams/weak-topics-table";
+import { PageHeader } from "@/components/page-header";
+import { EmptyState } from "@/components/empty-state";
+import { ExamAnalysisSection } from "@/components/exams/exam-analysis-section";
+import { ExamList } from "@/components/exams/exam-list";
+import { getExamOverview } from "@/lib/exam-analysis";
+import { getStudentGrade } from "@/lib/students";
+import { examsEnabledForGrade } from "@/lib/kazanim";
 
 export default async function StudentExamsPage() {
   const profile = await requireRole(["student"]);
-  const { chartRows, subjects, weakTopics } = await getExamAnalysis(profile.id);
+
+  const grade = await getStudentGrade(profile.id);
+  if (!examsEnabledForGrade(grade)) {
+    return (
+      <>
+        <PageHeader title="Deneme Analizim" />
+        <EmptyState
+          icon={GraduationCap}
+          title="Deneme takibi sınıf düzeyinde kapalı"
+          description="Deneme takibi yalnızca 7. ve 8. sınıf öğrencileri için aktiftir."
+        />
+      </>
+    );
+  }
+
+  const overview = await getExamOverview(profile.id);
 
   return (
-    <div className="flex flex-col gap-8">
-      <h1 className="text-xl font-semibold">Deneme Analizim</h1>
+    <>
+      <PageHeader
+        title="Deneme Analizim"
+        description="Net ve puan gelişimin, kazanım analizin ve geçmiş denemelerin."
+      />
 
-      <section className="flex flex-col gap-2">
-        <h2 className="font-medium text-muted-foreground">Ders Bazlı Net Gelişimi</h2>
-        <SubjectNetChart rows={chartRows} subjects={subjects} />
-      </section>
+      <ExamAnalysisSection overview={overview} studentId={profile.id} />
 
-      <section className="flex flex-col gap-2">
-        <h2 className="font-medium text-muted-foreground">En Zayıf Konular</h2>
-        <WeakTopicsTable topics={weakTopics} />
+      <section className="flex flex-col gap-3">
+        <h2 className="text-lg font-semibold">Geçmiş Denemelerim</h2>
+        <ExamList
+          exams={overview.exams}
+          detailHrefPrefix="/student/exams"
+          role="student"
+        />
       </section>
-    </div>
+    </>
   );
 }

@@ -12,7 +12,7 @@ export interface Profile {
 
 export interface StudentProfile {
   id: string;
-  grade_level: number | null;
+  grade_level: number;
   notes: string | null;
 }
 
@@ -126,6 +126,7 @@ export interface Exam {
   student_id: string;
   exam_name: string;
   exam_date: string;
+  score: number | null;
   created_by: string;
   created_at: string;
 }
@@ -139,11 +140,25 @@ export interface ExamSubject {
   blank_count: number;
 }
 
-export interface ExamTopic {
+export interface ExamKazanimResult {
   id: string;
   exam_subject_id: string;
-  topic_name: string;
+  kazanim_code: string;
+  kazanim_name: string;
   correct_count: number;
   incorrect_count: number;
   blank_count: number;
+}
+
+export type ExamEditRequestStatus = "pending" | "approved" | "rejected" | "used";
+
+export interface ExamEditRequest {
+  id: string;
+  exam_id: string;
+  requested_by: string;
+  reason: string | null;
+  status: ExamEditRequestStatus;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  created_at: string;
 }

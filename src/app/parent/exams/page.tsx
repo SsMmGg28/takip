@@ -1,37 +1,40 @@
+import { redirect } from "next/navigation";
+import { GraduationCap } from "lucide-react";
 import { requireRole } from "@/lib/auth";
-import { getAccessibleStudents } from "@/lib/students";
-import { getExamAnalysis } from "@/lib/exam-analysis";
-import { SubjectNetChart } from "@/components/exams/subject-net-chart";
-import { WeakTopicsTable } from "@/components/exams/weak-topics-table";
+import { getAccessibleStudents, withGrades } from "@/lib/students";
+import { examsEnabledForGrade } from "@/lib/kazanim";
+import { PageHeader } from "@/components/page-header";
+import { EmptyState } from "@/components/empty-state";
+import { StudentPickerGrid } from "@/components/student-picker-grid";
 
 export default async function ParentExamsPage() {
   const profile = await requireRole(["parent"]);
   const students = await getAccessibleStudents(profile);
+  const eligible = (await withGrades(students)).filter((s) =>
+    examsEnabledForGrade(s.grade_level),
+  );
+
+  if (eligible.length === 1) redirect(`/parent/exams/${eligible[0].id}`);
 
   return (
-    <div className="flex flex-col gap-12">
-      <h1 className="text-xl font-semibold">Deneme Analizi</h1>
-      {students.length === 0 && (
-        <p className="text-muted-foreground">Eşleştirilmiş öğrenci bulunamadı.</p>
+    <>
+      <PageHeader
+        title="Deneme Analizi"
+        description="Analiz görmek veya deneme eklemek için öğrenci seç."
+      />
+      {eligible.length ? (
+        <StudentPickerGrid
+          students={eligible}
+          hrefPrefix="/parent/exams"
+          ctaLabel="Denemeleri görüntüle"
+        />
+      ) : (
+        <EmptyState
+          icon={GraduationCap}
+          title="Deneme takibi aktif değil"
+          description="Deneme takibi yalnızca 7. ve 8. sınıf öğrencileri için aktiftir."
+        />
       )}
-      {await Promise.all(
-        students.map(async (student) => {
-          const { chartRows, subjects, weakTopics } = await getExamAnalysis(student.id);
-          return (
-            <section key={student.id} className="flex flex-col gap-6">
-              <h2 className="text-lg font-semibold">{student.full_name}</h2>
-              <div className="flex flex-col gap-2">
-                <h3 className="font-medium text-muted-foreground">Ders Bazlı Net Gelişimi</h3>
-                <SubjectNetChart rows={chartRows} subjects={subjects} />
-              </div>
-              <div className="flex flex-col gap-2">
-                <h3 className="font-medium text-muted-foreground">En Zayıf Konular</h3>
-                <WeakTopicsTable topics={weakTopics} />
-              </div>
-            </section>
-          );
-        }),
-      )}
-    </div>
+    </>
   );
 }
