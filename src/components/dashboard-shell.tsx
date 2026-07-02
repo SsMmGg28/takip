@@ -55,14 +55,18 @@ export async function DashboardShell({
 
       <header className="glass sticky top-0 z-30 border-b">
         <span className="gradient-surface block h-0.5" />
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-3 py-2.5 sm:gap-3 sm:px-4 sm:py-3">
           <Brand size="sm" />
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="flex items-center gap-2 rounded-full border bg-card/60 py-1 pl-1 pr-3 shadow-sm">
-              <span className="gradient-surface flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-semibold text-white">
+          <div className="flex items-center gap-1.5 sm:gap-3">
+            {/* Kullanıcı rozeti: mobilde yalnızca avatar, sm+ ekranda ad/rol de görünür */}
+            <div
+              className="flex items-center gap-2 rounded-full border bg-card/60 p-1 shadow-sm sm:pr-3"
+              title={`${profile.full_name} — ${ROLE_LABELS[role]}`}
+            >
+              <span className="gradient-surface flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold text-white">
                 {initials(profile.full_name)}
               </span>
-              <span className="max-w-28 truncate text-xs leading-tight sm:max-w-48 sm:text-sm">
+              <span className="hidden max-w-48 truncate text-xs leading-tight sm:block sm:text-sm">
                 <span className="block truncate font-medium">{profile.full_name}</span>
                 <span className="block text-[10px] text-muted-foreground sm:text-xs">
                   {ROLE_LABELS[role]}
