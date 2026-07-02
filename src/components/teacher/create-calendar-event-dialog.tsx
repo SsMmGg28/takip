@@ -53,7 +53,7 @@ export function CreateCalendarEventDialog({ students }: { students: Profile[] })
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="lesson">Özel ders saati</SelectItem>
+                <SelectItem value="lesson">Ders saati</SelectItem>
                 <SelectItem value="reminder">Genel hatırlatma</SelectItem>
               </SelectContent>
             </Select>

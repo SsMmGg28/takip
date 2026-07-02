@@ -12,16 +12,18 @@ export function EmptyState({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed bg-muted/30 p-10 text-center">
+    <div className="animate-scale-in flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed bg-muted/30 p-10 text-center sm:p-14">
       {Icon && (
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-accent text-accent-foreground">
-          <Icon className="h-5 w-5" />
+        <div className="animate-float gradient-surface flex h-14 w-14 items-center justify-center rounded-2xl text-white shadow-lg shadow-primary/20">
+          <Icon className="h-6 w-6" />
         </div>
       )}
       <div className="space-y-1">
-        <p className="font-medium">{title}</p>
+        <p className="font-semibold">{title}</p>
         {description && (
-          <p className="text-sm text-muted-foreground">{description}</p>
+          <p className="mx-auto max-w-sm text-sm text-muted-foreground">
+            {description}
+          </p>
         )}
       </div>
       {action}

@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, LogIn } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { usernameToEmail } from "@/lib/username";
 import { Button } from "@/components/ui/button";
@@ -43,17 +44,40 @@ export default function LoginPage() {
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden p-4">
-      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,_var(--accent),_transparent_55%)]" />
-      <div className="absolute right-4 top-4">
+      {/* Animasyonlu arka plan blobları */}
+      <div className="pointer-events-none absolute inset-0 -z-10">
+        <div className="animate-blob absolute -top-24 -left-24 h-96 w-96 rounded-full bg-primary/15 blur-3xl" />
+        <div
+          className="animate-blob absolute -bottom-24 -right-24 h-96 w-96 rounded-full bg-brand-to/15 blur-3xl"
+          style={{ animationDelay: "-6s" }}
+        />
+        <div
+          className="animate-blob absolute left-1/2 top-1/3 h-72 w-72 -translate-x-1/2 rounded-full bg-brand-via/10 blur-3xl"
+          style={{ animationDelay: "-11s" }}
+        />
+      </div>
+
+      <div className="absolute left-4 top-4 animate-fade-in">
+        <Button variant="ghost" size="sm" asChild>
+          <Link href="/">
+            <ArrowLeft className="h-4 w-4" />
+            Ana sayfa
+          </Link>
+        </Button>
+      </div>
+      <div className="absolute right-4 top-4 animate-fade-in">
         <ThemeToggle />
       </div>
+
       <div className="w-full max-w-sm animate-fade-up">
         <div className="mb-6 flex justify-center">
           <Brand size="lg" />
         </div>
-        <Card className="border-border/60 shadow-lg shadow-primary/5">
+        <Card className="glass border-border/60 shadow-2xl shadow-primary/10">
           <CardHeader>
-            <h1 className="text-xl font-semibold">Giriş Yap</h1>
+            <h1 className="text-2xl font-bold tracking-tight">
+              Tekrar <span className="gradient-text">hoş geldin</span>
+            </h1>
             <p className="text-sm text-muted-foreground">
               Öğretmen, öğrenci veya veli hesabınla devam et.
             </p>
@@ -83,12 +107,16 @@ export default function LoginPage() {
                 />
               </div>
               {error && (
-                <p className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+                <p className="animate-scale-in rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
                   {error}
                 </p>
               )}
-              <Button type="submit" disabled={loading} className="w-full">
-                {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+              <Button type="submit" disabled={loading} className="w-full" size="lg">
+                {loading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <LogIn className="h-4 w-4" />
+                )}
                 {loading ? "Giriş yapılıyor..." : "Giriş Yap"}
               </Button>
             </form>

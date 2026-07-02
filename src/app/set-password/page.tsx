@@ -57,21 +57,29 @@ export default function SetPasswordPage() {
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden p-4">
-      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,_var(--accent),_transparent_55%)]" />
-      <div className="absolute right-4 top-4">
+      <div className="pointer-events-none absolute inset-0 -z-10">
+        <div className="animate-blob absolute -top-24 -left-24 h-96 w-96 rounded-full bg-primary/15 blur-3xl" />
+        <div
+          className="animate-blob absolute -bottom-24 -right-24 h-96 w-96 rounded-full bg-brand-to/15 blur-3xl"
+          style={{ animationDelay: "-6s" }}
+        />
+      </div>
+      <div className="absolute right-4 top-4 animate-fade-in">
         <ThemeToggle />
       </div>
       <div className="w-full max-w-sm animate-fade-up">
         <div className="mb-6 flex justify-center">
           <Brand size="lg" />
         </div>
-        <Card className="border-border/60 shadow-lg shadow-primary/5">
+        <Card className="glass border-border/60 shadow-2xl shadow-primary/10">
           <CardHeader>
-            <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-accent text-accent-foreground">
+            <div className="flex items-center gap-2.5">
+              <div className="gradient-surface flex h-9 w-9 items-center justify-center rounded-xl text-white shadow-md shadow-primary/25">
                 <ShieldCheck className="h-4 w-4" />
               </div>
-              <h1 className="text-xl font-semibold">Yeni Şifre Belirle</h1>
+              <h1 className="text-xl font-bold tracking-tight">
+                Yeni <span className="gradient-text">Şifre</span> Belirle
+              </h1>
             </div>
             <p className="mt-2 text-sm text-muted-foreground">
               Hesabını güvenceye almak için geçici şifreni değiştirmen gerekiyor.

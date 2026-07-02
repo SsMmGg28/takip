@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Özel Ders Takip",
+  title: "Ders Takip",
   description: "Ödev, kaynak, takvim, çalışma programı ve deneme takip sistemi",
 };
 

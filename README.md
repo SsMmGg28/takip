@@ -1,4 +1,4 @@
-# Özel Ders Takip Sistemi
+# Ders Takip Sistemi
 
 Ödev takibi, kaynak kitap takibi, takvim, çalışma programı ve deneme analizi için
 öğretmen/öğrenci/veli rolleriyle çalışan bir takip uygulaması. Detaylar için proje
