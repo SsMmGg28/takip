@@ -3,47 +3,61 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ─── Renk sistemi: mavi tonları — lacivertten gök mavisine ─── */
 :root {
-  --radius: 0.75rem;
-  --background: oklch(0.99 0.005 250);
-  --foreground: oklch(0.18 0.02 250);
+  --radius: 1rem;
+  --background: oklch(0.985 0.006 240);
+  --foreground: oklch(0.2 0.03 248);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0.02 250);
+  --card-foreground: oklch(0.2 0.03 248);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0.02 250);
-  --primary: oklch(0.52 0.18 260);
+  --popover-foreground: oklch(0.2 0.03 248);
+  --primary: oklch(0.52 0.19 252);
   --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.96 0.015 250);
-  --secondary-foreground: oklch(0.25 0.03 260);
-  --muted: oklch(0.965 0.012 250);
-  --muted-foreground: oklch(0.5 0.02 250);
-  --accent: oklch(0.95 0.04 260);
-  --accent-foreground: oklch(0.3 0.1 260);
+  --secondary: oklch(0.955 0.02 245);
+  --secondary-foreground: oklch(0.32 0.06 250);
+  --muted: oklch(0.96 0.012 240);
+  --muted-foreground: oklch(0.5 0.025 245);
+  --accent: oklch(0.94 0.045 248);
+  --accent-foreground: oklch(0.36 0.12 252);
   --destructive: oklch(0.58 0.23 25);
-  --border: oklch(0.91 0.012 250);
-  --input: oklch(0.91 0.012 250);
-  --ring: oklch(0.6 0.15 260);
+  --border: oklch(0.9 0.015 244);
+  --input: oklch(0.9 0.015 244);
+  --ring: oklch(0.58 0.17 252);
+  /* Marka gradyanı ve ek vurgular: mavi → gök mavisi → turkuaz */
+  --brand-from: oklch(0.5 0.19 258);
+  --brand-via: oklch(0.58 0.17 240);
+  --brand-to: oklch(0.68 0.13 215);
+  --glow: oklch(0.52 0.19 252 / 22%);
+  --success: oklch(0.62 0.17 155);
+  --warning: oklch(0.75 0.16 75);
 }
 
 .dark {
-  --background: oklch(0.17 0.02 260);
-  --foreground: oklch(0.97 0.005 250);
-  --card: oklch(0.22 0.025 260);
-  --card-foreground: oklch(0.97 0.005 250);
-  --popover: oklch(0.22 0.025 260);
-  --popover-foreground: oklch(0.97 0.005 250);
-  --primary: oklch(0.7 0.18 260);
-  --primary-foreground: oklch(0.15 0.05 260);
-  --secondary: oklch(0.27 0.03 260);
-  --secondary-foreground: oklch(0.95 0.01 250);
-  --muted: oklch(0.25 0.025 260);
-  --muted-foreground: oklch(0.7 0.02 250);
-  --accent: oklch(0.3 0.06 260);
-  --accent-foreground: oklch(0.92 0.03 260);
-  --destructive: oklch(0.65 0.22 22);
+  --background: oklch(0.15 0.028 250);
+  --foreground: oklch(0.96 0.008 240);
+  --card: oklch(0.2 0.032 250);
+  --card-foreground: oklch(0.96 0.008 240);
+  --popover: oklch(0.21 0.032 250);
+  --popover-foreground: oklch(0.96 0.008 240);
+  --primary: oklch(0.68 0.16 250);
+  --primary-foreground: oklch(0.14 0.05 252);
+  --secondary: oklch(0.26 0.035 250);
+  --secondary-foreground: oklch(0.94 0.015 244);
+  --muted: oklch(0.24 0.03 250);
+  --muted-foreground: oklch(0.7 0.025 244);
+  --accent: oklch(0.3 0.06 250);
+  --accent-foreground: oklch(0.9 0.05 245);
+  --destructive: oklch(0.66 0.21 22);
   --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 12%);
-  --ring: oklch(0.6 0.18 260);
+  --input: oklch(1 0 0 / 13%);
+  --ring: oklch(0.64 0.16 250);
+  --brand-from: oklch(0.62 0.17 256);
+  --brand-via: oklch(0.68 0.15 238);
+  --brand-to: oklch(0.74 0.12 212);
+  --glow: oklch(0.64 0.17 250 / 30%);
+  --success: oklch(0.7 0.15 155);
+  --warning: oklch(0.8 0.14 80);
 }
 
 @theme inline {
@@ -65,10 +79,16 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --color-brand-from: var(--brand-from);
+  --color-brand-via: var(--brand-via);
+  --color-brand-to: var(--brand-to);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --radius-sm: calc(var(--radius) - 6px);
+  --radius-md: calc(var(--radius) - 4px);
+  --radius-lg: calc(var(--radius) - 2px);
+  --radius-xl: var(--radius);
+  --radius-2xl: calc(var(--radius) + 6px);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -76,27 +96,78 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  transition: background-color 200ms ease, color 200ms ease;
+  transition: background-color 250ms ease, color 250ms ease;
 }
 
 @layer base {
   * {
     border-color: var(--border);
   }
+  ::selection {
+    background: color-mix(in oklch, var(--primary) 25%, transparent);
+  }
   button,
   a,
   [role="button"] {
-    transition-property: color, background-color, border-color, box-shadow, transform, opacity;
-    transition-duration: 150ms;
+    transition-property: color, background-color, border-color, box-shadow,
+      transform, opacity, filter;
+    transition-duration: 180ms;
     transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+  }
+  html {
+    scroll-behavior: smooth;
   }
 }
 
-/* Sayfa girişi: yukarıdan yumuşak fade-up */
+/* ─── Yardımcı sınıflar ─── */
+
+/* Marka gradyanlı metin */
+.gradient-text {
+  background-image: linear-gradient(
+    100deg,
+    var(--brand-from),
+    var(--brand-via) 50%,
+    var(--brand-to)
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+/* Marka gradyanlı yüzey (logo kutusu, ikon rozetleri, CTA) */
+.gradient-surface {
+  background-image: linear-gradient(
+    135deg,
+    var(--brand-from),
+    var(--brand-via) 55%,
+    var(--brand-to)
+  );
+}
+
+/* Buzlu cam yüzey */
+.glass {
+  background: color-mix(in oklch, var(--background) 72%, transparent);
+  backdrop-filter: blur(14px) saturate(1.4);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
+}
+
+/* Hover'da yumuşak yükselme + parıltı */
+.hover-lift {
+  transition: transform 220ms cubic-bezier(0.2, 0, 0, 1),
+    box-shadow 220ms cubic-bezier(0.2, 0, 0, 1),
+    border-color 220ms cubic-bezier(0.2, 0, 0, 1);
+}
+.hover-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px -8px var(--glow);
+}
+
+/* ─── Keyframe kütüphanesi ─── */
+
 @keyframes fade-up {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(14px);
   }
   to {
     opacity: 1;
@@ -104,39 +175,266 @@ body {
   }
 }
 .animate-fade-up {
-  animation: fade-up 280ms cubic-bezier(0.2, 0, 0, 1) both;
+  animation: fade-up 420ms cubic-bezier(0.2, 0, 0, 1) both;
 }
 
-/* Pop: küçük büyüme — test grid buton işaretlenince */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.animate-fade-in {
+  animation: fade-in 500ms ease both;
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.animate-scale-in {
+  animation: scale-in 320ms cubic-bezier(0.2, 0, 0, 1) both;
+}
+
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+.animate-slide-in-left {
+  animation: slide-in-left 420ms cubic-bezier(0.2, 0, 0, 1) both;
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+.animate-slide-in-right {
+  animation: slide-in-right 420ms cubic-bezier(0.2, 0, 0, 1) both;
+}
+
+/* Pop: test grid butonu işaretlenince küçük büyüme */
 @keyframes pop {
   0% {
     transform: scale(1);
   }
   50% {
-    transform: scale(1.12);
+    transform: scale(1.14);
   }
   100% {
     transform: scale(1);
   }
 }
 .animate-pop {
-  animation: pop 220ms cubic-bezier(0.2, 0, 0, 1) both;
+  animation: pop 240ms cubic-bezier(0.2, 0, 0, 1) both;
 }
 
-/* Liste içindeki kartlar için kademeli fade-up */
-.stagger > * {
-  animation: fade-up 300ms cubic-bezier(0.2, 0, 0, 1) both;
+/* Sürekli hafif süzülme — landing ikonları, boş durum görselleri */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
 }
-.stagger > *:nth-child(1)  { animation-delay: 0ms; }
-.stagger > *:nth-child(2)  { animation-delay: 40ms; }
-.stagger > *:nth-child(3)  { animation-delay: 80ms; }
-.stagger > *:nth-child(4)  { animation-delay: 120ms; }
-.stagger > *:nth-child(5)  { animation-delay: 160ms; }
-.stagger > *:nth-child(6)  { animation-delay: 200ms; }
-.stagger > *:nth-child(7)  { animation-delay: 240ms; }
-.stagger > *:nth-child(8)  { animation-delay: 280ms; }
-.stagger > *:nth-child(9)  { animation-delay: 320ms; }
-.stagger > *:nth-child(n+10) { animation-delay: 360ms; }
+.animate-float {
+  animation: float 5s ease-in-out infinite;
+}
+
+/* Arka plan bloblarının organik hareketi */
+@keyframes blob {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(26px, -34px) scale(1.08);
+  }
+  66% {
+    transform: translate(-22px, 22px) scale(0.94);
+  }
+}
+.animate-blob {
+  animation: blob 16s ease-in-out infinite;
+}
+
+/* Gradyan renklerinin akması — hero başlığı, CTA */
+@keyframes gradient-shift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+.animate-gradient {
+  background-size: 220% 220%;
+  animation: gradient-shift 7s ease-in-out infinite;
+}
+
+/* Nabız gibi yayılan halka — canlı/aktif göstergeleri */
+@keyframes ping-soft {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  80%,
+  100% {
+    transform: scale(2.1);
+    opacity: 0;
+  }
+}
+.animate-ping-soft {
+  animation: ping-soft 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+/* Parıltı süpürmesi — yükleme iskeletleri */
+@keyframes shimmer {
+  from {
+    background-position: -200% 0;
+  }
+  to {
+    background-position: 200% 0;
+  }
+}
+.animate-shimmer {
+  background-image: linear-gradient(
+    100deg,
+    transparent 30%,
+    color-mix(in oklch, var(--foreground) 7%, transparent) 50%,
+    transparent 70%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+}
+
+/* ─── "Yapay zeka düşünüyor" animasyonu (kazanım analizi) ─── */
+
+/* Merkez kürenin nabzı */
+@keyframes pulse-core {
+  0%,
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  50% {
+    transform: scale(1.14);
+    filter: brightness(1.25);
+  }
+}
+.animate-pulse-core {
+  animation: pulse-core 1.6s ease-in-out infinite;
+}
+
+/* Küre etrafında dönen parçacıklar */
+@keyframes orbit {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+.animate-orbit {
+  animation: orbit 3s linear infinite;
+}
+
+/* Dışa doğru genişleyip kaybolan halkalar */
+@keyframes ring-expand {
+  0% {
+    transform: scale(0.5);
+    opacity: 0.55;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+.animate-ring-expand {
+  animation: ring-expand 2.2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+/* Alt navigasyonun yukarı kayarak gelişi (mobil) */
+@keyframes rise {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+.animate-rise {
+  animation: rise 380ms cubic-bezier(0.2, 0, 0, 1) both;
+}
+
+/* ─── Kademeli giriş (stagger) ─── */
+.stagger > * {
+  animation: fade-up 380ms cubic-bezier(0.2, 0, 0, 1) both;
+}
+.stagger > *:nth-child(1) {
+  animation-delay: 0ms;
+}
+.stagger > *:nth-child(2) {
+  animation-delay: 50ms;
+}
+.stagger > *:nth-child(3) {
+  animation-delay: 100ms;
+}
+.stagger > *:nth-child(4) {
+  animation-delay: 150ms;
+}
+.stagger > *:nth-child(5) {
+  animation-delay: 200ms;
+}
+.stagger > *:nth-child(6) {
+  animation-delay: 250ms;
+}
+.stagger > *:nth-child(7) {
+  animation-delay: 300ms;
+}
+.stagger > *:nth-child(8) {
+  animation-delay: 350ms;
+}
+.stagger > *:nth-child(9) {
+  animation-delay: 400ms;
+}
+.stagger > *:nth-child(n + 10) {
+  animation-delay: 450ms;
+}
+
+/* ─── Scroll ile görünürlük (landing) ─── */
+.reveal {
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity 650ms cubic-bezier(0.2, 0, 0, 1),
+    transform 650ms cubic-bezier(0.2, 0, 0, 1);
+}
+.reveal.reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
 
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -145,5 +443,12 @@ body {
     animation-duration: 0ms !important;
     animation-delay: 0ms !important;
     transition-duration: 0ms !important;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+  .reveal {
+    opacity: 1;
+    transform: none;
   }
 }

@@ -1,18 +1,15 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { GraduationCap, Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { PageHeader } from "@/components/page-header";
+import { EmptyState } from "@/components/empty-state";
 import { Button } from "@/components/ui/button";
-import { CreateExamDialog } from "@/components/teacher/create-exam-dialog";
-import { deleteExam } from "@/app/teacher/exams/actions";
-import type { Exam } from "@/lib/types";
+import { ExamAnalysisSection } from "@/components/exams/exam-analysis-section";
+import { ExamList } from "@/components/exams/exam-list";
+import { getExamOverview } from "@/lib/exam-analysis";
+import { getStudentGrade } from "@/lib/students";
+import { examsEnabledForGrade } from "@/lib/kazanim";
 
 export default async function TeacherStudentExamsPage({
   params,
@@ -27,62 +24,49 @@ export default async function TeacherStudentExamsPage({
     .select("*")
     .eq("id", studentId)
     .single();
-
   if (!student) notFound();
 
-  const { data: exams } = await supabase
-    .from("exams")
-    .select("*")
-    .eq("student_id", studentId)
-    .order("exam_date", { ascending: false });
+  const grade = await getStudentGrade(studentId);
+  if (!examsEnabledForGrade(grade)) {
+    return (
+      <>
+        <PageHeader title={student.full_name} description="Deneme Analizi" />
+        <EmptyState
+          icon={GraduationCap}
+          title="Deneme takibi bu sınıf düzeyinde kapalı"
+          description="Deneme takibi yalnızca 7. ve 8. sınıf öğrencileri için aktiftir."
+        />
+      </>
+    );
+  }
+
+  const overview = await getExamOverview(studentId);
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">{student.full_name} — Denemeler</h1>
-        <CreateExamDialog studentId={studentId} />
-      </div>
+    <>
+      <PageHeader
+        title={student.full_name}
+        description={`${grade}. sınıf — deneme analizi ve geçmiş denemeler`}
+        action={
+          <Button asChild>
+            <Link href={`/teacher/exams/${studentId}/new`}>
+              <Plus className="h-4 w-4" />
+              Yeni Deneme
+            </Link>
+          </Button>
+        }
+      />
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Deneme adı</TableHead>
-            <TableHead>Tarih</TableHead>
-            <TableHead className="text-right">İşlem</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {((exams as Exam[]) ?? []).map((exam) => (
-            <TableRow key={exam.id}>
-              <TableCell>
-                <Link
-                  href={`/teacher/exams/${studentId}/${exam.id}`}
-                  className="font-medium underline"
-                >
-                  {exam.exam_name}
-                </Link>
-              </TableCell>
-              <TableCell>{exam.exam_date}</TableCell>
-              <TableCell className="text-right">
-                <form action={deleteExam}>
-                  <input type="hidden" name="id" value={exam.id} />
-                  <input type="hidden" name="student_id" value={studentId} />
-                  <Button type="submit" variant="ghost" size="sm" className="text-destructive">
-                    Sil
-                  </Button>
-                </form>
-              </TableCell>
-            </TableRow>
-          ))}
-          {!exams?.length && (
-            <TableRow>
-              <TableCell colSpan={3} className="text-center text-muted-foreground">
-                Henüz deneme eklenmedi.
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-    </div>
+      <ExamAnalysisSection overview={overview} studentId={studentId} />
+
+      <section className="flex flex-col gap-3">
+        <h2 className="text-lg font-semibold">Geçmiş Denemeler</h2>
+        <ExamList
+          exams={overview.exams}
+          detailHrefPrefix={`/teacher/exams/${studentId}`}
+          role="teacher"
+        />
+      </section>
+    </>
   );
 }

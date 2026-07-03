@@ -1,4 +1,4 @@
-import { GraduationCap } from "lucide-react";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 export function Brand({
@@ -9,24 +9,37 @@ export function Brand({
   className?: string;
 }) {
   const dimensions = {
-    sm: { box: "h-7 w-7", icon: "h-4 w-4", text: "text-sm" },
-    md: { box: "h-9 w-9", icon: "h-5 w-5", text: "text-base" },
-    lg: { box: "h-12 w-12", icon: "h-6 w-6", text: "text-lg" },
+    sm: { box: 32, text: "text-sm" },
+    md: { box: 40, text: "text-base" },
+    lg: { box: 56, text: "text-xl" },
   }[size];
 
   return (
-    <div className={cn("flex items-center gap-2.5", className)}>
+    <div className={cn("group flex items-center gap-2.5", className)}>
       <div
-        className={cn(
-          "flex items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm",
-          dimensions.box,
-        )}
+        className="relative shrink-0 transition-transform duration-300 group-hover:scale-105 group-hover:rotate-3"
+        style={{ width: dimensions.box, height: dimensions.box }}
       >
-        <GraduationCap className={dimensions.icon} />
+        <Image
+          src="/logo-light.png"
+          alt="Ders Takip logosu"
+          fill
+          sizes={`${dimensions.box}px`}
+          className="object-contain dark:hidden"
+          priority
+        />
+        <Image
+          src="/logo-dark.png"
+          alt="Ders Takip logosu"
+          fill
+          sizes={`${dimensions.box}px`}
+          className="hidden object-contain dark:block"
+          priority
+        />
       </div>
       <div className="leading-tight">
-        <p className={cn("font-semibold tracking-tight", dimensions.text)}>
-          Özel Ders Takip
+        <p className={cn("font-bold tracking-tight", dimensions.text)}>
+          Ders <span className="gradient-text">Takip</span>
         </p>
         {size !== "sm" && (
           <p className="text-xs text-muted-foreground">Öğrenci yönetim sistemi</p>

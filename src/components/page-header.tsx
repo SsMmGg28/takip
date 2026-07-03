@@ -8,14 +8,15 @@ export function PageHeader({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-wrap items-start justify-between gap-3 border-b pb-4">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+    <div className="animate-slide-in-left flex flex-wrap items-start justify-between gap-3 pb-1">
+      <div className="relative">
+        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{title}</h1>
         {description && (
-          <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+          <p className="mt-1.5 text-sm text-muted-foreground">{description}</p>
         )}
+        <span className="gradient-surface mt-3 block h-1 w-14 rounded-full" />
       </div>
-      {action && <div className="shrink-0">{action}</div>}
+      {action && <div className="shrink-0 animate-scale-in">{action}</div>}
     </div>
   );
 }

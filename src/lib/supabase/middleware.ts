@@ -27,7 +27,10 @@ export async function updateSession(request: NextRequest) {
 
   const { data: userData } = await supabase.auth.getUser();
   const pathname = request.nextUrl.pathname;
-  const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
+  // "/" landing sayfası herkese açık; startsWith ile eşleştirilirse tüm yollar
+  // public sayılacağından ayrıca tam eşleşme olarak kontrol ediliyor.
+  const isPublic =
+    pathname === "/" || PUBLIC_PATHS.some((p) => pathname.startsWith(p));
   const isApiRoute = pathname.startsWith("/api/");
 
   // API route'lar kendi auth/rol kontrolünü route handler içinde yapıyor.

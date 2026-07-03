@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { Moon, Sun, Monitor } from "lucide-react";
 import { useTheme } from "next-themes";
 import {
@@ -12,27 +11,16 @@ import {
 import { Button } from "@/components/ui/button";
 
 export function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
+  const { setTheme } = useTheme();
 
-  useEffect(() => setMounted(true), []);
-
-  // Hydration uyumsuzluğunu önlemek için ilk render'da boş bir buton göster
+  // Aktif ikon .dark sınıfına göre tamamen CSS ile seçilir; böylece sunucu ve
+  // istemci aynı çıktıyı üretir, mounted state'e gerek kalmaz.
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="icon" aria-label="Temayı değiştir">
-          {mounted ? (
-            theme === "dark" ? (
-              <Moon className="h-4 w-4" />
-            ) : theme === "light" ? (
-              <Sun className="h-4 w-4" />
-            ) : (
-              <Monitor className="h-4 w-4" />
-            )
-          ) : (
-            <Sun className="h-4 w-4 opacity-0" />
-          )}
+        <Button variant="outline" size="icon" aria-label="Temayı değiştir" className="relative">
+          <Sun className="h-4 w-4 scale-100 rotate-0 transition-all duration-300 dark:scale-0 dark:-rotate-90" />
+          <Moon className="absolute h-4 w-4 scale-0 rotate-90 transition-all duration-300 dark:scale-100 dark:rotate-0" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
