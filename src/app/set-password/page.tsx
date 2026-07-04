@@ -43,15 +43,21 @@ export default function SetPasswordPage() {
       return;
     }
 
+    // Rolü çekip doğrudan panele gidiyoruz; "/" üzerinden gitmek middleware'de
+    // fazladan bir yönlendirme turu demekti. Profil okunamazsa "/" middleware
+    // tarafından çözülür. Buton yönlendirme bitene kadar dönmeye devam eder.
+    let role: string | null = null;
     if (userData.user) {
-      await supabase
+      const { data: profile } = await supabase
         .from("profiles")
         .update({ must_change_password: false })
-        .eq("id", userData.user.id);
+        .eq("id", userData.user.id)
+        .select("role")
+        .single();
+      role = profile?.role ?? null;
     }
 
-    setLoading(false);
-    router.push("/");
+    router.push(role ? `/${role}` : "/");
     router.refresh();
   }
 

@@ -1,8 +1,11 @@
+import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { Profile, Role } from "@/lib/types";
 
-export async function getCurrentProfile(): Promise<Profile | null> {
+// cache(): aynı istek içinde layout ve sayfa requireRole()'ü ayrı ayrı çağırdığında
+// getUser + profiles sorguları bir kez çalışır.
+export const getCurrentProfile = cache(async (): Promise<Profile | null> => {
   const supabase = await createClient();
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) return null;
@@ -14,7 +17,7 @@ export async function getCurrentProfile(): Promise<Profile | null> {
     .single();
 
   return profile as Profile | null;
-}
+});
 
 /** Sayfa düzeyinde rol koruması. Beklenen rollerden biri değilse uygun yere yönlendirir. */
 export async function requireRole(allowed: Role[]): Promise<Profile> {
