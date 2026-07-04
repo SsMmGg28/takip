@@ -1,29 +1,35 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Trash2 } from "lucide-react";
+import { Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { Card, CardContent } from "@/components/ui/card";
+import { requireRole } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
-import { SectionForm } from "@/components/resources/section-form";
-import { deleteBookSection, deleteBook } from "@/lib/actions/resources";
-import type { ResourceBookSection } from "@/lib/types";
+import { SectionManager } from "@/components/resources/section-manager";
+import { DeleteBookButton } from "@/components/resources/delete-book-button";
+import { BookApprovalActions } from "@/components/resources/book-approval-actions";
+import { updateBook } from "@/lib/actions/resources";
+import { getBookStudents } from "@/lib/books";
+import type { ResourceBook, ResourceBookSection } from "@/lib/types";
 
 export default async function TeacherBookDetailPage({
   params,
 }: {
   params: Promise<{ bookId: string }>;
 }) {
+  await requireRole(["teacher"]);
   const { bookId } = await params;
   const supabase = await createClient();
 
-  const { data: book } = await supabase
+  const { data: bookRow } = await supabase
     .from("resource_books")
     .select("*")
     .eq("id", bookId)
     .single();
-  if (!book) notFound();
+  if (!bookRow) notFound();
+  const book = bookRow as ResourceBook;
 
   const { data: sections } = await supabase
     .from("resource_book_sections")
@@ -31,96 +37,130 @@ export default async function TeacherBookDetailPage({
     .eq("book_id", bookId)
     .order("order_index", { ascending: true });
 
-  const nextOrder = (sections?.length ?? 0) + 1;
-  const totalTests = (sections ?? []).reduce((acc, s) => acc + s.test_count, 0);
+  const sectionList = (sections as ResourceBookSection[]) ?? [];
+  const totalTests = sectionList.reduce((acc, s) => acc + s.test_count, 0);
+  const students = book.approved ? await getBookStudents(bookId) : [];
 
   return (
     <>
       <PageHeader
         title={book.name}
-        description={`${book.subject ?? "Genel"} · ${sections?.length ?? 0} bölüm · ${totalTests} test`}
+        description={`${book.subject ?? "Genel"} · ${sectionList.length} bölüm · ${totalTests} test`}
         action={
           <div className="flex items-center gap-2">
-            <Link href="/teacher/resources" className="text-sm text-muted-foreground hover:underline">
-              ← Kataloga dön
+            <Link
+              href="/teacher/resources"
+              className="text-sm text-muted-foreground hover:underline"
+            >
+              ← Kütüphane
             </Link>
-            <form action={deleteBook}>
-              <input type="hidden" name="id" value={book.id} />
-              <Button
-                type="submit"
-                variant="ghost"
-                size="sm"
-                className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-              >
-                Kitabı Sil
-              </Button>
-            </form>
+            <DeleteBookButton bookId={book.id} bookName={book.name} />
           </div>
         }
       />
 
+      {!book.approved && (
+        <div className="animate-scale-in flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-warning/40 bg-warning/5 p-4">
+          <p className="text-sm">
+            Bu kitap bir veli tarafından eklendi ve <strong>onayını bekliyor</strong>.
+            İçeriği aşağıdan düzenleyip onaylayabilirsin.
+          </p>
+          <BookApprovalActions bookId={book.id} bookName={book.name} />
+        </div>
+      )}
+
       <section className="space-y-3">
         <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
-          Yeni Bölüm
+          Kitap Bilgileri
         </h2>
-        <SectionForm bookId={bookId} nextOrder={nextOrder} />
+        <form
+          action={updateBook}
+          className="flex flex-wrap items-end gap-3 rounded-2xl border bg-muted/30 p-4"
+        >
+          <input type="hidden" name="id" value={book.id} />
+          <div className="flex min-w-[200px] flex-1 flex-col gap-1.5">
+            <label htmlFor="book-name" className="text-sm font-medium">
+              Kitap adı
+            </label>
+            <Input
+              id="book-name"
+              name="name"
+              defaultValue={book.name}
+              required
+              className="bg-background"
+            />
+          </div>
+          <div className="flex w-44 flex-col gap-1.5">
+            <label htmlFor="book-subject" className="text-sm font-medium">
+              Ders
+            </label>
+            <Input
+              id="book-subject"
+              name="subject"
+              defaultValue={book.subject ?? ""}
+              placeholder="Genel"
+              className="bg-background"
+            />
+          </div>
+          <Button type="submit" variant="outline">
+            Kaydet
+          </Button>
+        </form>
       </section>
 
       <section className="space-y-3">
         <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
           Bölümler
         </h2>
-        {sections?.length ? (
-          <div className="space-y-2">
-            {(sections as ResourceBookSection[]).map((s, i) => (
-              <Card key={s.id}>
-                <CardContent className="flex items-center justify-between gap-3 p-3">
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-muted text-xs font-medium">
-                      {i + 1}
-                    </span>
-                    <div>
-                      <p className="font-medium">{s.name}</p>
-                      <p className="text-xs text-muted-foreground">{s.test_count} test</p>
-                    </div>
-                  </div>
-                  <form action={deleteBookSection}>
-                    <input type="hidden" name="id" value={s.id} />
-                    <input type="hidden" name="book_id" value={bookId} />
-                    <Button
-                      type="submit"
-                      variant="ghost"
-                      size="icon"
-                      className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                      aria-label="Bölümü sil"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </form>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <EmptyState
-            title="Henüz bölüm eklenmedi"
-            description="Yukarıdaki forma bölüm adı ve test sayısı girerek başla."
-          />
-        )}
+        <SectionManager bookId={book.id} sections={sectionList} />
       </section>
 
-      <section className="space-y-3">
-        <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
-          Öğrenci İlerlemesi
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          Bir öğrencinin bu kitaptaki ilerlemesini görmek için{" "}
-          <Link href="/teacher/students" className="underline">
-            Öğrenciler
-          </Link>{" "}
-          sayfasından ilgili öğrenciye git.
-        </p>
-      </section>
+      {book.approved && (
+        <section className="space-y-3">
+          <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
+            Bu Kitabı Kullanan Öğrenciler
+          </h2>
+          {students.length === 0 ? (
+            <EmptyState
+              icon={Users}
+              title="Henüz kimsenin kitaplığında yok"
+              description="Veliler bu kitabı çocuklarının kitaplığına eklediğinde burada ilerlemeleriyle listelenir."
+            />
+          ) : (
+            <div className="stagger grid gap-3 sm:grid-cols-2">
+              {students.map(({ student, completedCount }) => {
+                const percent =
+                  totalTests === 0 ? 0 : Math.round((completedCount / totalTests) * 100);
+                return (
+                  <Link
+                    key={student.id}
+                    href={`/teacher/students/${student.id}/${book.id}`}
+                    className="hover-lift block rounded-2xl border bg-card p-4 shadow-sm transition-colors hover:border-primary/40"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="font-medium">{student.full_name}</p>
+                      <span className="text-sm font-semibold text-primary">
+                        %{percent}
+                      </span>
+                    </div>
+                    <div className="mt-2 flex justify-between text-xs text-muted-foreground">
+                      <span>
+                        {completedCount} / {totalTests} test
+                      </span>
+                    </div>
+                    <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-muted">
+                      <div
+                        className="gradient-surface h-full rounded-full transition-all duration-700"
+                        style={{ width: `${percent}%` }}
+                      />
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </section>
+      )}
     </>
   );
 }

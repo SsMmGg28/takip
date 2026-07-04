@@ -1,13 +1,19 @@
 import Link from "next/link";
-import { BookOpen, ChevronRight } from "lucide-react";
+import { BookOpen, Clock3, Library } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { getAccessibleStudents } from "@/lib/students";
-import { getStudentBookOverview } from "@/lib/books";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { getApprovedBooks, getPendingBooks, getStudentShelf } from "@/lib/books";
+import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
 import { AddBookDialog } from "@/components/resources/add-book-dialog";
+import { BookCard } from "@/components/resources/book-card";
+import {
+  AddToShelfButton,
+  RemoveFromShelfButton,
+  WithdrawPendingBookButton,
+} from "@/components/resources/shelf-actions";
+import { cn } from "@/lib/utils";
 
 export default async function ParentResourcesPage({
   searchParams,
@@ -30,13 +36,21 @@ export default async function ParentResourcesPage({
   const activeStudent =
     students.find((s) => s.id === selectedStudentId) ?? students[0];
 
-  const books = await getStudentBookOverview(activeStudent.id);
+  const [shelf, approved, pending] = await Promise.all([
+    getStudentShelf(activeStudent.id),
+    getApprovedBooks(),
+    getPendingBooks(), // RLS: veli yalnızca kendi eklediklerini görür
+  ]);
+
+  const shelfBookIds = new Set(shelf.map((b) => b.id));
+  const library = approved.filter((b) => !shelfBookIds.has(b.id));
+  const myPending = pending.filter((b) => b.created_by === profile.id);
 
   return (
     <>
       <PageHeader
         title="Kaynaklar"
-        description={`${activeStudent.full_name} için kataloğun ilerlemesi.`}
+        description={`Kütüphaneden ${activeStudent.full_name} için kitap seç; olmayan kitabı ekle, öğretmen onaylayınca kitaplığa atayabilirsin.`}
         action={<AddBookDialog role="parent" />}
       />
 
@@ -48,11 +62,12 @@ export default async function ParentResourcesPage({
               <Link
                 key={s.id}
                 href={`/parent/resources?student=${s.id}`}
-                className={`rounded-md border px-3 py-1.5 text-sm transition-colors ${
+                className={cn(
+                  "rounded-full border px-3.5 py-1.5 text-sm font-medium transition-all active:scale-95",
                   active
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-input bg-background text-muted-foreground hover:bg-accent"
-                }`}
+                    ? "gradient-surface border-transparent text-white shadow-md shadow-primary/25"
+                    : "border-input bg-background text-muted-foreground hover:bg-accent",
+                )}
               >
                 {s.full_name}
               </Link>
@@ -61,56 +76,116 @@ export default async function ParentResourcesPage({
         </div>
       )}
 
-      {books.length === 0 ? (
-        <EmptyState icon={BookOpen} title="Katalogda henüz kitap yok" />
-      ) : (
-        <div className="stagger grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {books.map((b) => {
-            const percent =
-              b.totalTests === 0
-                ? 0
-                : Math.round((b.completedCount / b.totalTests) * 100);
-            return (
-              <Link
+      {/* Çocuğun kitaplığı */}
+      <section className="space-y-3">
+        <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
+          {activeStudent.full_name} — Kitaplığı ({shelf.length})
+        </h2>
+        {shelf.length === 0 ? (
+          <EmptyState
+            icon={BookOpen}
+            title="Kitaplık henüz boş"
+            description="Aşağıdaki kütüphaneden “Kitaplığa Ekle” diyerek başla. Eklediğin kitaplar öğrencinin ekranında görünür."
+          />
+        ) : (
+          <div className="stagger grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {shelf.map((b) => (
+              <BookCard
                 key={b.id}
-                href={`/parent/resources/${b.id}?student=${activeStudent.id}`}
-                className="block"
+                name={b.name}
+                subject={b.subject}
+                sectionCount={b.sections.length}
+                testCount={b.totalTests}
+                completedCount={b.completedCount}
+                footer={
+                  <div className="flex items-center gap-1">
+                    <RemoveFromShelfButton
+                      studentId={activeStudent.id}
+                      bookId={b.id}
+                    />
+                    <Button asChild size="sm" variant="outline">
+                      <Link
+                        href={`/parent/resources/${b.id}?student=${activeStudent.id}`}
+                      >
+                        Aç
+                      </Link>
+                    </Button>
+                  </div>
+                }
+              />
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Onay bekleyenler */}
+      {myPending.length > 0 && (
+        <section className="space-y-3">
+          <h2 className="flex items-center gap-2 text-sm font-medium uppercase tracking-wide text-muted-foreground">
+            <Clock3 className="h-4 w-4 text-warning" />
+            Onay Bekleyen Kitapların ({myPending.length})
+          </h2>
+          <div className="stagger space-y-2">
+            {myPending.map((b) => (
+              <div
+                key={b.id}
+                className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-warning/40 bg-warning/5 p-4"
               >
-                <Card className="group h-full transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:bg-accent/40 hover:shadow-md">
-                  <CardContent className="flex h-full flex-col gap-3 p-4">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <p className="font-medium">{b.name}</p>
-                        {b.subject && (
-                          <p className="text-xs text-muted-foreground">{b.subject}</p>
-                        )}
-                      </div>
-                      <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
-                    </div>
-                    <div className="space-y-1.5">
-                      <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>
-                          {b.completedCount} / {b.totalTests} test
-                        </span>
-                        <span>%{percent}</span>
-                      </div>
-                      <div className="h-1.5 overflow-hidden rounded-full bg-muted">
-                        <div
-                          className="h-full bg-primary transition-all"
-                          style={{ width: `${percent}%` }}
-                        />
-                      </div>
-                    </div>
-                    <div className="mt-auto flex flex-wrap gap-1.5 pt-1">
-                      <Badge variant="outline">{b.sections.length} bölüm</Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            );
-          })}
-        </div>
+                <div className="min-w-0">
+                  <p className="font-semibold leading-tight">{b.name}</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    {b.subject ?? "Genel"} · {b.sections.length} bölüm · {b.totalTests}{" "}
+                    test — öğretmen onayı bekliyor
+                  </p>
+                </div>
+                <WithdrawPendingBookButton bookId={b.id} />
+              </div>
+            ))}
+          </div>
+        </section>
       )}
+
+      {/* Kütüphane */}
+      <section className="space-y-3">
+        <h2 className="flex items-center gap-2 text-sm font-medium uppercase tracking-wide text-muted-foreground">
+          <Library className="h-4 w-4" />
+          Kütüphane ({library.length})
+        </h2>
+        {library.length === 0 ? (
+          <EmptyState
+            icon={Library}
+            title={
+              approved.length > 0
+                ? "Kütüphanedeki tüm kitaplar kitaplıkta"
+                : "Kütüphane henüz boş"
+            }
+            description={
+              approved.length > 0
+                ? undefined
+                : "“Kitap Ekle” ile ilk kitabı sen ekleyebilirsin; öğretmen onayladıktan sonra kitaplığa atarsın."
+            }
+          />
+        ) : (
+          <div className="stagger grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {library.map((b) => (
+              <BookCard
+                key={b.id}
+                name={b.name}
+                subject={b.subject}
+                sectionCount={b.sections.length}
+                testCount={b.totalTests}
+                footer={
+                  <AddToShelfButton
+                    studentId={activeStudent.id}
+                    bookId={b.id}
+                    studentName={activeStudent.full_name}
+                  />
+                }
+              />
+            ))}
+          </div>
+        )}
+      </section>
     </>
   );
 }

@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import type {
   Homework,
   HomeworkTest,
+  Profile,
   ResourceBook,
   ResourceBookSection,
 } from "@/lib/types";
@@ -17,16 +18,8 @@ export interface HomeworkListContext {
   sectionById: Map<string, ResourceBookSection>;
 }
 
-export async function getHomeworkForStudent(studentId: string): Promise<HomeworkListContext> {
+async function buildContext(list: Homework[]): Promise<HomeworkListContext> {
   const supabase = await createClient();
-
-  const { data: homework } = await supabase
-    .from("homework")
-    .select("*")
-    .eq("student_id", studentId)
-    .order("due_date", { ascending: true, nullsFirst: false });
-
-  const list = (homework as Homework[] | null) ?? [];
 
   if (list.length === 0) {
     return { items: [], sectionById: new Map() };
@@ -69,8 +62,96 @@ export async function getHomeworkForStudent(studentId: string): Promise<Homework
     items: list.map((h) => ({
       homework: h,
       book: h.book_id ? bookById.get(h.book_id) ?? null : null,
-      tests: testsByHomework.get(h.id) ?? [],
+      tests: (testsByHomework.get(h.id) ?? []).sort(
+        (a, b) => a.test_number - b.test_number,
+      ),
     })),
     sectionById,
   };
+}
+
+export async function getHomeworkForStudent(studentId: string): Promise<HomeworkListContext> {
+  const supabase = await createClient();
+
+  const { data: homework } = await supabase
+    .from("homework")
+    .select("*")
+    .eq("student_id", studentId)
+    .order("created_at", { ascending: false });
+
+  return buildContext((homework as Homework[] | null) ?? []);
+}
+
+// ── Öğretmen: toplu gönderim grupları ──────────────────────────────────────
+
+export interface AssignmentGroup {
+  groupId: string;
+  title: string;
+  description: string | null;
+  dueDate: string | null;
+  book: ResourceBook | null;
+  createdAt: string;
+  attachmentName: string | null;
+  /** Gruptaki her öğrencinin ödevi (kontrol durumu dahil). */
+  entries: { homework: Homework; student: Profile | null; tests: HomeworkTest[] }[];
+  sectionById: Map<string, ResourceBookSection>;
+}
+
+/** Tüm ödevleri toplu gönderim gruplarına ayırır (öğretmen merkezi). */
+export async function getAssignmentGroups(): Promise<AssignmentGroup[]> {
+  const supabase = await createClient();
+
+  const { data: homework } = await supabase
+    .from("homework")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  const list = (homework as Homework[] | null) ?? [];
+  if (!list.length) return [];
+
+  const { items, sectionById } = await buildContext(list);
+
+  const studentIds = Array.from(new Set(list.map((h) => h.student_id)));
+  const { data: students } = await supabase
+    .from("profiles")
+    .select("*")
+    .in("id", studentIds);
+  const studentById = new Map(
+    ((students as Profile[] | null) ?? []).map((s) => [s.id, s]),
+  );
+
+  const groups = new Map<string, AssignmentGroup>();
+  for (const it of items) {
+    const h = it.homework;
+    let g = groups.get(h.assignment_group_id);
+    if (!g) {
+      g = {
+        groupId: h.assignment_group_id,
+        title: h.title,
+        description: h.description,
+        dueDate: h.due_date,
+        book: it.book,
+        createdAt: h.created_at,
+        attachmentName: h.attachment_name,
+        entries: [],
+        sectionById,
+      };
+      groups.set(h.assignment_group_id, g);
+    }
+    g.entries.push({
+      homework: h,
+      student: studentById.get(h.student_id) ?? null,
+      tests: it.tests,
+    });
+  }
+
+  for (const g of groups.values()) {
+    g.entries.sort((a, b) =>
+      (a.student?.full_name ?? "").localeCompare(b.student?.full_name ?? "", "tr"),
+    );
+  }
+
+  return Array.from(groups.values()).sort((a, b) =>
+    b.createdAt.localeCompare(a.createdAt),
+  );
 }

@@ -1,94 +1,117 @@
-import Link from "next/link";
-import { BookOpen, ChevronRight } from "lucide-react";
+import { BookOpen, Inbox } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { Card, CardContent } from "@/components/ui/card";
+import { requireRole } from "@/lib/auth";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
 import { AddBookDialog } from "@/components/resources/add-book-dialog";
-import type { ResourceBook } from "@/lib/types";
+import { BookCard } from "@/components/resources/book-card";
+import { BookApprovalActions } from "@/components/resources/book-approval-actions";
+import { getApprovedBooks, getPendingBooks } from "@/lib/books";
+import type { Profile } from "@/lib/types";
 
 export default async function TeacherResourcesPage() {
+  await requireRole(["teacher"]);
   const supabase = await createClient();
 
-  const { data: books } = await supabase
-    .from("resource_books")
-    .select("*")
-    .eq("approved", true)
-    .order("name");
+  const [approved, pending] = await Promise.all([getApprovedBooks(), getPendingBooks()]);
 
-  const { data: sectionCounts } = await supabase
-    .from("resource_book_sections")
-    .select("book_id, test_count");
-
-  const totalsByBook = new Map<string, { sections: number; tests: number }>();
-  for (const s of sectionCounts ?? []) {
-    const t = totalsByBook.get(s.book_id) ?? { sections: 0, tests: 0 };
-    t.sections += 1;
-    t.tests += s.test_count;
-    totalsByBook.set(s.book_id, t);
-  }
-
-  const { count: pendingRequestCount } = await supabase
-    .from("book_requests")
-    .select("id", { count: "exact", head: true })
-    .eq("status", "pending");
+  const creatorIds = Array.from(new Set(pending.map((b) => b.created_by)));
+  const { data: creators } = creatorIds.length
+    ? await supabase.from("profiles").select("id, full_name").in("id", creatorIds)
+    : { data: [] };
+  const creatorById = new Map(
+    ((creators as Pick<Profile, "id" | "full_name">[] | null) ?? []).map((p) => [
+      p.id,
+      p.full_name,
+    ]),
+  );
 
   return (
     <>
       <PageHeader
-        title="Kaynak Kitap Kataloğu"
-        description="Tüm öğrencilerin ortak kullandığı kitap kataloğu. Her kitap için bölüm ve test sayılarını girersin, öğrenciler çözdükçe işaretler."
+        title="Kütüphane"
+        description="Ortak kaynak kitap kütüphanesi. Velilerin eklediği kitaplar burada onayını bekler; onaylı kitaplar velilerce öğrencilerin kitaplığına atanır."
         action={<AddBookDialog role="teacher" />}
       />
 
-      {(pendingRequestCount ?? 0) > 0 && (
-        <Link
-          href="/teacher/book-requests"
-          className="flex items-center justify-between rounded-lg border border-primary/30 bg-primary/5 px-4 py-3 text-sm transition-colors hover:bg-primary/10"
-        >
-          <span>
-            <span className="font-medium">{pendingRequestCount}</span> öğrenciden gelen kitap
-            isteği bekliyor.
-          </span>
-          <span className="font-medium">İncele →</span>
-        </Link>
-      )}
-
-      {books?.length ? (
-        <div className="stagger grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {(books as ResourceBook[]).map((b) => {
-            const t = totalsByBook.get(b.id) ?? { sections: 0, tests: 0 };
-            return (
-              <Link key={b.id} href={`/teacher/resources/${b.id}`} className="block">
-                <Card className="group h-full transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:bg-accent/40 hover:shadow-md">
-                  <CardContent className="flex h-full flex-col gap-2 p-4">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <p className="font-medium">{b.name}</p>
-                        {b.subject && (
-                          <p className="text-xs text-muted-foreground">{b.subject}</p>
+      {pending.length > 0 && (
+        <section className="space-y-3">
+          <h2 className="flex items-center gap-2 text-sm font-medium uppercase tracking-wide text-muted-foreground">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping-soft absolute h-2 w-2 rounded-full bg-warning" />
+              <span className="h-2 w-2 rounded-full bg-warning" />
+            </span>
+            Onay Bekleyenler ({pending.length})
+          </h2>
+          <div className="stagger space-y-2">
+            {pending.map((b) => (
+              <div
+                key={b.id}
+                className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-warning/40 bg-warning/5 p-4"
+              >
+                <div className="flex min-w-0 items-start gap-3">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-warning/15 text-warning">
+                    <BookOpen className="h-5 w-5" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="font-semibold leading-tight">{b.name}</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {b.subject ?? "Genel"} · {b.sections.length} bölüm · {b.totalTests}{" "}
+                      test
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Ekleyen: {creatorById.get(b.created_by) ?? "?"} ·{" "}
+                      {new Date(b.created_at).toLocaleDateString("tr-TR")}
+                    </p>
+                    {b.sections.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        {b.sections.slice(0, 6).map((s) => (
+                          <Badge key={s.id} variant="secondary" className="text-[10px]">
+                            {s.name} · {s.test_count}
+                          </Badge>
+                        ))}
+                        {b.sections.length > 6 && (
+                          <Badge variant="secondary" className="text-[10px]">
+                            +{b.sections.length - 6}
+                          </Badge>
                         )}
                       </div>
-                      <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
-                    </div>
-                    <div className="mt-auto flex flex-wrap gap-2 pt-2">
-                      <Badge variant="outline">{t.sections} bölüm</Badge>
-                      <Badge variant="outline">{t.tests} test</Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            );
-          })}
-        </div>
-      ) : (
-        <EmptyState
-          icon={BookOpen}
-          title="Henüz kitap eklenmedi"
-          description="Yukarıdaki “Yeni Kitap Ekle” ile başla."
-        />
+                    )}
+                  </div>
+                </div>
+                <BookApprovalActions bookId={b.id} bookName={b.name} />
+              </div>
+            ))}
+          </div>
+        </section>
       )}
+
+      <section className="space-y-3">
+        <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
+          Kütüphane ({approved.length})
+        </h2>
+        {approved.length ? (
+          <div className="stagger grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {approved.map((b) => (
+              <BookCard
+                key={b.id}
+                href={`/teacher/resources/${b.id}`}
+                name={b.name}
+                subject={b.subject}
+                sectionCount={b.sections.length}
+                testCount={b.totalTests}
+              />
+            ))}
+          </div>
+        ) : (
+          <EmptyState
+            icon={Inbox}
+            title="Kütüphane boş"
+            description="“Kitap Ekle” ile ilk kaynağı sen ekle; veliler de kitap ekleyebilir, onların ekledikleri senin onayından geçer."
+          />
+        )}
+      </section>
     </>
   );
 }

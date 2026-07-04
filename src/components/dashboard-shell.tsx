@@ -1,4 +1,5 @@
 import { DashboardNav, MobileNav } from "@/components/dashboard-nav";
+import { NotificationsBell } from "@/components/notifications-bell";
 import { SignOutButton } from "@/components/sign-out-button";
 import { Brand } from "@/components/brand";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -73,6 +74,7 @@ export async function DashboardShell({
                 </span>
               </span>
             </div>
+            <NotificationsBell userId={profile.id} />
             <ThemeToggle />
             <SignOutButton />
           </div>

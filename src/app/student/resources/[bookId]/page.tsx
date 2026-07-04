@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
 import { TestGrid } from "@/components/resources/test-grid";
-import { getStudentProgressForBook } from "@/lib/books";
+import { getStudentProgressForBook, isBookOnShelf } from "@/lib/books";
 
 export default async function StudentBookPage({
   params,
@@ -14,6 +14,10 @@ export default async function StudentBookPage({
 }) {
   const profile = await requireRole(["student"]);
   const { bookId } = await params;
+
+  // Öğrenci yalnızca kitaplığına eklenmiş kitaplarda işlem yapabilir
+  if (!(await isBookOnShelf(profile.id, bookId))) notFound();
+
   const data = await getStudentProgressForBook(profile.id, bookId);
   if (!data) notFound();
 
@@ -28,7 +32,7 @@ export default async function StudentBookPage({
         description={`${book.subject ?? "Genel"} · ${completedCount} / ${totalTests} test tamam (%${percent})`}
         action={
           <Link href="/student/resources" className="text-sm text-muted-foreground hover:underline">
-            ← Tüm kitaplar
+            ← Kitaplığım
           </Link>
         }
       />

@@ -53,23 +53,18 @@ export interface StudentTestProgress {
   marked_by: string;
 }
 
-export type BookRequestStatus = "pending" | "approved" | "rejected";
-
-export interface BookRequest {
+/** Velinin çocuğunun kitaplığına eklediği kitap. */
+export interface StudentBook {
   id: string;
-  requested_by: string;
-  name: string;
-  subject: string | null;
-  note: string | null;
-  status: BookRequestStatus;
-  reviewed_by: string | null;
-  reviewed_at: string | null;
+  student_id: string;
+  book_id: string;
+  added_by: string;
   created_at: string;
 }
 
 // Ödev sistemi -----------------------------------------------------------
 
-export type HomeworkStatus = "assigned" | "completed" | "overdue";
+export type HomeworkStatus = "assigned" | "completed" | "incomplete" | "overdue";
 
 export interface Homework {
   id: string;
@@ -82,6 +77,8 @@ export interface Homework {
   attachment_name: string | null;
   attachment_uploaded_at: string | null;
   status: HomeworkStatus;
+  assignment_group_id: string;
+  checked_at: string | null;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -92,6 +89,29 @@ export interface HomeworkTest {
   homework_id: string;
   section_id: string;
   test_number: number;
+  completed: boolean;
+  completed_at: string | null;
+}
+
+// Bildirimler --------------------------------------------------------------
+
+export type NotificationType =
+  | "homework_assigned"
+  | "homework_updated"
+  | "homework_incomplete"
+  | "book_pending"
+  | "book_approved"
+  | "book_rejected";
+
+export interface AppNotification {
+  id: string;
+  user_id: string;
+  type: NotificationType;
+  title: string;
+  body: string | null;
+  link: string | null;
+  read_at: string | null;
+  created_at: string;
 }
 
 // Diğer (değişmeyen) ------------------------------------------------------

@@ -2,27 +2,27 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ClipboardList } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { requireRole } from "@/lib/auth";
 import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
+import { HomeworkCard } from "@/components/homework/homework-card";
 import { CreateHomeworkDialog } from "@/components/teacher/create-homework-dialog";
-import { HomeworkRowActions } from "@/components/teacher/homework-row-actions";
-import { AttachmentDownloadLink } from "@/components/homework/attachment-download-link";
+import { CheckHomeworkDialog } from "@/components/teacher/check-homework-dialog";
+import { EditHomeworkDialog } from "@/components/teacher/edit-homework-dialog";
+import {
+  DeleteHomeworkButton,
+  ReassignMissingButton,
+} from "@/components/teacher/homework-row-actions";
 import { getApprovedBooks } from "@/lib/books";
-import type { Homework, HomeworkTest, ResourceBook, ResourceBookSection } from "@/lib/types";
-
-const STATUS_LABEL: Record<string, string> = {
-  assigned: "Bekliyor",
-  completed: "Tamamlandı",
-  overdue: "Gecikti",
-};
+import { getHomeworkForStudent } from "@/lib/homework-fetch";
+import type { Profile } from "@/lib/types";
 
 export default async function TeacherStudentHomeworkPage({
   params,
 }: {
   params: Promise<{ studentId: string }>;
 }) {
+  await requireRole(["teacher"]);
   const { studentId } = await params;
   const supabase = await createClient();
 
@@ -33,120 +33,130 @@ export default async function TeacherStudentHomeworkPage({
     .single();
   if (!student) notFound();
 
-  const [{ data: homework }, books] = await Promise.all([
-    supabase
-      .from("homework")
-      .select("*")
-      .eq("student_id", studentId)
-      .order("due_date", { ascending: true, nullsFirst: false }),
+  const [{ data: allStudents }, books, { items, sectionById }] = await Promise.all([
+    supabase.from("profiles").select("*").eq("role", "student").order("full_name"),
     getApprovedBooks(),
+    getHomeworkForStudent(studentId),
   ]);
 
-  const homeworkIds = (homework ?? []).map((h) => h.id);
-  const { data: tests } = homeworkIds.length
+  // Toplu gönderim boyutları (düzenlemede "grubun tamamına uygula" seçeneği için)
+  const groupIds = Array.from(
+    new Set(items.map((it) => it.homework.assignment_group_id)),
+  );
+  const { data: groupRows } = groupIds.length
     ? await supabase
-        .from("homework_tests")
-        .select("*")
-        .in("homework_id", homeworkIds)
+        .from("homework")
+        .select("assignment_group_id")
+        .in("assignment_group_id", groupIds)
     : { data: [] };
-
-  const bookById = new Map((books ?? []).map((b) => [b.id, b as ResourceBook]));
-  const sectionById = new Map<string, ResourceBookSection>();
-  for (const b of books) for (const s of b.sections) sectionById.set(s.id, s);
-
-  const testsByHomework = new Map<string, HomeworkTest[]>();
-  for (const t of (tests as HomeworkTest[] | null) ?? []) {
-    if (!testsByHomework.has(t.homework_id)) testsByHomework.set(t.homework_id, []);
-    testsByHomework.get(t.homework_id)!.push(t);
+  const groupSize = new Map<string, number>();
+  for (const r of groupRows ?? []) {
+    groupSize.set(
+      r.assignment_group_id,
+      (groupSize.get(r.assignment_group_id) ?? 0) + 1,
+    );
   }
+
+  const studentOptions = ((allStudents as Profile[] | null) ?? []).map((s) => ({
+    id: s.id,
+    fullName: s.full_name,
+  }));
+  const bookOptions = books.map((b) => ({
+    id: b.id,
+    name: b.name,
+    subject: b.subject,
+    sections: b.sections.map((s) => ({
+      id: s.id,
+      name: s.name,
+      testCount: s.test_count,
+    })),
+  }));
+  const bookOptionById = new Map(bookOptions.map((b) => [b.id, b]));
 
   return (
     <>
       <PageHeader
         title={`${student.full_name} — Ödevler`}
-        action={<CreateHomeworkDialog studentId={studentId} books={books} />}
+        description="Kontrol ettikçe yapılan testler kitap ilerlemesine işlenir; eksiklerde veliye bildirim gider."
+        action={
+          <div className="flex items-center gap-2">
+            <Link
+              href="/teacher/homework"
+              className="text-sm text-muted-foreground hover:underline"
+            >
+              ← Ödev Merkezi
+            </Link>
+            <CreateHomeworkDialog
+              students={studentOptions}
+              books={bookOptions}
+              defaultStudentIds={[studentId]}
+              triggerLabel="Ödev Gönder"
+            />
+          </div>
+        }
       />
 
-      {!homework?.length ? (
+      {items.length === 0 ? (
         <EmptyState
           icon={ClipboardList}
           title="Henüz ödev yok"
-          description="Yukarıdaki “Yeni Ödev Ekle” ile başla."
+          description="“Ödev Gönder” ile bu öğrenciye (veya toplu olarak birden fazla öğrenciye) ödev gönder."
         />
       ) : (
-        <div className="space-y-3">
-          {((homework as Homework[]) ?? []).map((hw) => {
-            const book = hw.book_id ? bookById.get(hw.book_id) : null;
-            const hwTests = testsByHomework.get(hw.id) ?? [];
+        <div className="stagger space-y-3">
+          {items.map((it) => {
+            const hw = it.homework;
+            const checkTests = it.tests.map((t) => ({
+              sectionId: t.section_id,
+              sectionName: sectionById.get(t.section_id)?.name ?? "Bölüm",
+              testNumber: t.test_number,
+              completed: t.completed,
+            }));
+            const missingCount = it.tests.filter((t) => !t.completed).length;
+            const showReassign =
+              hw.status === "incomplete" && it.tests.length > 0 && missingCount > 0;
+
             return (
-              <Card key={hw.id}>
-                <CardContent className="flex flex-col gap-3 p-4">
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div className="space-y-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="font-medium">{hw.title}</p>
-                        <Badge variant={hw.status === "completed" ? "default" : "outline"}>
-                          {STATUS_LABEL[hw.status]}
-                        </Badge>
-                      </div>
-                      {hw.due_date && (
-                        <p className="text-xs text-muted-foreground">
-                          Teslim: {new Date(hw.due_date).toLocaleDateString("tr-TR")}
-                        </p>
-                      )}
-                      {book && (
-                        <p className="text-xs text-muted-foreground">
-                          📕 {book.name}
-                          {book.subject ? ` — ${book.subject}` : ""}
-                        </p>
-                      )}
-                    </div>
-                    <HomeworkRowActions
-                      id={hw.id}
-                      studentId={studentId}
-                      status={hw.status}
+              <HomeworkCard
+                key={hw.id}
+                homework={hw}
+                book={it.book}
+                tests={it.tests}
+                sectionById={sectionById}
+                actions={
+                  <div className="flex flex-wrap justify-end gap-2">
+                    <CheckHomeworkDialog
+                      homeworkId={hw.id}
+                      homeworkTitle={hw.title}
+                      studentName={student.full_name}
+                      tests={checkTests}
+                      checkedBefore={Boolean(hw.checked_at)}
                     />
+                    <EditHomeworkDialog
+                      homeworkId={hw.id}
+                      initialTitle={hw.title}
+                      initialDescription={hw.description}
+                      initialDueDate={hw.due_date}
+                      book={hw.book_id ? bookOptionById.get(hw.book_id) ?? null : null}
+                      initialTests={it.tests.map(
+                        (t) => `${t.section_id}:${t.test_number}`,
+                      )}
+                      groupSize={groupSize.get(hw.assignment_group_id) ?? 1}
+                    />
+                    {showReassign && (
+                      <ReassignMissingButton
+                        homeworkId={hw.id}
+                        missingCount={missingCount}
+                      />
+                    )}
+                    <DeleteHomeworkButton homeworkId={hw.id} />
                   </div>
-
-                  {hw.description && (
-                    <p className="text-sm text-muted-foreground">{hw.description}</p>
-                  )}
-
-                  {hwTests.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5">
-                      {hwTests
-                        .sort((a, b) => a.test_number - b.test_number)
-                        .map((t) => {
-                          const s = sectionById.get(t.section_id);
-                          return (
-                            <Badge key={t.id} variant="secondary">
-                              {s ? `${s.name} · Test ${t.test_number}` : `Test ${t.test_number}`}
-                            </Badge>
-                          );
-                        })}
-                    </div>
-                  )}
-
-                  {hw.attachment_path && hw.attachment_name && (
-                    <AttachmentDownloadLink
-                      path={hw.attachment_path}
-                      name={hw.attachment_name}
-                    />
-                  )}
-                </CardContent>
-              </Card>
+                }
+              />
             );
           })}
         </div>
       )}
-
-      <p className="text-xs text-muted-foreground">
-        Yeni kitap eklemek için{" "}
-        <Link href="/teacher/resources" className="underline">
-          Kaynaklar
-        </Link>{" "}
-        sayfasını kullan.
-      </p>
     </>
   );
 }
