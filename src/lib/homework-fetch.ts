@@ -109,13 +109,12 @@ export async function getAssignmentGroups(): Promise<AssignmentGroup[]> {
   const list = (homework as Homework[] | null) ?? [];
   if (!list.length) return [];
 
-  const { items, sectionById } = await buildContext(list);
-
+  // profiles sorgusu yalnızca list'e bağlı; buildContext ile paralel çalışabilir.
   const studentIds = Array.from(new Set(list.map((h) => h.student_id)));
-  const { data: students } = await supabase
-    .from("profiles")
-    .select("*")
-    .in("id", studentIds);
+  const [{ items, sectionById }, { data: students }] = await Promise.all([
+    buildContext(list),
+    supabase.from("profiles").select("*").in("id", studentIds),
+  ]);
   const studentById = new Map(
     ((students as Profile[] | null) ?? []).map((s) => [s.id, s]),
   );

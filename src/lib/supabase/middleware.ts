@@ -47,7 +47,15 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (userData.user) {
+  // profiles sorgusu her istekte değil, yalnızca yönlendirme kararının role /
+  // must_change_password bilgisine gerçekten ihtiyaç duyduğu yollarda çalışır.
+  // Diğer tüm özel sayfalarda rol ve şifre zorunluluğu requireRole() tarafından
+  // uygulanıyor (layout + sayfa); burada tekrarlamak her gezinmeye fazladan bir
+  // Supabase gidiş-dönüşü ekliyordu.
+  const needsProfile =
+    pathname === "/" || pathname === "/login" || pathname === "/set-password";
+
+  if (userData.user && needsProfile) {
     const { data: profile } = await supabase
       .from("profiles")
       .select("role, must_change_password")
@@ -69,12 +77,6 @@ export async function updateSession(request: NextRequest) {
     if (pathname === "/login" || pathname === "/") {
       const url = request.nextUrl.clone();
       url.pathname = `/${profile?.role}`;
-      return NextResponse.redirect(url);
-    }
-
-    if (profile && !pathname.startsWith(`/${profile.role}`) && pathname !== "/set-password") {
-      const url = request.nextUrl.clone();
-      url.pathname = `/${profile.role}`;
       return NextResponse.redirect(url);
     }
   }
