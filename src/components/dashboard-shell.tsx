@@ -1,5 +1,6 @@
 import { DashboardNav, MobileNav } from "@/components/dashboard-nav";
 import { NotificationsBell } from "@/components/notifications-bell";
+import { ServiceWorkerRegistrar } from "@/components/push-manager";
 import { SignOutButton } from "@/components/sign-out-button";
 import { Brand } from "@/components/brand";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -45,6 +46,7 @@ export async function DashboardShell({
 
   return (
     <div className="relative min-h-screen">
+      <ServiceWorkerRegistrar />
       {/* Dekoratif arka plan ışıltıları */}
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
         <div className="animate-blob absolute -top-32 -left-32 h-96 w-96 rounded-full bg-primary/10 blur-3xl" />

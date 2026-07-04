@@ -1,5 +1,6 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sendPushToUsers } from "@/lib/push";
 import type { NotificationType } from "@/lib/types";
 
 export interface NotificationPayload {
@@ -29,6 +30,18 @@ export async function notifyUsers(userIds: string[], payload: NotificationPayloa
     })),
   );
   if (error) console.error("[notifications insert]", error);
+
+  // Kilit ekranına düşen web push — uygulama içi bildirimin tamamlayıcısı.
+  try {
+    await sendPushToUsers(unique, {
+      title: payload.title,
+      body: payload.body,
+      link: payload.link,
+      tag: payload.type,
+    });
+  } catch (err) {
+    console.error("[push notify]", err);
+  }
 }
 
 /** Öğrencilerin velilerini döner: studentId -> parentId[] */

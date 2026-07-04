@@ -24,16 +24,16 @@ import { cn } from "@/lib/utils";
 
 type Role = "teacher" | "student" | "parent";
 
-interface NavLinkDef {
+export interface NavLinkDef {
   href: string;
   label: string;
   shortLabel?: string;
   icon: LucideIcon;
 }
 
-const LINKS_BY_ROLE: Record<Role, NavLinkDef[]> = {
+export const LINKS_BY_ROLE: Record<Role, NavLinkDef[]> = {
   teacher: [
-    { href: "/teacher", label: "Panel", icon: LayoutDashboard },
+    { href: "/teacher", label: "Anasayfa", icon: LayoutDashboard },
     { href: "/teacher/students", label: "Öğrenciler", icon: Users },
     { href: "/teacher/homework", label: "Ödevler", icon: ClipboardList },
     { href: "/teacher/resources", label: "Kütüphane", icon: BookOpen },
@@ -41,7 +41,7 @@ const LINKS_BY_ROLE: Record<Role, NavLinkDef[]> = {
     { href: "/teacher/exams", label: "Deneme Analizi", shortLabel: "Deneme", icon: LineChart },
   ],
   student: [
-    { href: "/student", label: "Panel", icon: LayoutDashboard },
+    { href: "/student", label: "Anasayfa", icon: LayoutDashboard },
     { href: "/student/homework", label: "Ödevlerim", icon: ClipboardList },
     { href: "/student/resources", label: "Kaynaklarım", icon: BookOpen },
     { href: "/student/calendar", label: "Takvim", icon: Calendar },
@@ -49,7 +49,7 @@ const LINKS_BY_ROLE: Record<Role, NavLinkDef[]> = {
     { href: "/student/exams", label: "Deneme Analizim", shortLabel: "Deneme", icon: LineChart },
   ],
   parent: [
-    { href: "/parent", label: "Panel", icon: LayoutDashboard },
+    { href: "/parent", label: "Anasayfa", icon: LayoutDashboard },
     { href: "/parent/homework", label: "Ödevler", icon: ClipboardList },
     { href: "/parent/resources", label: "Kaynaklar", icon: BookOpen },
     { href: "/parent/calendar", label: "Takvim", icon: Calendar },
