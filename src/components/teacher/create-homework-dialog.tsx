@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Paperclip, X } from "lucide-react";
+import { Check, Paperclip, Send, Users, X } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,20 +23,42 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { createHomework } from "@/app/teacher/homework/actions";
-import type { BookWithSections } from "@/lib/books";
 
 const NO_BOOK = "__none__";
 
+export interface HomeworkStudentOption {
+  id: string;
+  fullName: string;
+}
+
+export interface HomeworkBookOption {
+  id: string;
+  name: string;
+  subject: string | null;
+  sections: { id: string; name: string; testCount: number }[];
+}
+
+/**
+ * Toplu ödev gönderimi: öğretmen öğrencileri seçer, aynı ödev hepsine tek
+ * seferde gider; kontrol öğrenci bazında ayrı yapılır.
+ */
 export function CreateHomeworkDialog({
-  studentId,
+  students,
   books,
+  defaultStudentIds = [],
+  triggerLabel = "Yeni Ödev Gönder",
 }: {
-  studentId: string;
-  books: BookWithSections[];
+  students: HomeworkStudentOption[];
+  books: HomeworkBookOption[];
+  defaultStudentIds?: string[];
+  triggerLabel?: string;
 }) {
   const [open, setOpen] = useState(false);
+  const [selectedStudents, setSelectedStudents] = useState<Set<string>>(
+    () => new Set(defaultStudentIds),
+  );
   const [bookId, setBookId] = useState<string>(NO_BOOK);
-  const [selected, setSelected] = useState<Record<string, Set<number>>>({});
+  const [selectedTests, setSelectedTests] = useState<Record<string, Set<number>>>({});
   const [fileName, setFileName] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -44,8 +67,20 @@ export function CreateHomeworkDialog({
     [books, bookId],
   );
 
+  const testCount = Object.values(selectedTests).reduce((acc, s) => acc + s.size, 0);
+  const allSelected = selectedStudents.size === students.length && students.length > 0;
+
+  function toggleStudent(id: string) {
+    setSelectedStudents((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
   function toggleTest(sectionId: string, n: number) {
-    setSelected((prev) => {
+    setSelectedTests((prev) => {
       const next = { ...prev };
       const set = new Set(next[sectionId] ?? []);
       if (set.has(n)) set.delete(n);
@@ -56,8 +91,9 @@ export function CreateHomeworkDialog({
   }
 
   function reset() {
+    setSelectedStudents(new Set(defaultStudentIds));
     setBookId(NO_BOOK);
-    setSelected({});
+    setSelectedTests({});
     setFileName(null);
     setPending(false);
   }
@@ -71,86 +107,151 @@ export function CreateHomeworkDialog({
       }}
     >
       <DialogTrigger asChild>
-        <Button>Yeni Ödev Ekle</Button>
+        <Button className="gap-1.5">
+          <Send className="h-4 w-4" />
+          {triggerLabel}
+        </Button>
       </DialogTrigger>
-      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
+      <DialogContent className="max-h-[88vh] overflow-y-auto sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>Yeni Ödev Ekle</DialogTitle>
+          <DialogTitle>Ödev Gönder</DialogTitle>
         </DialogHeader>
         <form
           action={async (formData) => {
-            // Seçili testleri "section_id:n" formatında ekle
-            for (const [sid, nums] of Object.entries(selected)) {
+            if (selectedStudents.size === 0) {
+              toast.error("En az bir öğrenci seç.");
+              return;
+            }
+            for (const id of selectedStudents) formData.append("student_ids", id);
+            for (const [sid, nums] of Object.entries(selectedTests)) {
               for (const n of nums) formData.append("tests", `${sid}:${n}`);
             }
             if (bookId !== NO_BOOK) formData.set("book_id", bookId);
             else formData.delete("book_id");
+
             setPending(true);
             try {
               await createHomework(formData);
+              toast.success(
+                selectedStudents.size === 1
+                  ? "Ödev gönderildi, öğrenci ve velisine bildirim düştü."
+                  : `Ödev ${selectedStudents.size} öğrenciye gönderildi, bildirimler düştü.`,
+              );
               setOpen(false);
-            } finally {
+              reset();
+            } catch (e) {
+              toast.error(e instanceof Error ? e.message : "Bir hata oluştu.");
               setPending(false);
             }
           }}
           className="flex flex-col gap-4"
         >
-          <input type="hidden" name="student_id" value={studentId} />
+          {/* Öğrenci seçimi */}
+          <div className="flex flex-col gap-2 rounded-xl border bg-muted/30 p-3">
+            <div className="flex items-center justify-between">
+              <Label className="inline-flex items-center gap-1.5">
+                <Users className="h-4 w-4" />
+                Kimlere gidecek?
+              </Label>
+              <button
+                type="button"
+                onClick={() =>
+                  setSelectedStudents(
+                    allSelected ? new Set() : new Set(students.map((s) => s.id)),
+                  )
+                }
+                className="text-xs font-medium text-primary hover:underline"
+              >
+                {allSelected ? "Hiçbiri" : "Hepsini seç"}
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {students.map((s) => {
+                const on = selectedStudents.has(s.id);
+                return (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => toggleStudent(s.id)}
+                    className={cn(
+                      "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition-all active:scale-95",
+                      on
+                        ? "gradient-surface border-transparent text-white shadow-md shadow-primary/25"
+                        : "border-input bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                    )}
+                    aria-pressed={on}
+                  >
+                    {on && <Check className="animate-scale-in h-3.5 w-3.5" />}
+                    {s.fullName}
+                  </button>
+                );
+              })}
+            </div>
+            {selectedStudents.size > 0 && (
+              <p className="text-xs text-muted-foreground">
+                {selectedStudents.size} öğrenci seçildi — her biri için ayrı takip ve
+                kontrol yapılır.
+              </p>
+            )}
+          </div>
 
           <div className="flex flex-col gap-2">
             <Label htmlFor="title">Başlık</Label>
-            <Input
-              id="title"
-              name="title"
-              required
-              placeholder="Örn: Hafta sonu çalışması"
-            />
+            <Input id="title" name="title" required placeholder="Örn: Hafta sonu çalışması" />
           </div>
 
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="due_date">Teslim tarihi (opsiyonel)</Label>
-            <Input id="due_date" name="due_date" type="date" />
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <Label>Kaynak kitap (opsiyonel)</Label>
-            <Select
-              value={bookId}
-              onValueChange={(v) => {
-                setBookId(v);
-                setSelected({});
-              }}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={NO_BOOK}>Kitap yok (serbest ödev)</SelectItem>
-                {books.map((b) => (
-                  <SelectItem key={b.id} value={b.id}>
-                    {b.name}
-                    {b.subject ? ` — ${b.subject}` : ""}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="due_date">Teslim tarihi (opsiyonel)</Label>
+              <Input id="due_date" name="due_date" type="date" />
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label>Kaynak kitap (opsiyonel)</Label>
+              <Select
+                value={bookId}
+                onValueChange={(v) => {
+                  setBookId(v);
+                  setSelectedTests({});
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={NO_BOOK}>Kitap yok (serbest ödev)</SelectItem>
+                  {books.map((b) => (
+                    <SelectItem key={b.id} value={b.id}>
+                      {b.name}
+                      {b.subject ? ` — ${b.subject}` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {activeBook && (
-            <div className="flex flex-col gap-3 rounded-lg border bg-muted/30 p-3">
-              <p className="text-sm font-medium">Hangi testler ödev?</p>
+            <div className="animate-scale-in flex flex-col gap-3 rounded-xl border bg-muted/30 p-3">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium">Hangi testler ödev?</p>
+                {testCount > 0 && (
+                  <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
+                    {testCount} test
+                  </span>
+                )}
+              </div>
               {activeBook.sections.length === 0 && (
                 <p className="text-sm text-muted-foreground">
-                  Bu kitabın henüz bölümü yok. Önce kitap detayından bölüm/test ekle.
+                  Bu kitabın henüz bölümü yok. Önce kitap detayından bölüm ekle.
                 </p>
               )}
               {activeBook.sections.map((s) => {
-                const set = selected[s.id] ?? new Set<number>();
+                const set = selectedTests[s.id] ?? new Set<number>();
                 return (
                   <div key={s.id} className="space-y-1.5">
-                    <p className="text-xs text-muted-foreground">{s.name}</p>
+                    <p className="text-xs font-medium text-muted-foreground">{s.name}</p>
                     <div className="flex flex-wrap gap-1.5">
-                      {Array.from({ length: s.test_count }, (_, i) => i + 1).map((n) => {
+                      {Array.from({ length: s.testCount }, (_, i) => i + 1).map((n) => {
                         const on = set.has(n);
                         return (
                           <button
@@ -158,11 +259,12 @@ export function CreateHomeworkDialog({
                             type="button"
                             onClick={() => toggleTest(s.id, n)}
                             className={cn(
-                              "inline-flex h-8 w-8 items-center justify-center rounded-md border text-xs font-medium",
+                              "inline-flex h-8 w-8 items-center justify-center rounded-md border text-xs font-medium transition-all hover:-translate-y-0.5 active:translate-y-0",
                               on
-                                ? "border-primary bg-primary text-primary-foreground"
+                                ? "border-primary bg-primary text-primary-foreground shadow-sm shadow-primary/30"
                                 : "border-input bg-background text-muted-foreground hover:bg-accent",
                             )}
+                            aria-pressed={on}
                           >
                             {n}
                           </button>
@@ -196,7 +298,7 @@ export function CreateHomeworkDialog({
               onChange={(e) => setFileName(e.target.files?.[0]?.name ?? null)}
             />
             {fileName && (
-              <div className="flex items-center justify-between rounded-md border bg-muted/30 px-2 py-1.5 text-xs">
+              <div className="animate-scale-in flex items-center justify-between rounded-md border bg-muted/30 px-2 py-1.5 text-xs">
                 <span className="truncate">{fileName}</span>
                 <button
                   type="button"
@@ -213,12 +315,18 @@ export function CreateHomeworkDialog({
               </div>
             )}
             <p className="text-xs text-muted-foreground">
-              Dosyalar 3 ay sonra otomatik silinir.
+              Tek kopya yüklenir, seçilen tüm öğrenciler görebilir. Dosyalar 3 ay sonra
+              otomatik silinir.
             </p>
           </div>
 
-          <Button type="submit" disabled={pending}>
-            {pending ? "Kaydediliyor..." : "Ödevi Kaydet"}
+          <Button type="submit" disabled={pending} className="gap-1.5">
+            <Send className="h-4 w-4" />
+            {pending
+              ? "Gönderiliyor..."
+              : selectedStudents.size > 1
+                ? `${selectedStudents.size} Öğrenciye Gönder`
+                : "Ödevi Gönder"}
           </Button>
         </form>
       </DialogContent>
