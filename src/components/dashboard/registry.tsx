@@ -1,0 +1,258 @@
+import type { ComponentType } from "react";
+import {
+  BarChart3,
+  Bell,
+  BookMarked,
+  BookOpen,
+  CalendarDays,
+  CalendarRange,
+  ClipboardList,
+  Clock3,
+  Hourglass,
+  LineChart,
+  Quote,
+  StickyNote,
+  Timer,
+  Users,
+  Zap,
+  type LucideIcon,
+} from "lucide-react";
+import type { Role } from "@/lib/types";
+import type { LayoutItem } from "@/lib/dashboard-types";
+import type { WidgetProps } from "@/components/dashboard/types";
+import {
+  ClockWidget,
+  CountdownWidget,
+  NotesWidget,
+  PomodoroWidget,
+  QuickLinksWidget,
+  QuoteWidget,
+} from "@/components/dashboard/widgets-utility";
+import {
+  BooksWidget,
+  EventsWidget,
+  ExamsWidget,
+  HomeworkWidget,
+  NotificationsWidget,
+  PendingBooksWidget,
+  PeopleWidget,
+  StatsWidget,
+  TodayScheduleWidget,
+  WeeklyScheduleWidget,
+} from "@/components/dashboard/widgets-data";
+
+export interface WidgetDef {
+  id: string;
+  title: string | ((role: Role) => string);
+  description: string;
+  icon: LucideIcon;
+  roles: Role[];
+  /** Varsayılan boyut ve izin verilen aralıklar (ızgara birimi). */
+  defaultW: number;
+  defaultH: number;
+  minW: number;
+  maxW: number;
+  minH: number;
+  maxH: number;
+  component: ComponentType<WidgetProps>;
+}
+
+export const WIDGETS: WidgetDef[] = [
+  {
+    id: "stats",
+    title: "Özet",
+    description: "Bir bakışta güncel sayılar",
+    icon: BarChart3,
+    roles: ["teacher", "student", "parent"],
+    defaultW: 4, defaultH: 1, minW: 2, maxW: 4, minH: 1, maxH: 2,
+    component: StatsWidget,
+  },
+  {
+    id: "homework",
+    title: (role) => (role === "student" ? "Bekleyen Ödevlerim" : "Bekleyen Ödevler"),
+    description: "Teslim tarihine göre sıralı ödev listesi",
+    icon: ClipboardList,
+    roles: ["teacher", "student", "parent"],
+    defaultW: 2, defaultH: 2, minW: 1, maxW: 4, minH: 1, maxH: 3,
+    component: HomeworkWidget,
+  },
+  {
+    id: "today-schedule",
+    title: "Bugünün Programı",
+    description: "Çalışma programında bugüne ait saatler",
+    icon: CalendarDays,
+    roles: ["student", "parent"],
+    defaultW: 2, defaultH: 2, minW: 1, maxW: 4, minH: 1, maxH: 3,
+    component: TodayScheduleWidget,
+  },
+  {
+    id: "weekly-schedule",
+    title: "Haftalık Program",
+    description: "Haftanın yoğunluğunu gösteren mini grafik",
+    icon: CalendarRange,
+    roles: ["student", "parent"],
+    defaultW: 2, defaultH: 2, minW: 2, maxW: 4, minH: 2, maxH: 3,
+    component: WeeklyScheduleWidget,
+  },
+  {
+    id: "events",
+    title: "Yaklaşan Etkinlikler",
+    description: "Takvimdeki dersler, hatırlatmalar ve teslimler",
+    icon: CalendarDays,
+    roles: ["teacher", "student", "parent"],
+    defaultW: 2, defaultH: 2, minW: 1, maxW: 4, minH: 1, maxH: 3,
+    component: EventsWidget,
+  },
+  {
+    id: "exams",
+    title: "Son Denemeler",
+    description: "Net gelişimini gösteren deneme özeti",
+    icon: LineChart,
+    roles: ["student", "parent"],
+    defaultW: 2, defaultH: 2, minW: 2, maxW: 4, minH: 1, maxH: 3,
+    component: ExamsWidget,
+  },
+  {
+    id: "books",
+    title: "Kitap İlerlemesi",
+    description: "Kitaplıktaki kaynakların test ilerlemesi",
+    icon: BookOpen,
+    roles: ["student", "parent"],
+    defaultW: 2, defaultH: 2, minW: 2, maxW: 4, minH: 1, maxH: 3,
+    component: BooksWidget,
+  },
+  {
+    id: "notifications",
+    title: "Son Bildirimler",
+    description: "En yeni bildirimlerin listesi",
+    icon: Bell,
+    roles: ["teacher", "student", "parent"],
+    defaultW: 2, defaultH: 2, minW: 1, maxW: 4, minH: 1, maxH: 3,
+    component: NotificationsWidget,
+  },
+  {
+    id: "book-approvals",
+    title: "Onay Bekleyen Kitaplar",
+    description: "Velilerin eklediği, onay bekleyen kaynaklar",
+    icon: BookMarked,
+    roles: ["teacher"],
+    defaultW: 2, defaultH: 2, minW: 1, maxW: 4, minH: 1, maxH: 3,
+    component: PendingBooksWidget,
+  },
+  {
+    id: "people",
+    title: (role) => (role === "teacher" ? "Öğrencilerim" : "Çocuklarım"),
+    description: "Takip edilen öğrencilerin listesi",
+    icon: Users,
+    roles: ["teacher", "parent"],
+    defaultW: 2, defaultH: 2, minW: 1, maxW: 4, minH: 1, maxH: 3,
+    component: PeopleWidget,
+  },
+  {
+    id: "clock",
+    title: "Saat & Tarih",
+    description: "Canlı saat ve bugünün tarihi",
+    icon: Clock3,
+    roles: ["teacher", "student", "parent"],
+    defaultW: 1, defaultH: 1, minW: 1, maxW: 2, minH: 1, maxH: 2,
+    component: ClockWidget,
+  },
+  {
+    id: "pomodoro",
+    title: "Pomodoro",
+    description: "Odaklanma sayacı: çalış, mola ver, tekrarla",
+    icon: Timer,
+    roles: ["teacher", "student", "parent"],
+    defaultW: 1, defaultH: 2, minW: 1, maxW: 2, minH: 1, maxH: 3,
+    component: PomodoroWidget,
+  },
+  {
+    id: "notes",
+    title: "Hızlı Notlar",
+    description: "Bu cihazda saklanan kişisel not alanı",
+    icon: StickyNote,
+    roles: ["teacher", "student", "parent"],
+    defaultW: 1, defaultH: 2, minW: 1, maxW: 4, minH: 1, maxH: 3,
+    component: NotesWidget,
+  },
+  {
+    id: "countdown",
+    title: "Geri Sayım",
+    description: "Sınava/hedefe kalan gün sayısı",
+    icon: Hourglass,
+    roles: ["teacher", "student", "parent"],
+    defaultW: 1, defaultH: 1, minW: 1, maxW: 2, minH: 1, maxH: 2,
+    component: CountdownWidget,
+  },
+  {
+    id: "quote",
+    title: "Günün Sözü",
+    description: "Her gün değişen motivasyon sözü",
+    icon: Quote,
+    roles: ["teacher", "student", "parent"],
+    defaultW: 1, defaultH: 1, minW: 1, maxW: 2, minH: 1, maxH: 2,
+    component: QuoteWidget,
+  },
+  {
+    id: "quick-links",
+    title: "Hızlı Erişim",
+    description: "Sık kullanılan ekranlara kısayollar",
+    icon: Zap,
+    roles: ["teacher", "student", "parent"],
+    defaultW: 1, defaultH: 2, minW: 1, maxW: 2, minH: 1, maxH: 3,
+    component: QuickLinksWidget,
+  },
+];
+
+export const WIDGET_BY_ID = new Map(WIDGETS.map((w) => [w.id, w]));
+
+export function widgetTitle(def: WidgetDef, role: Role): string {
+  return typeof def.title === "function" ? def.title(role) : def.title;
+}
+
+export function widgetsForRole(role: Role): WidgetDef[] {
+  return WIDGETS.filter((w) => w.roles.includes(role));
+}
+
+/** Rol için varsayılan yerleşim: sırayla, varsayılan boyutlarla. */
+const DEFAULT_IDS: Record<Role, string[]> = {
+  student: [
+    "stats",
+    "homework",
+    "today-schedule",
+    "clock",
+    "countdown",
+    "events",
+    "exams",
+    "pomodoro",
+    "quote",
+    "books",
+  ],
+  teacher: [
+    "stats",
+    "homework",
+    "book-approvals",
+    "clock",
+    "quote",
+    "events",
+    "people",
+    "notifications",
+  ],
+  parent: [
+    "stats",
+    "homework",
+    "people",
+    "clock",
+    "quote",
+    "events",
+    "exams",
+    "books",
+  ],
+};
+
+export function defaultLayout(role: Role): LayoutItem[] {
+  return DEFAULT_IDS[role]
+    .map((id) => WIDGET_BY_ID.get(id))
+    .filter((def): def is WidgetDef => Boolean(def && def.roles.includes(role)))
+    .map((def) => ({ id: def.id, w: def.defaultW, h: def.defaultH }));
+}

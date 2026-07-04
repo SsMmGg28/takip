@@ -31,7 +31,15 @@ NEXT_PUBLIC_SUPABASE_URL=...
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 SUPABASE_SERVICE_ROLE_KEY=...
 NEXT_PUBLIC_AUTH_EMAIL_DOMAIN=takip.internal
+
+# Web Push (kilit ekranı bildirimleri) — üretmek için: npx web-push generate-vapid-keys
+NEXT_PUBLIC_VAPID_PUBLIC_KEY=...
+VAPID_PRIVATE_KEY=...
+VAPID_SUBJECT=mailto:seninadresin@example.com
 ```
+
+> VAPID anahtarları tanımlı değilse uygulama normal çalışır; yalnızca
+> telefon/kilit ekranı push bildirimleri devre dışı kalır.
 
 ### 3. İlk öğretmen hesabını oluştur
 
@@ -64,7 +72,9 @@ http://localhost:3000 adresinden açabilirsin.
 
 1. Bu projeyi bir GitHub reposuna push et.
 2. https://vercel.com üzerinden "New Project" ile bu repoyu içe aktar.
-3. Environment Variables kısmına `.env.local` içindeki aynı 4 değeri ekle.
+3. Environment Variables kısmına `.env.local` içindeki tüm değerleri ekle
+   (VAPID anahtarları dahil — `NEXT_PUBLIC_VAPID_PUBLIC_KEY` build sırasında
+   tarayıcı koduna gömüldüğü için sonradan eklenirse yeniden deploy gerekir).
 4. Deploy et — her `git push` sonrası otomatik olarak yeniden deploy edilecek.
 
 ## Proje Yapısı

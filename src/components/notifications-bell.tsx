@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -16,6 +17,7 @@ import {
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
+import { PushNotificationToggle } from "@/components/push-manager";
 import type { AppNotification, NotificationType } from "@/lib/types";
 
 const TYPE_ICON: Record<NotificationType, LucideIcon> = {
@@ -48,15 +50,25 @@ function timeAgo(iso: string): string {
   return new Date(iso).toLocaleDateString("tr-TR");
 }
 
+const PANEL_MAX_WIDTH = 360;
+const PANEL_MARGIN = 12;
+
 /**
  * Bildirim zili: Supabase Realtime ile canlı bildirim dinler (Vercel'in
  * sunucusuz yapısından bağımsız — tarayıcı doğrudan Supabase'e bağlanır).
+ *
+ * Panel, header'ın backdrop-filter'ı fixed/absolute konumlandırmayı ve iç içe
+ * cam efektini bozduğu için portal ile body'ye çizilir; konumu zil butonunun
+ * ekran koordinatlarından hesaplanır. Böylece dar ekranlarda taşmaz ve
+ * arkasındaki içerik panelin içinden görünmez.
  */
 export function NotificationsBell({ userId }: { userId: string }) {
   const router = useRouter();
   const [items, setItems] = useState<AppNotification[]>([]);
   const [open, setOpen] = useState(false);
   const [ringing, setRinging] = useState(false);
+  const [panelPos, setPanelPos] = useState<{ top: number; right: number } | null>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const supabaseRef = useRef<ReturnType<typeof createClient> | null>(null);
 
@@ -106,15 +118,31 @@ export function NotificationsBell({ userId }: { userId: string }) {
     };
   }, [userId, load, router]);
 
-  // Panel dışına tıklanınca kapan
+  const updatePanelPos = useCallback(() => {
+    const rect = buttonRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    setPanelPos({
+      top: rect.bottom + 8,
+      right: Math.max(PANEL_MARGIN, window.innerWidth - rect.right),
+    });
+  }, []);
+
+  // Panel dışına tıklanınca kapan; ekran boyutu değişirse yeniden konumlan
   useEffect(() => {
     if (!open) return;
     function onPointerDown(e: PointerEvent) {
-      if (!panelRef.current?.contains(e.target as Node)) setOpen(false);
+      const target = e.target as Node;
+      if (buttonRef.current?.contains(target)) return;
+      if (panelRef.current?.contains(target)) return;
+      setOpen(false);
     }
     window.addEventListener("pointerdown", onPointerDown);
-    return () => window.removeEventListener("pointerdown", onPointerDown);
-  }, [open]);
+    window.addEventListener("resize", updatePanelPos);
+    return () => {
+      window.removeEventListener("pointerdown", onPointerDown);
+      window.removeEventListener("resize", updatePanelPos);
+    };
+  }, [open, updatePanelPos]);
 
   async function markAllRead() {
     if (!items.some((n) => !n.read_at)) return;
@@ -128,13 +156,17 @@ export function NotificationsBell({ userId }: { userId: string }) {
 
   function toggle() {
     const next = !open;
+    if (next) {
+      updatePanelPos();
+      void markAllRead();
+    }
     setOpen(next);
-    if (next) void markAllRead();
   }
 
   return (
-    <div ref={panelRef} className="relative">
+    <>
       <button
+        ref={buttonRef}
         type="button"
         onClick={toggle}
         aria-label={
@@ -157,71 +189,84 @@ export function NotificationsBell({ userId }: { userId: string }) {
         )}
       </button>
 
-      {open && (
-        <div className="animate-scale-in glass absolute right-0 top-11 z-50 w-[min(92vw,360px)] origin-top-right overflow-hidden rounded-2xl border shadow-2xl shadow-primary/15">
-          <div className="flex items-center justify-between border-b px-4 py-2.5">
-            <p className="text-sm font-semibold">Bildirimler</p>
-            <span className="text-[11px] text-muted-foreground">
-              Son {items.length} bildirim
-            </span>
-          </div>
-
-          {items.length === 0 ? (
-            <div className="flex flex-col items-center gap-2 px-4 py-10 text-center">
-              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-muted">
-                <Bell className="h-5 w-5 text-muted-foreground" />
+      {open &&
+        panelPos &&
+        createPortal(
+          <div
+            ref={panelRef}
+            style={{
+              top: panelPos.top,
+              right: panelPos.right,
+              width: `min(${PANEL_MAX_WIDTH}px, calc(100vw - ${PANEL_MARGIN * 2}px))`,
+            }}
+            className="animate-scale-in fixed z-50 origin-top-right overflow-hidden rounded-2xl border bg-popover text-popover-foreground shadow-2xl shadow-primary/15"
+          >
+            <div className="flex items-center justify-between border-b px-4 py-2.5">
+              <p className="text-sm font-semibold">Bildirimler</p>
+              <span className="text-[11px] text-muted-foreground">
+                Son {items.length} bildirim
               </span>
-              <p className="text-sm text-muted-foreground">Henüz bildirim yok</p>
             </div>
-          ) : (
-            <ul className="max-h-[60vh] overflow-y-auto">
-              {items.map((n) => {
-                const Icon = TYPE_ICON[n.type] ?? Bell;
-                const inner = (
-                  <span className="flex items-start gap-3">
-                    <span
-                      className={cn(
-                        "mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
-                        TYPE_TONE[n.type] ?? "bg-muted text-muted-foreground",
-                      )}
-                    >
-                      <Icon className="h-4 w-4" />
-                    </span>
-                    <span className="min-w-0">
-                      <span className="block text-sm font-medium leading-snug">
-                        {n.title}
-                      </span>
-                      {n.body && (
-                        <span className="mt-0.5 block text-xs leading-snug text-muted-foreground">
-                          {n.body}
-                        </span>
-                      )}
-                      <span className="mt-1 block text-[10px] uppercase tracking-wide text-muted-foreground/70">
-                        {timeAgo(n.created_at)}
-                      </span>
-                    </span>
-                  </span>
-                );
-                return (
-                  <li key={n.id} className="border-b last:border-b-0">
-                    {n.link ? (
-                      <Link
-                        href={n.link}
-                        onClick={() => setOpen(false)}
-                        className="block px-4 py-3 transition-colors hover:bg-accent/60"
+
+            {items.length === 0 ? (
+              <div className="flex flex-col items-center gap-2 px-4 py-10 text-center">
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-muted">
+                  <Bell className="h-5 w-5 text-muted-foreground" />
+                </span>
+                <p className="text-sm text-muted-foreground">Henüz bildirim yok</p>
+              </div>
+            ) : (
+              <ul className="max-h-[55vh] overflow-y-auto">
+                {items.map((n) => {
+                  const Icon = TYPE_ICON[n.type] ?? Bell;
+                  const inner = (
+                    <span className="flex items-start gap-3">
+                      <span
+                        className={cn(
+                          "mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
+                          TYPE_TONE[n.type] ?? "bg-muted text-muted-foreground",
+                        )}
                       >
-                        {inner}
-                      </Link>
-                    ) : (
-                      <div className="px-4 py-3">{inner}</div>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </div>
-      )}
-    </div>
+                        <Icon className="h-4 w-4" />
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block text-sm font-medium leading-snug">
+                          {n.title}
+                        </span>
+                        {n.body && (
+                          <span className="mt-0.5 block text-xs leading-snug text-muted-foreground">
+                            {n.body}
+                          </span>
+                        )}
+                        <span className="mt-1 block text-[10px] uppercase tracking-wide text-muted-foreground/70">
+                          {timeAgo(n.created_at)}
+                        </span>
+                      </span>
+                    </span>
+                  );
+                  return (
+                    <li key={n.id} className="border-b last:border-b-0">
+                      {n.link ? (
+                        <Link
+                          href={n.link}
+                          onClick={() => setOpen(false)}
+                          className="block px-4 py-3 transition-colors hover:bg-accent/60"
+                        >
+                          {inner}
+                        </Link>
+                      ) : (
+                        <div className="px-4 py-3">{inner}</div>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+
+            <PushNotificationToggle />
+          </div>,
+          document.body,
+        )}
+    </>
   );
 }
