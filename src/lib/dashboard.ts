@@ -3,6 +3,7 @@ import { getAccessibleStudents, withGrades } from "@/lib/students";
 import { getStudentShelf, getPendingBooks } from "@/lib/books";
 import { getStudentCalendarItems } from "@/lib/calendar";
 import { calculateNet } from "@/lib/exam-shared";
+import { effectiveHomeworkStatus } from "@/lib/homework";
 import type {
   AppNotification,
   Exam,
@@ -88,7 +89,7 @@ async function getPendingHomework(studentId: string): Promise<HomeworkItem[]> {
     id: h.id,
     title: h.title,
     dueDate: h.due_date,
-    status: h.status,
+    status: effectiveHomeworkStatus(h),
   }));
 }
 
@@ -319,7 +320,7 @@ async function getTeacherData(profile: Profile): Promise<DashboardData> {
       id: h.id,
       title: h.title,
       dueDate: h.due_date,
-      status: h.status,
+      status: effectiveHomeworkStatus(h),
       studentName: nameById.get(h.student_id),
     })),
     schedule: [],

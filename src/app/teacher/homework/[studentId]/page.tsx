@@ -111,6 +111,7 @@ export default async function TeacherStudentHomeworkPage({
               sectionName: sectionById.get(t.section_id)?.name ?? "Bölüm",
               testNumber: t.test_number,
               completed: t.completed,
+              studentMarked: t.student_marked,
             }));
             const missingCount = it.tests.filter((t) => !t.completed).length;
             const showReassign =
@@ -131,6 +132,8 @@ export default async function TeacherStudentHomeworkPage({
                       studentName={student.full_name}
                       tests={checkTests}
                       checkedBefore={Boolean(hw.checked_at)}
+                      studentSaysDone={Boolean(hw.student_marked_done_at)}
+                      initialFeedback={hw.feedback}
                     />
                     <EditHomeworkDialog
                       homeworkId={hw.id}

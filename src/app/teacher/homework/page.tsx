@@ -2,6 +2,7 @@ import Link from "next/link";
 import {
   AlertTriangle,
   BookOpen,
+  CalendarClock,
   CheckCircle2,
   ClipboardList,
   Hourglass,
@@ -17,6 +18,7 @@ import { CreateHomeworkDialog } from "@/components/teacher/create-homework-dialo
 import { DeleteHomeworkGroupButton } from "@/components/teacher/homework-row-actions";
 import { HOMEWORK_STATUS_LABEL } from "@/components/homework/homework-status-badge";
 import { getApprovedBooks } from "@/lib/books";
+import { effectiveHomeworkStatus } from "@/lib/homework";
 import { getAssignmentGroups } from "@/lib/homework-fetch";
 import { cn } from "@/lib/utils";
 import type { HomeworkStatus, Profile } from "@/lib/types";
@@ -59,13 +61,12 @@ export default async function TeacherHomeworkPage() {
   }));
 
   const allEntries = groups.flatMap((g) => g.entries);
-  const waitingCheck = allEntries.filter((e) => e.homework.status === "assigned").length;
-  const incompleteCount = allEntries.filter(
-    (e) => e.homework.status === "incomplete",
-  ).length;
-  const completedCount = allEntries.filter(
-    (e) => e.homework.status === "completed",
-  ).length;
+  const statusOf = (e: (typeof allEntries)[number]) =>
+    effectiveHomeworkStatus(e.homework);
+  const waitingCheck = allEntries.filter((e) => statusOf(e) === "assigned").length;
+  const overdueCount = allEntries.filter((e) => statusOf(e) === "overdue").length;
+  const incompleteCount = allEntries.filter((e) => statusOf(e) === "incomplete").length;
+  const completedCount = allEntries.filter((e) => statusOf(e) === "completed").length;
 
   return (
     <>
@@ -93,8 +94,9 @@ export default async function TeacherHomeworkPage() {
         />
       ) : (
         <>
-          <div className="stagger grid gap-3 sm:grid-cols-3">
+          <div className="stagger grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard label="Kontrol Bekleyen" value={waitingCheck} icon={Hourglass} />
+            <StatCard label="Geciken" value={overdueCount} icon={CalendarClock} />
             <StatCard label="Eksik" value={incompleteCount} icon={AlertTriangle} />
             <StatCard label="Tamamlanan" value={completedCount} icon={CheckCircle2} />
           </div>
@@ -140,25 +142,25 @@ export default async function TeacherHomeworkPage() {
                   </div>
 
                   <div className="mt-3 flex flex-wrap gap-1.5">
-                    {g.entries.map(({ homework, student }) => (
-                      <Link
-                        key={homework.id}
-                        href={`/teacher/homework/${homework.student_id}`}
-                        className={cn(
-                          "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all hover:-translate-y-0.5 active:translate-y-0",
-                          CHIP_CLASS[homework.status],
-                        )}
-                        title={`${student?.full_name ?? "?"} — ${HOMEWORK_STATUS_LABEL[homework.status]}`}
-                      >
-                        <span
+                    {g.entries.map(({ homework, student }) => {
+                      const status = effectiveHomeworkStatus(homework);
+                      return (
+                        <Link
+                          key={homework.id}
+                          href={`/teacher/homework/${homework.student_id}`}
                           className={cn(
-                            "h-1.5 w-1.5 rounded-full",
-                            DOT_CLASS[homework.status],
+                            "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all hover:-translate-y-0.5 active:translate-y-0",
+                            CHIP_CLASS[status],
                           )}
-                        />
-                        {student?.full_name ?? "?"}
-                      </Link>
-                    ))}
+                          title={`${student?.full_name ?? "?"} — ${HOMEWORK_STATUS_LABEL[status]}`}
+                        >
+                          <span
+                            className={cn("h-1.5 w-1.5 rounded-full", DOT_CLASS[status])}
+                          />
+                          {student?.full_name ?? "?"}
+                        </Link>
+                      );
+                    })}
                   </div>
                 </div>
               ))}

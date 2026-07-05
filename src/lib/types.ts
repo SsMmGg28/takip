@@ -79,6 +79,10 @@ export interface Homework {
   status: HomeworkStatus;
   assignment_group_id: string;
   checked_at: string | null;
+  /** Öğretmenin kontrol sırasında yazdığı kısa geri bildirim notu. */
+  feedback: string | null;
+  /** Testsiz ödevde öğrencinin "tamamladım" beyanının zamanı. */
+  student_marked_done_at: string | null;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -91,6 +95,8 @@ export interface HomeworkTest {
   test_number: number;
   completed: boolean;
   completed_at: string | null;
+  /** Öğrencinin "bu testi yaptım" beyanı; öğretmen kontrolü son sözü söyler. */
+  student_marked: boolean;
 }
 
 // Bildirimler --------------------------------------------------------------
