@@ -10,6 +10,8 @@ import {
   BookOpen,
   BookCheck,
   BookX,
+  CalendarClock,
+  CalendarDays,
   ClipboardList,
   GraduationCap,
   MailQuestion,
@@ -32,6 +34,8 @@ const TYPE_ICON: Record<NotificationType, LucideIcon> = {
   exam_created: GraduationCap,
   exam_edit_requested: MailQuestion,
   exam_edit_resolved: PencilLine,
+  homework_due_soon: CalendarClock,
+  event_created: CalendarDays,
 };
 
 const TYPE_TONE: Record<NotificationType, string> = {
@@ -44,6 +48,8 @@ const TYPE_TONE: Record<NotificationType, string> = {
   exam_created: "bg-primary/12 text-primary",
   exam_edit_requested: "bg-warning/15 text-warning",
   exam_edit_resolved: "bg-success/15 text-success",
+  homework_due_soon: "bg-warning/15 text-warning",
+  event_created: "bg-primary/12 text-primary",
 };
 
 function timeAgo(iso: string): string {

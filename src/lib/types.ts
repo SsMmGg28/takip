@@ -112,7 +112,9 @@ export type NotificationType =
   | "book_rejected"
   | "exam_created"
   | "exam_edit_requested"
-  | "exam_edit_resolved";
+  | "exam_edit_resolved"
+  | "homework_due_soon"
+  | "event_created";
 
 export interface AppNotification {
   id: string;
@@ -137,6 +139,8 @@ export interface CalendarEvent {
   description: string | null;
   start_at: string;
   end_at: string | null;
+  /** "weekly" ise etkinlik her hafta aynı gün/saatte tekrarlanır. */
+  recurrence: "weekly" | null;
   created_by: string;
   created_at: string;
 }
