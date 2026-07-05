@@ -130,7 +130,7 @@ export interface CalendarEvent {
   created_at: string;
 }
 
-export interface StudySchedureEntry {
+export interface StudyScheduleEntry {
   id: string;
   student_id: string;
   day_of_week: number;

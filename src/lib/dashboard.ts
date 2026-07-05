@@ -9,7 +9,7 @@ import type {
   ExamSubject,
   Homework,
   Profile,
-  StudySchedureEntry,
+  StudyScheduleEntry,
 } from "@/lib/types";
 import type {
   BookItem,
@@ -100,7 +100,7 @@ async function getScheduleItems(studentId: string): Promise<ScheduleItem[]> {
     .eq("student_id", studentId)
     .order("day_of_week")
     .order("start_time");
-  return ((data as StudySchedureEntry[]) ?? []).map((e) => ({
+  return ((data as StudyScheduleEntry[]) ?? []).map((e) => ({
     id: e.id,
     day: e.day_of_week,
     start: shortTime(e.start_time),
