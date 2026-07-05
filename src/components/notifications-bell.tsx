@@ -11,6 +11,8 @@ import {
   BookCheck,
   BookX,
   ClipboardList,
+  GraduationCap,
+  MailQuestion,
   PencilLine,
   type LucideIcon,
 } from "lucide-react";
@@ -27,6 +29,9 @@ const TYPE_ICON: Record<NotificationType, LucideIcon> = {
   book_pending: BookOpen,
   book_approved: BookCheck,
   book_rejected: BookX,
+  exam_created: GraduationCap,
+  exam_edit_requested: MailQuestion,
+  exam_edit_resolved: PencilLine,
 };
 
 const TYPE_TONE: Record<NotificationType, string> = {
@@ -36,6 +41,9 @@ const TYPE_TONE: Record<NotificationType, string> = {
   book_pending: "bg-primary/12 text-primary",
   book_approved: "bg-success/15 text-success",
   book_rejected: "bg-destructive/12 text-destructive",
+  exam_created: "bg-primary/12 text-primary",
+  exam_edit_requested: "bg-warning/15 text-warning",
+  exam_edit_resolved: "bg-success/15 text-success",
 };
 
 function timeAgo(iso: string): string {

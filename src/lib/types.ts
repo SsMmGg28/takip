@@ -14,6 +14,8 @@ export interface StudentProfile {
   id: string;
   grade_level: number;
   notes: string | null;
+  /** Öğretmenin belirlediği hedef deneme puanı (grafikte hedef çizgisi). */
+  target_score: number | null;
 }
 
 export interface ParentStudentLink {
@@ -107,7 +109,10 @@ export type NotificationType =
   | "homework_incomplete"
   | "book_pending"
   | "book_approved"
-  | "book_rejected";
+  | "book_rejected"
+  | "exam_created"
+  | "exam_edit_requested"
+  | "exam_edit_resolved";
 
 export interface AppNotification {
   id: string;

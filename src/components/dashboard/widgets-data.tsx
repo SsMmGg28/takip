@@ -11,6 +11,7 @@ import {
   CalendarDays,
   ClipboardList,
   GraduationCap,
+  MailQuestion,
   PencilLine,
   Presentation,
   type LucideIcon,
@@ -407,6 +408,9 @@ const NOTIF_ICON: Record<NotificationType, LucideIcon> = {
   book_pending: BookOpen,
   book_approved: BookCheck,
   book_rejected: BookX,
+  exam_created: GraduationCap,
+  exam_edit_requested: MailQuestion,
+  exam_edit_resolved: PencilLine,
 };
 
 function timeAgo(iso: string): string {

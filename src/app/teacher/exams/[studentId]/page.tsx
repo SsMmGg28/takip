@@ -7,8 +7,9 @@ import { EmptyState } from "@/components/empty-state";
 import { Button } from "@/components/ui/button";
 import { ExamAnalysisSection } from "@/components/exams/exam-analysis-section";
 import { ExamList } from "@/components/exams/exam-list";
+import { TargetScoreDialog } from "@/components/exams/target-score-dialog";
 import { getExamOverview } from "@/lib/exam-analysis";
-import { getStudentGrade } from "@/lib/students";
+import { getStudentExamInfo } from "@/lib/students";
 import { examsEnabledForGrade } from "@/lib/kazanim";
 
 export default async function TeacherStudentExamsPage({
@@ -26,7 +27,7 @@ export default async function TeacherStudentExamsPage({
     .single();
   if (!student) notFound();
 
-  const grade = await getStudentGrade(studentId);
+  const { grade, targetScore } = await getStudentExamInfo(studentId);
   if (!examsEnabledForGrade(grade)) {
     return (
       <>
@@ -48,16 +49,23 @@ export default async function TeacherStudentExamsPage({
         title={student.full_name}
         description={`${grade}. sınıf — deneme analizi ve geçmiş denemeler`}
         action={
-          <Button asChild>
-            <Link href={`/teacher/exams/${studentId}/new`}>
-              <Plus className="h-4 w-4" />
-              Yeni Deneme
-            </Link>
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <TargetScoreDialog studentId={studentId} currentTarget={targetScore} />
+            <Button asChild>
+              <Link href={`/teacher/exams/${studentId}/new`}>
+                <Plus className="h-4 w-4" />
+                Yeni Deneme
+              </Link>
+            </Button>
+          </div>
         }
       />
 
-      <ExamAnalysisSection overview={overview} studentId={studentId} />
+      <ExamAnalysisSection
+        overview={overview}
+        studentId={studentId}
+        targetScore={targetScore}
+      />
 
       <section className="flex flex-col gap-3">
         <h2 className="text-lg font-semibold">Geçmiş Denemeler</h2>
