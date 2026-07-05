@@ -93,10 +93,20 @@ export async function POST(request: Request) {
   }
 
   if (role === "parent" && parent_of) {
-    await admin.from("parent_student_links").insert({
-      parent_id: newUserId,
-      student_id: parent_of,
-    });
+    // parent_of gerçek bir öğrenci profiline işaret etmeli; aksi halde veliyi
+    // rastgele bir profile (ör. öğretmen) bağlama ihtimali doğar.
+    const { data: linkedStudent } = await admin
+      .from("profiles")
+      .select("role")
+      .eq("id", parent_of)
+      .single();
+
+    if (linkedStudent?.role === "student") {
+      await admin.from("parent_student_links").insert({
+        parent_id: newUserId,
+        student_id: parent_of,
+      });
+    }
   }
 
   return NextResponse.json({ username, tempPassword });
