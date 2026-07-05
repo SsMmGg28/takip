@@ -5,7 +5,7 @@ import { CalendarView } from "@/components/calendar/calendar-view";
 
 export default async function StudentCalendarPage() {
   const profile = await requireRole(["student"]);
-  const items = await getStudentCalendarItems(profile.id);
+  const items = await getStudentCalendarItems(profile.id, "/student/homework");
 
   return (
     <>

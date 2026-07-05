@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Flame, RefreshCw, Sparkles } from "lucide-react";
+import { BarChart3, Flame, LineChart, Loader2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,10 +22,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { fetchKazanimAnalysis } from "@/lib/actions/exams";
+import { KazanimTrendChart } from "@/components/exams/subject-net-chart";
 import type { KazanimAnalysis } from "@/lib/exam-shared";
 import { LGS_SUBJECTS } from "@/lib/kazanim";
-
-const MIN_THINKING_MS = 2800;
 
 type SortKey = "wrongRate" | "incorrect" | "accuracy" | "correct" | "asked";
 
@@ -37,55 +36,21 @@ const SORT_OPTIONS: { value: SortKey; label: string }[] = [
   { value: "asked", label: "Soru sayısı (en çok)" },
 ];
 
-/** Yapay zeka düşünüyormuş hissi veren, yazısız bekleme animasyonu. */
-function ThinkingAnimation() {
-  return (
-    <div className="flex h-64 items-center justify-center" role="status" aria-label="Analiz hazırlanıyor">
-      <div className="relative flex h-40 w-40 items-center justify-center">
-        {/* Genişleyen halkalar */}
-        <span className="animate-ring-expand absolute inset-0 rounded-full border-2 border-primary/40" />
-        <span
-          className="animate-ring-expand absolute inset-0 rounded-full border-2 border-primary/30"
-          style={{ animationDelay: "-0.7s" }}
-        />
-        <span
-          className="animate-ring-expand absolute inset-0 rounded-full border-2 border-primary/20"
-          style={{ animationDelay: "-1.4s" }}
-        />
-        {/* Yörüngedeki parçacıklar */}
-        <span className="animate-orbit absolute inset-2">
-          <span className="gradient-surface absolute -top-1 left-1/2 h-3 w-3 -translate-x-1/2 rounded-full shadow-md shadow-primary/40" />
-        </span>
-        <span className="animate-orbit absolute inset-6" style={{ animationDuration: "2.2s", animationDirection: "reverse" }}>
-          <span className="absolute -top-1 left-1/2 h-2 w-2 -translate-x-1/2 rounded-full bg-brand-to shadow" />
-        </span>
-        <span className="animate-orbit absolute inset-10" style={{ animationDuration: "4s" }}>
-          <span className="absolute -top-0.5 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-brand-via" />
-        </span>
-        {/* Merkez küre */}
-        <span className="animate-pulse-core gradient-surface relative flex h-16 w-16 items-center justify-center rounded-full shadow-xl shadow-primary/40">
-          <Sparkles className="h-6 w-6 text-white" />
-        </span>
-      </div>
-    </div>
-  );
-}
-
+/**
+ * Kazanım analizi: girilen kazanım verilerinden deterministik olarak hesaplanan
+ * döküm tablosu, çalışma önceliği listesi ve doğruluk gelişim grafiği.
+ * Veri istek üzerine çekilir ve sonuç beklemeden gösterilir.
+ */
 export function KazanimAnalysisPanel({ studentId }: { studentId: string }) {
-  const [status, setStatus] = useState<"idle" | "thinking" | "ready">("idle");
+  const [status, setStatus] = useState<"idle" | "loading" | "ready">("idle");
   const [data, setData] = useState<KazanimAnalysis | null>(null);
   const [subjectFilter, setSubjectFilter] = useState<string>("all");
   const [sortKey, setSortKey] = useState<SortKey>("wrongRate");
 
   async function generate() {
-    setStatus("thinking");
-    const startedAt = Date.now();
+    setStatus("loading");
     try {
       const result = await fetchKazanimAnalysis(studentId);
-      const elapsed = Date.now() - startedAt;
-      if (elapsed < MIN_THINKING_MS) {
-        await new Promise((resolve) => setTimeout(resolve, MIN_THINKING_MS - elapsed));
-      }
       setData(result);
       setStatus("ready");
     } catch {
@@ -97,28 +62,33 @@ export function KazanimAnalysisPanel({ studentId }: { studentId: string }) {
   if (status === "idle") {
     return (
       <div className="animate-scale-in flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed bg-muted/30 p-10 text-center">
-        <div className="gradient-surface animate-float flex h-14 w-14 items-center justify-center rounded-2xl text-white shadow-lg shadow-primary/25">
-          <Sparkles className="h-6 w-6" />
+        <div className="gradient-surface flex h-14 w-14 items-center justify-center rounded-2xl text-white shadow-lg shadow-primary/25">
+          <BarChart3 className="h-6 w-6" />
         </div>
         <div className="space-y-1">
-          <p className="font-semibold">Kazanım analizi hazır değil</p>
+          <p className="font-semibold">Kazanım analizi</p>
           <p className="mx-auto max-w-sm text-sm text-muted-foreground">
-            Girilen kazanım verilerinden doğru/yanlış dökümü ve çalışma önceliği
-            listesi oluşturulur.
+            Girilen kazanım verilerinden doğru/yanlış dökümü, gelişim grafiği ve
+            çalışma önceliği listesi hesaplanır.
           </p>
         </div>
         <Button onClick={generate}>
-          <Sparkles className="h-4 w-4" />
-          Kazanım Analizini Oluştur
+          <BarChart3 className="h-4 w-4" />
+          Kazanım Analizini Göster
         </Button>
       </div>
     );
   }
 
-  if (status === "thinking") {
+  if (status === "loading") {
     return (
-      <div className="rounded-2xl border bg-card/70">
-        <ThinkingAnimation />
+      <div
+        className="flex h-40 items-center justify-center gap-2 rounded-2xl border bg-card/70 text-sm text-muted-foreground"
+        role="status"
+        aria-label="Analiz hazırlanıyor"
+      >
+        <Loader2 className="h-4 w-4 animate-spin" />
+        Analiz hazırlanıyor...
       </div>
     );
   }
@@ -142,6 +112,10 @@ export function KazanimAnalysisPanel({ studentId }: { studentId: string }) {
     });
 
   const topPriorities = analysis.priorities.slice(0, 10);
+  const trendSubjects =
+    subjectFilter === "all"
+      ? analysis.trendSubjects
+      : analysis.trendSubjects.filter((s) => s === subjectFilter);
 
   return (
     <div className="animate-fade-up flex flex-col gap-5">
@@ -201,6 +175,24 @@ export function KazanimAnalysisPanel({ studentId }: { studentId: string }) {
               ))}
             </ol>
           )}
+        </CardContent>
+      </Card>
+
+      {/* Kazanım doğruluk gelişimi */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <span className="gradient-surface flex h-8 w-8 items-center justify-center rounded-lg text-white">
+              <LineChart className="h-4 w-4" />
+            </span>
+            Kazanım Başarı Gelişimi
+            <span className="text-xs font-normal text-muted-foreground">
+              (deneme sırasına göre doğruluk %)
+            </span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <KazanimTrendChart rows={analysis.trend} subjects={trendSubjects} />
         </CardContent>
       </Card>
 

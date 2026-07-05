@@ -62,6 +62,17 @@ export interface PersonItem {
   grade: number | null;
 }
 
+/** Velinin haftalık özet widget'ı için çocuk başına bu haftanın dökümü. */
+export interface WeeklySummaryChild {
+  studentId: string;
+  studentName: string;
+  completedHomework: number;
+  incompleteHomework: number;
+  testsSolved: number;
+  /** Son iki denemenin toplam net farkı (tek deneme varsa null). */
+  netChange: number | null;
+}
+
 // ── Yerleşim ────────────────────────────────────────────────────────────────
 
 /** Kullanıcının kaydedilen yerleşimindeki tek widget. */
@@ -90,4 +101,6 @@ export interface DashboardData {
   pendingBooks: PendingBookItem[];
   people: PersonItem[];
   notifications: AppNotification[];
+  /** Yalnızca veli rolünde dolu: çocuk başına haftalık takip özeti. */
+  weeklySummary: WeeklySummaryChild[];
 }

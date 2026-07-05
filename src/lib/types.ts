@@ -14,6 +14,8 @@ export interface StudentProfile {
   id: string;
   grade_level: number;
   notes: string | null;
+  /** Öğretmenin belirlediği hedef deneme puanı (grafikte hedef çizgisi). */
+  target_score: number | null;
 }
 
 export interface ParentStudentLink {
@@ -79,6 +81,10 @@ export interface Homework {
   status: HomeworkStatus;
   assignment_group_id: string;
   checked_at: string | null;
+  /** Öğretmenin kontrol sırasında yazdığı kısa geri bildirim notu. */
+  feedback: string | null;
+  /** Testsiz ödevde öğrencinin "tamamladım" beyanının zamanı. */
+  student_marked_done_at: string | null;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -91,6 +97,8 @@ export interface HomeworkTest {
   test_number: number;
   completed: boolean;
   completed_at: string | null;
+  /** Öğrencinin "bu testi yaptım" beyanı; öğretmen kontrolü son sözü söyler. */
+  student_marked: boolean;
 }
 
 // Bildirimler --------------------------------------------------------------
@@ -101,7 +109,12 @@ export type NotificationType =
   | "homework_incomplete"
   | "book_pending"
   | "book_approved"
-  | "book_rejected";
+  | "book_rejected"
+  | "exam_created"
+  | "exam_edit_requested"
+  | "exam_edit_resolved"
+  | "homework_due_soon"
+  | "event_created";
 
 export interface AppNotification {
   id: string;
@@ -126,11 +139,13 @@ export interface CalendarEvent {
   description: string | null;
   start_at: string;
   end_at: string | null;
+  /** "weekly" ise etkinlik her hafta aynı gün/saatte tekrarlanır. */
+  recurrence: "weekly" | null;
   created_by: string;
   created_at: string;
 }
 
-export interface StudySchedureEntry {
+export interface StudyScheduleEntry {
   id: string;
   student_id: string;
   day_of_week: number;

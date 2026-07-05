@@ -6,6 +6,7 @@ import { requireRole } from "@/lib/auth";
 import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
 import { BookCard } from "@/components/resources/book-card";
+import { StudentNotesCard } from "@/components/teacher/student-notes-card";
 import { getStudentShelf } from "@/lib/books";
 
 export default async function TeacherStudentDetailPage({
@@ -24,7 +25,10 @@ export default async function TeacherStudentDetailPage({
     .single();
   if (!student) notFound();
 
-  const shelf = await getStudentShelf(studentId);
+  const [shelf, { data: studentProfile }] = await Promise.all([
+    getStudentShelf(studentId),
+    supabase.from("student_profiles").select("notes").eq("id", studentId).single(),
+  ]);
 
   return (
     <>
@@ -39,6 +43,11 @@ export default async function TeacherStudentDetailPage({
             ← Öğrenciler
           </Link>
         }
+      />
+
+      <StudentNotesCard
+        studentId={studentId}
+        initialNotes={studentProfile?.notes ?? null}
       />
 
       {shelf.length === 0 ? (

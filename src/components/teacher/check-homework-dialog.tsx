@@ -19,10 +19,13 @@ export interface CheckTestItem {
   sectionName: string;
   testNumber: number;
   completed: boolean;
+  /** Öğrencinin "yaptım" beyanı; ilk kontrolde ön-dolgu olarak kullanılır. */
+  studentMarked: boolean;
 }
 
 /**
- * Ödev kontrolü: öğrencinin yaptığı testleri işaretle. Yapılanlar genel kitap
+ * Ödev kontrolü: öğrencinin yaptığı testleri işaretle. İlk kontrolde
+ * öğrencinin kendi işaretlediği testler ön-dolu gelir. Yapılanlar genel kitap
  * ilerlemesine de işlenir; eksik varsa ödev "Eksik" olur ve veliye bildirim
  * gider.
  */
@@ -32,17 +35,30 @@ export function CheckHomeworkDialog({
   studentName,
   tests,
   checkedBefore,
+  studentSaysDone,
+  initialFeedback,
 }: {
   homeworkId: string;
   homeworkTitle: string;
   studentName: string;
   tests: CheckTestItem[];
   checkedBefore: boolean;
+  /** Testsiz ödevde öğrencinin "tamamladım" beyanı. */
+  studentSaysDone?: boolean;
+  initialFeedback?: string | null;
 }) {
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
+  const [feedback, setFeedback] = useState(initialFeedback ?? "");
   const [done, setDone] = useState<Set<string>>(
-    () => new Set(tests.filter((t) => t.completed).map((t) => `${t.sectionId}:${t.testNumber}`)),
+    () =>
+      new Set(
+        tests
+          // İlk kontrolde öğrenci beyanı ön-dolgu; sonraki kontrollerde
+          // öğretmenin kesinleştirdiği durum esas alınır.
+          .filter((t) => (checkedBefore ? t.completed : t.completed || t.studentMarked))
+          .map((t) => `${t.sectionId}:${t.testNumber}`),
+      ),
   );
 
   const sections = useMemo(() => {
@@ -71,6 +87,7 @@ export function CheckHomeworkDialog({
     const fd = new FormData();
     fd.set("id", homeworkId);
     if (manualResult) fd.set("result", manualResult);
+    fd.set("feedback", feedback);
     for (const key of done) fd.append("done", key);
 
     setPending(true);
@@ -152,15 +169,19 @@ export function CheckHomeworkDialog({
                           type="button"
                           onClick={() => toggle(key)}
                           className={cn(
-                            "inline-flex h-9 w-9 items-center justify-center rounded-md border text-sm font-medium transition-all hover:-translate-y-0.5 active:translate-y-0",
+                            "relative inline-flex h-9 w-9 items-center justify-center rounded-md border text-sm font-medium transition-all hover:-translate-y-0.5 active:translate-y-0",
                             on
                               ? "border-success bg-success text-white shadow-sm shadow-success/30"
                               : "border-input bg-background text-muted-foreground hover:bg-accent",
                           )}
                           aria-pressed={on}
-                          aria-label={`Test ${t.testNumber}${on ? " (yapıldı)" : ""}`}
+                          aria-label={`Test ${t.testNumber}${on ? " (yapıldı)" : ""}${t.studentMarked ? " — öğrenci işaretledi" : ""}`}
+                          title={t.studentMarked ? "Öğrenci yaptım olarak işaretledi" : undefined}
                         >
                           {on ? <Check className="h-4 w-4" /> : t.testNumber}
+                          {t.studentMarked && (
+                            <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full border-2 border-background bg-primary" />
+                          )}
                         </button>
                       );
                     })}
@@ -185,6 +206,21 @@ export function CheckHomeworkDialog({
               </span>
             </div>
 
+            <div className="space-y-1.5">
+              <label htmlFor="check-feedback" className="text-xs font-medium text-muted-foreground">
+                Geri bildirim notu (isteğe bağlı — öğrenci ve veli görür)
+              </label>
+              <textarea
+                id="check-feedback"
+                value={feedback}
+                onChange={(e) => setFeedback(e.target.value)}
+                rows={2}
+                maxLength={500}
+                placeholder="Örn: Yanlışlarını defterine çıkar, çarpanlara ayırmayı tekrar et."
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              />
+            </div>
+
             <Button disabled={pending} onClick={() => submit()} className="gap-1.5">
               <ClipboardCheck className="h-4 w-4" />
               {pending ? "Kaydediliyor..." : "Kontrolü Kaydet"}
@@ -195,6 +231,25 @@ export function CheckHomeworkDialog({
             <p className="text-sm text-muted-foreground">
               Bu ödevde test listesi yok; sonucu doğrudan işaretle.
             </p>
+            {studentSaysDone && (
+              <p className="rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-xs text-primary">
+                Öğrenci bu ödevi &quot;tamamladım&quot; olarak işaretledi.
+              </p>
+            )}
+            <div className="space-y-1.5">
+              <label htmlFor="check-feedback-manual" className="text-xs font-medium text-muted-foreground">
+                Geri bildirim notu (isteğe bağlı — öğrenci ve veli görür)
+              </label>
+              <textarea
+                id="check-feedback-manual"
+                value={feedback}
+                onChange={(e) => setFeedback(e.target.value)}
+                rows={2}
+                maxLength={500}
+                placeholder="Örn: Kompozisyonun girişini yeniden yaz."
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              />
+            </div>
             <div className="grid grid-cols-2 gap-2">
               <Button
                 variant="outline"

@@ -5,13 +5,13 @@ import { EmptyState } from "@/components/empty-state";
 import { ExamAnalysisSection } from "@/components/exams/exam-analysis-section";
 import { ExamList } from "@/components/exams/exam-list";
 import { getExamOverview } from "@/lib/exam-analysis";
-import { getStudentGrade } from "@/lib/students";
+import { getStudentExamInfo } from "@/lib/students";
 import { examsEnabledForGrade } from "@/lib/kazanim";
 
 export default async function StudentExamsPage() {
   const profile = await requireRole(["student"]);
 
-  const grade = await getStudentGrade(profile.id);
+  const { grade, targetScore } = await getStudentExamInfo(profile.id);
   if (!examsEnabledForGrade(grade)) {
     return (
       <>
@@ -34,7 +34,11 @@ export default async function StudentExamsPage() {
         description="Net ve puan gelişimin, kazanım analizin ve geçmiş denemelerin."
       />
 
-      <ExamAnalysisSection overview={overview} studentId={profile.id} />
+      <ExamAnalysisSection
+        overview={overview}
+        studentId={profile.id}
+        targetScore={targetScore}
+      />
 
       <section className="flex flex-col gap-3">
         <h2 className="text-lg font-semibold">Geçmiş Denemelerim</h2>

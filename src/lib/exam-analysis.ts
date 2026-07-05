@@ -8,6 +8,7 @@ import {
   type KazanimAnalysis,
   type KazanimPriority,
   type KazanimStat,
+  type KazanimTrendRow,
 } from "@/lib/exam-shared";
 
 // Saf tipler ve net hesabı client-safe modülde tutulur; server tarafı buradan
@@ -125,14 +126,15 @@ export async function getKazanimAnalysis(studentId: string): Promise<KazanimAnal
 
   const { data: examsData } = await supabase
     .from("exams")
-    .select("id, exam_date, created_at")
+    .select("id, exam_name, exam_date, created_at")
     .eq("student_id", studentId)
     .order("exam_date", { ascending: false })
     .order("created_at", { ascending: false });
 
   const exams = examsData ?? [];
   const examIds = exams.map((e) => e.id);
-  if (examIds.length === 0) return { stats: [], priorities: [], examCount: 0 };
+  if (examIds.length === 0)
+    return { stats: [], priorities: [], trend: [], trendSubjects: [], examCount: 0 };
 
   const { data: subjectsData } = await supabase
     .from("exam_subjects")
@@ -174,5 +176,42 @@ export async function getKazanimAnalysis(studentId: string): Promise<KazanimAnal
     .filter((p) => p.priorityScore > 0)
     .sort((a, b) => b.priorityScore - a.priorityScore);
 
-  return { stats, priorities, examCount: exams.length };
+  // Deneme sırasına göre (eski -> yeni) ders bazında kazanım doğruluk gelişimi.
+  const rowsByExam = new Map<string, KazanimRowWithContext[]>();
+  for (const r of rows) {
+    if (!rowsByExam.has(r.examId)) rowsByExam.set(r.examId, []);
+    rowsByExam.get(r.examId)!.push(r);
+  }
+  const trendSubjectsSet = new Set<string>();
+  const trend: KazanimTrendRow[] = [...exams]
+    .reverse()
+    .flatMap((exam) => {
+      const examRows = rowsByExam.get(exam.id) ?? [];
+      if (!examRows.length) return [];
+      const row: KazanimTrendRow = {
+        examLabel: exam.exam_name,
+        examDate: exam.exam_date,
+      };
+      const bySubject = new Map<string, { correct: number; asked: number }>();
+      for (const r of examRows) {
+        const agg = bySubject.get(r.subjectName) ?? { correct: 0, asked: 0 };
+        agg.correct += r.correct_count;
+        agg.asked += r.correct_count + r.incorrect_count + r.blank_count;
+        bySubject.set(r.subjectName, agg);
+      }
+      for (const [subject, agg] of bySubject) {
+        if (agg.asked === 0) continue;
+        row[subject] = Math.round((agg.correct / agg.asked) * 100);
+        trendSubjectsSet.add(subject);
+      }
+      return [row];
+    });
+
+  return {
+    stats,
+    priorities,
+    trend,
+    trendSubjects: Array.from(trendSubjectsSet),
+    examCount: exams.length,
+  };
 }

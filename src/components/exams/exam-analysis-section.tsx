@@ -8,9 +8,11 @@ import type { ExamOverview } from "@/lib/exam-analysis";
 export function ExamAnalysisSection({
   overview,
   studentId,
+  targetScore,
 }: {
   overview: ExamOverview;
   studentId: string;
+  targetScore?: number | null;
 }) {
   return (
     <div className="flex flex-col gap-5">
@@ -38,7 +40,7 @@ export function ExamAnalysisSection({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ScoreChart rows={overview.chartRows} />
+            <ScoreChart rows={overview.chartRows} targetScore={targetScore} />
           </CardContent>
         </Card>
       </div>

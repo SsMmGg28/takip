@@ -2,7 +2,7 @@ import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { AddScheduleEntryDialog } from "@/components/schedule/add-schedule-entry-dialog";
 import { WeeklySchedule } from "@/components/schedule/weekly-schedule";
-import type { StudySchedureEntry } from "@/lib/types";
+import type { StudyScheduleEntry } from "@/lib/types";
 
 export default async function StudentSchedulePage() {
   const profile = await requireRole(["student"]);
@@ -20,7 +20,7 @@ export default async function StudentSchedulePage() {
         <AddScheduleEntryDialog studentId={profile.id} redirectPath="/student/schedule" />
       </div>
       <WeeklySchedule
-        entries={(entries as StudySchedureEntry[]) ?? []}
+        entries={(entries as StudyScheduleEntry[]) ?? []}
         redirectPath="/student/schedule"
       />
     </div>

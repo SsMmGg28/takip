@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -192,11 +193,13 @@ export function CalendarView({ items }: { items: CalendarItem[] }) {
 }
 
 function ItemRow({ item, compact }: { item: CalendarItem; compact?: boolean }) {
-  return (
+  const body = (
     <div
       className={cn(
         "rounded-md border px-2 py-1.5 text-xs",
         TYPE_TONE[item.type],
+        // Hafta/ay hücreleri zaten buton olduğundan link yalnızca gün görünümünde çalışır.
+        !compact && item.href && "transition-shadow hover:shadow-sm",
       )}
     >
       <div className="flex items-center justify-between gap-2">
@@ -207,12 +210,23 @@ function ItemRow({ item, compact }: { item: CalendarItem; compact?: boolean }) {
           </Badge>
         )}
       </div>
-      <p className={cn("font-medium", compact && "truncate")}>{item.title}</p>
+      <p className={cn("font-medium", compact && "truncate", !compact && item.href && "underline-offset-2 hover:underline")}>
+        {item.title}
+      </p>
       {!compact && item.description && (
         <p className="mt-0.5 text-muted-foreground">{item.description}</p>
       )}
     </div>
   );
+
+  if (!compact && item.href) {
+    return (
+      <Link href={item.href} className="block">
+        {body}
+      </Link>
+    );
+  }
+  return body;
 }
 
 function DayView({ day, items }: { day: Date; items: CalendarItem[] }) {

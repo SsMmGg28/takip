@@ -44,7 +44,7 @@ const FEATURES = [
     icon: ClipboardList,
     title: "Ödev Takibi",
     description:
-      "Ödevler menüsünde sana atanan ödevler listelenir. Ekli dosyayı indirir, ödevi bitirince teslim olarak işaretlersin. Öğretmen teslimi aynı ekrandan görür, veli süreci anlık izler.",
+      "Ödevler menüsünde sana atanan ödevler listelenir. Ekli dosyayı indirir, yaptığın testleri işaretlersin. Öğretmen kontrol edip geri bildirim yazar; veli süreci anlık izler.",
   },
   {
     icon: BookOpen,
@@ -62,13 +62,13 @@ const FEATURES = [
     icon: CalendarClock,
     title: "Çalışma Programı",
     description:
-      "Çalışma Programı menüsünde haftalık planın gün gün, saat saat listelenir. Programı öğretmen hazırlar; sen hangi gün hangi konuya çalışacağını buradan takip edersin.",
+      "Çalışma Programı menüsünde haftalık planın gün gün, saat saat listelenir. Programı öğretmenin, velin ve sen birlikte oluşturursunuz; hangi gün hangi konuya çalışacağını buradan takip edersin.",
   },
   {
     icon: LineChart,
     title: "Deneme Analizi",
     description:
-      "Deneme Analizi menüsünde öğretmenin girdiği deneme sonuçları ders bazında net grafiklerine dönüşür. Yanlış yaptığın konular zayıf konu tablosunda listelenir; neye çalışacağını buradan görürsün.",
+      "Deneme Analizi menüsünde öğretmenin veya velinin girdiği deneme sonuçları ders bazında net grafiklerine dönüşür. Yanlış yaptığın konular zayıf konu tablosunda listelenir; neye çalışacağını buradan görürsün.",
   },
   {
     icon: Users,
@@ -99,7 +99,7 @@ const HOW_IT_WORKS: {
     icon: BookOpen,
     steps: [
       "Öğretmenin verdiği kullanıcı adı ve şifreyle giriş yap; ilk girişte yeni şifreni belirle.",
-      "Ödevlerim'de bekleyen ödevlerini gör, ekleri indir, bitirince teslim olarak işaretle.",
+      "Ödevlerim'de bekleyen ödevlerini gör, ekleri indir, yaptığın testleri işaretle.",
       "Kaynaklarım'da çözdüğün testlere tıklayıp işaretle; kitap ilerlemen kendiliğinden güncellenir.",
       "Takvim'den ders saatlerini, Çalışma Programım'dan haftalık planını takip et.",
       "Deneme Analizim'de netlerini ve zayıf konularını grafiklerle incele.",

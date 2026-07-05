@@ -10,7 +10,11 @@ import {
   BookOpen,
   BookCheck,
   BookX,
+  CalendarClock,
+  CalendarDays,
   ClipboardList,
+  GraduationCap,
+  MailQuestion,
   PencilLine,
   type LucideIcon,
 } from "lucide-react";
@@ -27,6 +31,11 @@ const TYPE_ICON: Record<NotificationType, LucideIcon> = {
   book_pending: BookOpen,
   book_approved: BookCheck,
   book_rejected: BookX,
+  exam_created: GraduationCap,
+  exam_edit_requested: MailQuestion,
+  exam_edit_resolved: PencilLine,
+  homework_due_soon: CalendarClock,
+  event_created: CalendarDays,
 };
 
 const TYPE_TONE: Record<NotificationType, string> = {
@@ -36,6 +45,11 @@ const TYPE_TONE: Record<NotificationType, string> = {
   book_pending: "bg-primary/12 text-primary",
   book_approved: "bg-success/15 text-success",
   book_rejected: "bg-destructive/12 text-destructive",
+  exam_created: "bg-primary/12 text-primary",
+  exam_edit_requested: "bg-warning/15 text-warning",
+  exam_edit_resolved: "bg-success/15 text-success",
+  homework_due_soon: "bg-warning/15 text-warning",
+  event_created: "bg-primary/12 text-primary",
 };
 
 function timeAgo(iso: string): string {
@@ -154,12 +168,19 @@ export function NotificationsBell({ userId }: { userId: string }) {
       .is("read_at", null);
   }
 
+  // Paneli açmak artık her şeyi okundu saymıyor; bildirim ancak tıklanınca
+  // (veya "Tümünü okundu say" ile) okunmuş kabul edilir.
+  async function markRead(id: string) {
+    const target = items.find((n) => n.id === id);
+    if (!target || target.read_at) return;
+    const now = new Date().toISOString();
+    setItems((prev) => prev.map((n) => (n.id === id ? { ...n, read_at: now } : n)));
+    await getSupabase().from("notifications").update({ read_at: now }).eq("id", id);
+  }
+
   function toggle() {
     const next = !open;
-    if (next) {
-      updatePanelPos();
-      void markAllRead();
-    }
+    if (next) updatePanelPos();
     setOpen(next);
   }
 
@@ -203,9 +224,19 @@ export function NotificationsBell({ userId }: { userId: string }) {
           >
             <div className="flex items-center justify-between border-b px-4 py-2.5">
               <p className="text-sm font-semibold">Bildirimler</p>
-              <span className="text-[11px] text-muted-foreground">
-                Son {items.length} bildirim
-              </span>
+              {unreadCount > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => void markAllRead()}
+                  className="text-[11px] font-medium text-primary hover:underline"
+                >
+                  Tümünü okundu say
+                </button>
+              ) : (
+                <span className="text-[11px] text-muted-foreground">
+                  Son {items.length} bildirim
+                </span>
+              )}
             </div>
 
             {items.length === 0 ? (
@@ -244,18 +275,34 @@ export function NotificationsBell({ userId }: { userId: string }) {
                       </span>
                     </span>
                   );
+                  const rowClass = cn(
+                    "block px-4 py-3 transition-colors hover:bg-accent/60",
+                    !n.read_at && "bg-primary/5",
+                  );
                   return (
-                    <li key={n.id} className="border-b last:border-b-0">
+                    <li key={n.id} className="relative border-b last:border-b-0">
+                      {!n.read_at && (
+                        <span className="absolute right-3 top-3.5 h-2 w-2 rounded-full bg-primary" />
+                      )}
                       {n.link ? (
                         <Link
                           href={n.link}
-                          onClick={() => setOpen(false)}
-                          className="block px-4 py-3 transition-colors hover:bg-accent/60"
+                          onClick={() => {
+                            void markRead(n.id);
+                            setOpen(false);
+                          }}
+                          className={rowClass}
                         >
                           {inner}
                         </Link>
                       ) : (
-                        <div className="px-4 py-3">{inner}</div>
+                        <button
+                          type="button"
+                          onClick={() => void markRead(n.id)}
+                          className={cn(rowClass, "w-full text-left")}
+                        >
+                          {inner}
+                        </button>
                       )}
                     </li>
                   );
