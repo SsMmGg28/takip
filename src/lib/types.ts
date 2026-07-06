@@ -7,6 +7,8 @@ export interface Profile {
   full_name: string;
   phone: string | null;
   must_change_password: boolean;
+  /** Yönetici bayrağı: role='teacher' hesaba ek yetkiler verir; yalnızca service-role değiştirebilir. */
+  is_admin?: boolean;
   created_at: string;
 }
 

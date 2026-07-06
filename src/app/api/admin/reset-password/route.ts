@@ -12,7 +12,7 @@ export async function POST(request: Request) {
 
   const { data: callerProfile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, is_admin")
     .eq("id", userData.user.id)
     .single();
 
@@ -26,6 +26,20 @@ export async function POST(request: Request) {
   }
 
   const admin = createAdminClient();
+
+  // Öğretmen hesaplarının şifresini yalnızca yönetici sıfırlayabilir.
+  const { data: target } = await admin
+    .from("profiles")
+    .select("role")
+    .eq("id", profile_id)
+    .single();
+  if (target?.role === "teacher" && !callerProfile.is_admin) {
+    return NextResponse.json(
+      { error: "Öğretmen şifrelerini yalnızca yönetici sıfırlayabilir." },
+      { status: 403 },
+    );
+  }
+
   const tempPassword = generateTempPassword();
 
   const { error: updateError } = await admin.auth.admin.updateUserById(profile_id, {

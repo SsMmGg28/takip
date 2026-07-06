@@ -12,7 +12,7 @@ export async function POST(request: Request) {
 
   const { data: callerProfile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, is_admin")
     .eq("id", userData.user.id)
     .single();
   if (callerProfile?.role !== "teacher") {
@@ -46,6 +46,13 @@ export async function POST(request: Request) {
     .single();
   if (!target) {
     return NextResponse.json({ error: "Kullanıcı bulunamadı." }, { status: 404 });
+  }
+  // Öğretmen hesaplarını (kendi hesabı hariç) yalnızca yönetici düzenleyebilir.
+  if (target.role === "teacher" && target.id !== userData.user.id && !callerProfile.is_admin) {
+    return NextResponse.json(
+      { error: "Öğretmen hesaplarını yalnızca yönetici düzenleyebilir." },
+      { status: 403 },
+    );
   }
 
   const profileUpdate: Record<string, unknown> = {};
