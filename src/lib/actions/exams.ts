@@ -46,6 +46,16 @@ function isCount(value: unknown): value is number {
   return typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= 200;
 }
 
+/**
+ * Hiç verisi olmayan (D+Y+B=0 ve kazanımsız) dersleri eler; boş ders
+ * denemeye satır olarak yazılmaz.
+ */
+function filledSubjects(subjects: ExamSubjectInput[]): ExamSubjectInput[] {
+  return subjects.filter(
+    (s) => s.correct + s.incorrect + s.blank > 0 || s.kazanimlar.length > 0,
+  );
+}
+
 function validatePayload(payload: ExamPayload): string | null {
   if (!payload.examName?.trim()) return "Deneme adı gerekli.";
   if (!payload.examDate) return "Deneme tarihi gerekli.";
@@ -53,13 +63,17 @@ function validatePayload(payload: ExamPayload): string | null {
     return "Puan gerekli.";
   if (payload.score > 500) return "Puan 500'den büyük olamaz.";
 
-  for (const def of LGS_SUBJECTS) {
-    const subject = payload.subjects.find((s) => s.name === def.name);
-    if (!subject) return `${def.name} sonuçları eksik.`;
+  // Her ders zorunlu değil: yalnızca veri girilen dersler denetlenir,
+  // hiç ders girilmediyse deneme kaydedilmez.
+  const entered = filledSubjects(payload.subjects);
+  if (entered.length === 0) return "En az bir ders için sonuç girilmeli.";
+
+  for (const subject of entered) {
+    const def = LGS_SUBJECTS.find((d) => d.name === subject.name);
+    if (!def) return `Bilinmeyen ders: ${subject.name}.`;
     if (!isCount(subject.correct) || !isCount(subject.incorrect) || !isCount(subject.blank))
-      return `${def.name} için doğru/yanlış/boş sayıları eksik veya hatalı.`;
+      return `${def.name} için doğru/yanlış/boş sayıları hatalı.`;
     const total = subject.correct + subject.incorrect + subject.blank;
-    if (total === 0) return `${def.name} için doğru, yanlış ve boş sayıları girilmeli.`;
     if (total > def.questionCount)
       return `${def.name} toplamı ${def.questionCount} soruyu aşamaz (girilen: ${total}).`;
 
@@ -149,7 +163,7 @@ export async function createFullExam(payload: ExamPayload): Promise<ActionResult
     .single();
   if (error || !exam) return { ok: false, error: error?.message ?? "Deneme kaydedilemedi." };
 
-  const insertError = await insertSubjects(exam.id, payload.subjects);
+  const insertError = await insertSubjects(exam.id, filledSubjects(payload.subjects));
   if (insertError) {
     // Yarım kalan kaydı temizlemeyi dene (cascade ile dersler de silinir).
     await supabase.from("exams").delete().eq("id", exam.id);
@@ -212,7 +226,7 @@ export async function updateFullExam(
     .eq("exam_id", examId);
   if (deleteError) return { ok: false, error: deleteError.message };
 
-  const insertError = await insertSubjects(examId, payload.subjects);
+  const insertError = await insertSubjects(examId, filledSubjects(payload.subjects));
   if (insertError) return { ok: false, error: insertError };
 
   // Veli onaylı talep üzerinden düzenlediyse talebi kapat.
