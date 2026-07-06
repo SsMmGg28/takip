@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   Users,
+  UserRound,
   ClipboardList,
   BookOpen,
   Calendar,
@@ -39,6 +40,7 @@ export const LINKS_BY_ROLE: Record<Role, NavLinkDef[]> = {
     { href: "/teacher/resources", label: "Kütüphane", icon: BookOpen },
     { href: "/teacher/calendar", label: "Takvim", icon: Calendar },
     { href: "/teacher/exams", label: "Deneme Analizi", shortLabel: "Deneme", icon: LineChart },
+    { href: "/teacher/profile", label: "Profilim", shortLabel: "Profil", icon: UserRound },
   ],
   student: [
     { href: "/student", label: "Anasayfa", icon: LayoutDashboard },
@@ -47,6 +49,7 @@ export const LINKS_BY_ROLE: Record<Role, NavLinkDef[]> = {
     { href: "/student/calendar", label: "Takvim", icon: Calendar },
     { href: "/student/schedule", label: "Çalışma Programım", shortLabel: "Program", icon: CalendarClock },
     { href: "/student/exams", label: "Deneme Analizim", shortLabel: "Deneme", icon: LineChart },
+    { href: "/student/profile", label: "Profilim", shortLabel: "Profil", icon: UserRound },
   ],
   parent: [
     { href: "/parent", label: "Anasayfa", icon: LayoutDashboard },
@@ -55,6 +58,7 @@ export const LINKS_BY_ROLE: Record<Role, NavLinkDef[]> = {
     { href: "/parent/calendar", label: "Takvim", icon: Calendar },
     { href: "/parent/schedule", label: "Çalışma Programı", shortLabel: "Program", icon: CalendarClock },
     { href: "/parent/exams", label: "Deneme Analizi", shortLabel: "Deneme", icon: LineChart },
+    { href: "/parent/profile", label: "Profilim", shortLabel: "Profil", icon: UserRound },
   ],
 };
 

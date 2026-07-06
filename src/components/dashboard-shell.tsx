@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { DashboardNav, MobileNav } from "@/components/dashboard-nav";
 import { NotificationsBell } from "@/components/notifications-bell";
 import { ServiceWorkerRegistrar } from "@/components/push-manager";
@@ -61,10 +62,11 @@ export async function DashboardShell({
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-3 py-2.5 sm:gap-3 sm:px-4 sm:py-3">
           <Brand size="sm" />
           <div className="flex items-center gap-1.5 sm:gap-3">
-            {/* Kullanıcı rozeti: mobilde yalnızca avatar, sm+ ekranda ad/rol de görünür */}
-            <div
-              className="flex items-center gap-2 rounded-full border bg-card/60 p-1 shadow-sm sm:pr-3"
-              title={`${profile.full_name} — ${ROLE_LABELS[role]}`}
+            {/* Kullanıcı rozeti profil sayfasına gider: mobilde yalnızca avatar, sm+ ekranda ad/rol de görünür */}
+            <Link
+              href={`/${role}/profile`}
+              className="flex items-center gap-2 rounded-full border bg-card/60 p-1 shadow-sm transition-colors hover:bg-accent sm:pr-3"
+              title={`${profile.full_name} — ${ROLE_LABELS[role]} · Profilim`}
             >
               <span className="gradient-surface flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold text-white">
                 {initials(profile.full_name)}
@@ -75,7 +77,7 @@ export async function DashboardShell({
                   {ROLE_LABELS[role]}
                 </span>
               </span>
-            </div>
+            </Link>
             <NotificationsBell userId={profile.id} />
             <ThemeToggle />
             <SignOutButton />
