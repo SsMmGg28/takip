@@ -219,10 +219,13 @@ export function NotificationsBell({ userId }: { userId: string }) {
               top: panelPos.top,
               right: panelPos.right,
               width: `min(${PANEL_MAX_WIDTH}px, calc(100vw - ${PANEL_MARGIN * 2}px))`,
+              // Kısa/mobil ekranlarda panel ekrandan taşmasın; liste kendi
+              // içinde kaydırılır, alt kısımdaki push anahtarı hep görünür kalır.
+              maxHeight: `calc(100dvh - ${panelPos.top}px - ${PANEL_MARGIN}px)`,
             }}
-            className="animate-scale-in fixed z-50 origin-top-right overflow-hidden rounded-2xl border bg-popover text-popover-foreground shadow-2xl shadow-primary/15"
+            className="animate-scale-in fixed z-50 flex origin-top-right flex-col overflow-hidden rounded-2xl border bg-popover text-popover-foreground shadow-2xl shadow-primary/15"
           >
-            <div className="flex items-center justify-between border-b px-4 py-2.5">
+            <div className="flex shrink-0 items-center justify-between border-b px-4 py-2.5">
               <p className="text-sm font-semibold">Bildirimler</p>
               {unreadCount > 0 ? (
                 <button
@@ -247,7 +250,7 @@ export function NotificationsBell({ userId }: { userId: string }) {
                 <p className="text-sm text-muted-foreground">Henüz bildirim yok</p>
               </div>
             ) : (
-              <ul className="max-h-[55vh] overflow-y-auto">
+              <ul className="min-h-0 flex-1 overflow-y-auto">
                 {items.map((n) => {
                   const Icon = TYPE_ICON[n.type] ?? Bell;
                   const inner = (
@@ -310,7 +313,9 @@ export function NotificationsBell({ userId }: { userId: string }) {
               </ul>
             )}
 
-            <PushNotificationToggle />
+            <div className="shrink-0">
+              <PushNotificationToggle />
+            </div>
           </div>,
           document.body,
         )}
