@@ -30,6 +30,7 @@ export default async function StudentHomeworkPage() {
                 book={it.book}
                 tests={it.tests}
                 sectionById={sectionById}
+                href={it.book ? `/student/resources/${it.book.id}` : undefined}
                 testsSlot={
                   checked ? undefined : (
                     <StudentMarkPanel
