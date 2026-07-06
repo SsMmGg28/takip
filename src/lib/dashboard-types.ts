@@ -7,6 +7,8 @@ export interface DashboardStat {
   label: string;
   value: number | string;
   hint?: string;
+  /** Verilirse istatistik kutusu ilgili sayfaya tıklanabilir link olur. */
+  href?: string;
 }
 
 export interface HomeworkItem {

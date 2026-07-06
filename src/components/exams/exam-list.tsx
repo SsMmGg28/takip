@@ -59,17 +59,20 @@ export function ExamList({
           role === "teacher" || (role === "parent" && request?.status === "approved");
 
         return (
-          <Card key={exam.id} className="hover-lift group overflow-hidden">
+          <Card key={exam.id} className="hover-lift group relative overflow-hidden transition-colors hover:border-primary/40">
+            {/* Kartın tamamı detaya gider; sağdaki aksiyon düğmeleri z-10 ile üstte kalır. */}
+            <Link
+              href={`${detailHrefPrefix}/${exam.id}`}
+              aria-label={`${exam.exam_name} detayına git`}
+              className="absolute inset-0"
+            />
             <CardContent className="flex flex-col gap-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <Link
-                  href={`${detailHrefPrefix}/${exam.id}`}
-                  className="flex min-w-0 items-center gap-2 font-semibold hover:text-primary"
-                >
+                <span className="flex min-w-0 items-center gap-2 font-semibold group-hover:text-primary">
                   <span className="truncate">{exam.exam_name}</span>
                   <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
-                </Link>
-                <div className="flex items-center gap-2">
+                </span>
+                <div className="relative z-10 flex items-center gap-2">
                   {role === "parent" && request && (
                     <EditRequestStatusBadge status={request.status} />
                   )}

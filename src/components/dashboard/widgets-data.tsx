@@ -78,20 +78,36 @@ export function StatsWidget({ data, w }: WidgetProps) {
         w >= 3 ? "grid-cols-4" : "grid-cols-2",
       )}
     >
-      {data.stats.map((s) => (
-        <div
-          key={s.label}
-          className="flex min-w-0 flex-col justify-center rounded-xl border bg-muted/30 px-3 py-2"
-        >
-          <p className="truncate text-2xl font-bold tabular-nums tracking-tight">
-            {s.value}
-          </p>
-          <p className="truncate text-[11px] font-medium text-muted-foreground">{s.label}</p>
-          {s.hint && (
-            <p className="truncate text-[10px] text-muted-foreground/70">{s.hint}</p>
-          )}
-        </div>
-      ))}
+      {data.stats.map((s) => {
+        const inner = (
+          <>
+            <p className="truncate text-2xl font-bold tabular-nums tracking-tight">
+              {s.value}
+            </p>
+            <p className="truncate text-[11px] font-medium text-muted-foreground">
+              {s.label}
+            </p>
+            {s.hint && (
+              <p className="truncate text-[10px] text-muted-foreground/70">{s.hint}</p>
+            )}
+          </>
+        );
+        const tileClass =
+          "flex min-w-0 flex-col justify-center rounded-xl border bg-muted/30 px-3 py-2";
+        return s.href ? (
+          <Link
+            key={s.label}
+            href={s.href}
+            className={cn(tileClass, "transition-colors hover:border-primary/40 hover:bg-accent/50")}
+          >
+            {inner}
+          </Link>
+        ) : (
+          <div key={s.label} className={tileClass}>
+            {inner}
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -109,38 +125,40 @@ export function HomeworkWidget({ data, h }: WidgetProps) {
         {items.map((hw) => {
           const due = hw.dueDate ? formatDay(hw.dueDate) : null;
           return (
-            <li
-              key={hw.id}
-              className="flex items-center gap-2 rounded-xl border bg-muted/30 px-2.5 py-2"
-            >
-              <span
-                className={cn(
-                  "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg",
-                  hw.status === "incomplete" || hw.status === "overdue"
-                    ? "bg-destructive/12 text-destructive"
-                    : "bg-primary/12 text-primary",
-                )}
+            <li key={hw.id}>
+              <Link
+                href={`/${data.role}/homework`}
+                className="flex items-center gap-2 rounded-xl border bg-muted/30 px-2.5 py-2 transition-colors hover:bg-accent/60"
               >
-                {hw.status === "incomplete" ? (
-                  <AlertTriangle className="h-3.5 w-3.5" />
-                ) : (
-                  <ClipboardList className="h-3.5 w-3.5" />
-                )}
-              </span>
-              <span className="min-w-0 flex-1 truncate text-xs font-medium">{hw.title}</span>
-              <NameTag name={hw.studentName} />
-              {due && (
                 <span
                   className={cn(
-                    "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold",
-                    due.urgent
+                    "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg",
+                    hw.status === "incomplete" || hw.status === "overdue"
                       ? "bg-destructive/12 text-destructive"
-                      : "bg-muted text-muted-foreground",
+                      : "bg-primary/12 text-primary",
                   )}
                 >
-                  {due.label}
+                  {hw.status === "incomplete" ? (
+                    <AlertTriangle className="h-3.5 w-3.5" />
+                  ) : (
+                    <ClipboardList className="h-3.5 w-3.5" />
+                  )}
                 </span>
-              )}
+                <span className="min-w-0 flex-1 truncate text-xs font-medium">{hw.title}</span>
+                <NameTag name={hw.studentName} />
+                {due && (
+                  <span
+                    className={cn(
+                      "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold",
+                      due.urgent
+                        ? "bg-destructive/12 text-destructive"
+                        : "bg-muted text-muted-foreground",
+                    )}
+                  >
+                    {due.label}
+                  </span>
+                )}
+              </Link>
             </li>
           );
         })}
@@ -172,24 +190,26 @@ export function TodayScheduleWidget({ data, h }: WidgetProps) {
         {items.map((s) => {
           const active = now !== null && s.start <= now && now < s.end;
           return (
-            <li
-              key={s.id}
-              className={cn(
-                "flex items-center gap-2 rounded-xl border px-2.5 py-2",
-                active ? "border-primary/40 bg-primary/8" : "bg-muted/30",
-              )}
-            >
-              <span className="shrink-0 text-[11px] font-semibold tabular-nums text-muted-foreground">
-                {s.start}–{s.end}
-              </span>
-              <span className="min-w-0 flex-1 truncate text-xs font-medium">{s.label}</span>
-              <NameTag name={s.studentName} />
-              {active && (
-                <span className="relative flex h-2 w-2 shrink-0">
-                  <span className="animate-ping-soft absolute h-2 w-2 rounded-full bg-primary/60" />
-                  <span className="h-2 w-2 rounded-full bg-primary" />
+            <li key={s.id}>
+              <Link
+                href={`/${data.role}/schedule`}
+                className={cn(
+                  "flex items-center gap-2 rounded-xl border px-2.5 py-2 transition-colors hover:bg-accent/60",
+                  active ? "border-primary/40 bg-primary/8" : "bg-muted/30",
+                )}
+              >
+                <span className="shrink-0 text-[11px] font-semibold tabular-nums text-muted-foreground">
+                  {s.start}–{s.end}
                 </span>
-              )}
+                <span className="min-w-0 flex-1 truncate text-xs font-medium">{s.label}</span>
+                <NameTag name={s.studentName} />
+                {active && (
+                  <span className="relative flex h-2 w-2 shrink-0">
+                    <span className="animate-ping-soft absolute h-2 w-2 rounded-full bg-primary/60" />
+                    <span className="h-2 w-2 rounded-full bg-primary" />
+                  </span>
+                )}
+              </Link>
             </li>
           );
         })}
@@ -276,29 +296,31 @@ export function EventsWidget({ data, h }: WidgetProps) {
           const Icon = EVENT_ICON[e.type] ?? CalendarDays;
           const day = formatDay(e.date);
           return (
-            <li
-              key={e.id}
-              className="flex items-center gap-2 rounded-xl border bg-muted/30 px-2.5 py-2"
-            >
-              <span
-                className={cn(
-                  "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg",
-                  EVENT_TONE[e.type] ?? "bg-muted text-muted-foreground",
-                )}
+            <li key={e.id}>
+              <Link
+                href={`/${data.role}/calendar`}
+                className="flex items-center gap-2 rounded-xl border bg-muted/30 px-2.5 py-2 transition-colors hover:bg-accent/60"
               >
-                <Icon className="h-3.5 w-3.5" />
-              </span>
-              <span className="min-w-0 flex-1 truncate text-xs font-medium">{e.title}</span>
-              <span
-                className={cn(
-                  "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold",
-                  day.urgent
-                    ? "bg-primary/12 text-primary"
-                    : "bg-muted text-muted-foreground",
-                )}
-              >
-                {day.label}
-              </span>
+                <span
+                  className={cn(
+                    "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg",
+                    EVENT_TONE[e.type] ?? "bg-muted text-muted-foreground",
+                  )}
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                </span>
+                <span className="min-w-0 flex-1 truncate text-xs font-medium">{e.title}</span>
+                <span
+                  className={cn(
+                    "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold",
+                    day.urgent
+                      ? "bg-primary/12 text-primary"
+                      : "bg-muted text-muted-foreground",
+                  )}
+                >
+                  {day.label}
+                </span>
+              </Link>
             </li>
           );
         })}
@@ -323,8 +345,13 @@ export function ExamsWidget({ data, h }: WidgetProps) {
         {items.map((exam, i) => {
           const prev = items[i + 1];
           const delta = prev ? exam.totalNet - prev.totalNet : null;
+          // Deneme detayı yalnızca öğrenci rotasında doğrudan adreslenebilir;
+          // öğretmen/veli için analiz sayfasına gidilir.
+          const examHref =
+            data.role === "student" ? `/student/exams/${exam.id}` : `/${data.role}/exams`;
           return (
-            <li key={exam.id} className="space-y-1">
+            <li key={exam.id}>
+              <Link href={examHref} className="block space-y-1 rounded-lg p-0.5 transition-colors hover:bg-accent/50">
               <div className="flex items-center gap-2">
                 <span className="min-w-0 flex-1 truncate text-xs font-medium">
                   {exam.name}
@@ -350,6 +377,7 @@ export function ExamsWidget({ data, h }: WidgetProps) {
                   style={{ width: `${(exam.totalNet / maxNet) * 100}%` }}
                 />
               </div>
+              </Link>
             </li>
           );
         })}
@@ -372,24 +400,29 @@ export function BooksWidget({ data, h }: WidgetProps) {
         {items.map((b) => {
           const pct = b.total > 0 ? Math.round((b.done / b.total) * 100) : 0;
           return (
-            <li key={b.id} className="space-y-1">
-              <div className="flex items-center gap-2">
-                <BookOpen className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                <span className="min-w-0 flex-1 truncate text-xs font-medium">{b.name}</span>
-                <NameTag name={b.studentName} />
-                <span className="shrink-0 text-[11px] font-semibold tabular-nums text-muted-foreground">
-                  {b.done}/{b.total} · %{pct}
-                </span>
-              </div>
-              <div className="h-1.5 overflow-hidden rounded-full bg-muted">
-                <div
-                  className={cn(
-                    "h-full rounded-full",
-                    pct >= 100 ? "bg-success" : "gradient-surface",
-                  )}
-                  style={{ width: `${Math.min(100, pct)}%` }}
-                />
-              </div>
+            <li key={b.id}>
+              <Link
+                href={`/${data.role}/resources`}
+                className="block space-y-1 rounded-lg p-0.5 transition-colors hover:bg-accent/50"
+              >
+                <div className="flex items-center gap-2">
+                  <BookOpen className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                  <span className="min-w-0 flex-1 truncate text-xs font-medium">{b.name}</span>
+                  <NameTag name={b.studentName} />
+                  <span className="shrink-0 text-[11px] font-semibold tabular-nums text-muted-foreground">
+                    {b.done}/{b.total} · %{pct}
+                  </span>
+                </div>
+                <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+                  <div
+                    className={cn(
+                      "h-full rounded-full",
+                      pct >= 100 ? "bg-success" : "gradient-surface",
+                    )}
+                    style={{ width: `${Math.min(100, pct)}%` }}
+                  />
+                </div>
+              </Link>
             </li>
           );
         })}
@@ -573,7 +606,10 @@ export function WeeklySummaryWidget({ data }: WidgetProps) {
     <div className="flex h-full flex-col">
       <ul className="min-h-0 flex-1 space-y-1.5 overflow-y-auto">
         {summaries.map((s) => (
-          <li key={s.studentId} className="rounded-xl border bg-muted/30 px-2.5 py-2">
+          <li
+            key={s.studentId}
+            className="rounded-xl border bg-muted/30 px-2.5 py-2 transition-colors hover:bg-accent/50"
+          >
             <div className="flex items-center justify-between gap-2">
               <span className="truncate text-xs font-semibold">{s.studentName}</span>
               {s.netChange !== null && (
