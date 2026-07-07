@@ -448,6 +448,7 @@ const NOTIF_ICON: Record<NotificationType, LucideIcon> = {
   event_created: CalendarDays,
   bug_report: AlertTriangle,
   announcement_created: Bell,
+  schedule_assigned: CalendarDays,
 };
 
 function timeAgo(iso: string): string {

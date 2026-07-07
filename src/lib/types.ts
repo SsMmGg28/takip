@@ -18,6 +18,8 @@ export interface StudentProfile {
   notes: string | null;
   /** Öğretmenin belirlediği hedef deneme puanı (grafikte hedef çizgisi). */
   target_score: number | null;
+  /** true ise çalışma programı her hafta önceki haftadan otomatik kopyalanır. */
+  schedule_auto_repeat: boolean;
 }
 
 export interface ParentStudentLink {
@@ -118,7 +120,8 @@ export type NotificationType =
   | "homework_due_soon"
   | "event_created"
   | "bug_report"
-  | "announcement_created";
+  | "announcement_created"
+  | "schedule_assigned";
 
 // Duyurular ---------------------------------------------------------------
 
@@ -183,6 +186,8 @@ export interface StudyScheduleEntry {
   start_time: string;
   end_time: string;
   activity_label: string;
+  /** Kaydın ait olduğu haftanın Pazartesi tarihi (YYYY-MM-DD). */
+  week_start: string;
   updated_by: string;
   updated_at: string;
 }

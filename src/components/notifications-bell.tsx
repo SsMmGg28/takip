@@ -40,6 +40,7 @@ const TYPE_ICON: Record<NotificationType, LucideIcon> = {
   event_created: CalendarDays,
   bug_report: Bug,
   announcement_created: Megaphone,
+  schedule_assigned: CalendarClock,
 };
 
 const TYPE_TONE: Record<NotificationType, string> = {
@@ -56,6 +57,7 @@ const TYPE_TONE: Record<NotificationType, string> = {
   event_created: "bg-primary/12 text-primary",
   bug_report: "bg-destructive/12 text-destructive",
   announcement_created: "bg-primary/12 text-primary",
+  schedule_assigned: "bg-primary/12 text-primary",
 };
 
 function timeAgo(iso: string): string {

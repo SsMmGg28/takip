@@ -3,12 +3,18 @@ import { deleteScheduleEntry } from "@/lib/actions/schedule";
 import { DAY_LABELS } from "@/lib/schedule";
 import type { StudyScheduleEntry } from "@/lib/types";
 
+/**
+ * Haftalık program ızgarası. readOnly modda (öğrenci görünümü ve arşiv
+ * haftaları) silme düğmeleri çizilmez.
+ */
 export function WeeklySchedule({
   entries,
   redirectPath,
+  readOnly = false,
 }: {
   entries: StudyScheduleEntry[];
   redirectPath: string;
+  readOnly?: boolean;
 }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -34,13 +40,15 @@ export function WeeklySchedule({
                   </p>
                   <p className="text-muted-foreground">{entry.activity_label}</p>
                 </div>
-                <form action={deleteScheduleEntry}>
-                  <input type="hidden" name="id" value={entry.id} />
-                  <input type="hidden" name="redirect_path" value={redirectPath} />
-                  <Button type="submit" variant="ghost" size="sm" className="text-destructive">
-                    Sil
-                  </Button>
-                </form>
+                {!readOnly && (
+                  <form action={deleteScheduleEntry}>
+                    <input type="hidden" name="id" value={entry.id} />
+                    <input type="hidden" name="redirect_path" value={redirectPath} />
+                    <Button type="submit" variant="ghost" size="sm" className="text-destructive">
+                      Sil
+                    </Button>
+                  </form>
+                )}
               </div>
             ))}
           </div>

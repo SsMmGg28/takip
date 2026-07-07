@@ -4,6 +4,7 @@ import { getStudentShelf, getPendingBooks } from "@/lib/books";
 import { getStudentCalendarItems } from "@/lib/calendar";
 import { calculateNet } from "@/lib/exam-shared";
 import { effectiveHomeworkStatus } from "@/lib/homework";
+import { currentWeekStart } from "@/lib/week";
 import type {
   AppNotification,
   Exam,
@@ -99,6 +100,7 @@ async function getScheduleItems(studentId: string): Promise<ScheduleItem[]> {
   const { data } = await supabase
     .from("study_schedule_entries")
     .select("*")
+    .eq("week_start", currentWeekStart())
     .eq("student_id", studentId)
     .order("day_of_week")
     .order("start_time");
