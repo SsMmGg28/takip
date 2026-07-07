@@ -10,6 +10,7 @@ import {
   BookOpen,
   BookCheck,
   BookX,
+  Bug,
   CalendarClock,
   CalendarDays,
   ClipboardList,
@@ -36,6 +37,7 @@ const TYPE_ICON: Record<NotificationType, LucideIcon> = {
   exam_edit_resolved: PencilLine,
   homework_due_soon: CalendarClock,
   event_created: CalendarDays,
+  bug_report: Bug,
 };
 
 const TYPE_TONE: Record<NotificationType, string> = {
@@ -50,6 +52,7 @@ const TYPE_TONE: Record<NotificationType, string> = {
   exam_edit_resolved: "bg-success/15 text-success",
   homework_due_soon: "bg-warning/15 text-warning",
   event_created: "bg-primary/12 text-primary",
+  bug_report: "bg-destructive/12 text-destructive",
 };
 
 function timeAgo(iso: string): string {

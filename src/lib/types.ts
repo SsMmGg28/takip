@@ -116,7 +116,17 @@ export type NotificationType =
   | "exam_edit_requested"
   | "exam_edit_resolved"
   | "homework_due_soon"
-  | "event_created";
+  | "event_created"
+  | "bug_report";
+
+export interface BugReport {
+  id: string;
+  reporter_id: string;
+  page: string | null;
+  description: string;
+  status: "open" | "resolved";
+  created_at: string;
+}
 
 export interface AppNotification {
   id: string;

@@ -1,8 +1,10 @@
-import { KeyRound, UserRound } from "lucide-react";
+import Link from "next/link";
+import { Bug, KeyRound, UserRound } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/page-header";
+import { BugReportDialog } from "@/components/bug-report-dialog";
 import { EditProfileForm } from "@/components/profile/edit-profile-form";
 import { ChangePasswordForm } from "@/components/profile/change-password-form";
 import type { Profile, Role } from "@/lib/types";
@@ -103,6 +105,33 @@ export async function ProfileView({
           </CardContent>
         </Card>
       </div>
+
+      {/* Destek: sorun bildirimi öğretmen + yöneticiye anında düşer */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <span className="gradient-surface flex h-8 w-8 items-center justify-center rounded-lg text-white">
+              <Bug className="h-4 w-4" />
+            </span>
+            Destek
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-wrap items-center gap-3">
+          <BugReportDialog />
+          <p className="text-sm text-muted-foreground">
+            Bir sorunla mı karşılaştın? Bildirimin öğretmene ve sistem
+            yöneticisine anında iletilir.
+          </p>
+          {profile.role === "teacher" && (
+            <Link
+              href="/teacher/reports"
+              className="text-sm font-medium text-primary hover:underline"
+            >
+              Gelen hata bildirimlerini görüntüle →
+            </Link>
+          )}
+        </CardContent>
+      </Card>
 
       {extra}
     </>
