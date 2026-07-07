@@ -270,11 +270,13 @@ export function ExamEntryForm({
 
       {/* Ders sekmeleri */}
       <Tabs defaultValue={LGS_SUBJECTS[0].name} className="animate-fade-up">
-        <TabsList className="h-auto w-full flex-wrap justify-start gap-1">
+        {/* Sabit h-9 varyant sınıfı aynı önekle ezilir; mobilde 2x3 grid,
+            geniş ekranda tek satır — sekmeler her durumda kutunun içinde kalır. */}
+        <TabsList className="grid h-auto w-full grid-cols-3 gap-1 group-data-[orientation=horizontal]/tabs:h-auto sm:flex sm:flex-wrap sm:justify-start">
           {LGS_SUBJECTS.map((def) => {
             const state = subjectState(def);
             return (
-              <TabsTrigger key={def.name} value={def.name} className="gap-1.5">
+              <TabsTrigger key={def.name} value={def.name} className="h-9 gap-1.5">
                 <span
                   className={cn(
                     "h-1.5 w-1.5 rounded-full",
@@ -369,20 +371,24 @@ export function ExamEntryForm({
                   <button
                     type="button"
                     onClick={() => patchSubject(def.name, { open: !s.open })}
-                    className="flex items-center justify-between rounded-xl border bg-muted/40 px-4 py-3 text-sm font-medium transition-colors hover:bg-accent"
+                    className="flex items-center justify-between gap-2 rounded-xl border bg-muted/40 px-4 py-3 text-sm font-medium transition-colors hover:bg-accent"
                   >
-                    <span>
-                      Kazanım işaretle{" "}
-                      <span className="font-normal text-muted-foreground">(isteğe bağlı)</span>
+                    {/* Sol taraf sarmalı flex: rozet dar ekranda alt satıra
+                        indiğinde düğme büyür, içerik sınırın içinde kalır. */}
+                    <span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-1.5 gap-y-1 text-left">
+                      <span>Kazanım işaretle</span>
+                      <span className="font-normal text-muted-foreground">
+                        (isteğe bağlı)
+                      </span>
                       {markedCount > 0 && (
-                        <span className="gradient-surface ml-2 rounded-full px-2 py-0.5 text-xs text-white">
+                        <span className="gradient-surface rounded-full px-2 py-0.5 text-xs text-white">
                           {markedCount} kazanım
                         </span>
                       )}
                     </span>
                     <ChevronDown
                       className={cn(
-                        "h-4 w-4 transition-transform duration-300",
+                        "h-4 w-4 shrink-0 transition-transform duration-300",
                         s.open && "rotate-180",
                       )}
                     />

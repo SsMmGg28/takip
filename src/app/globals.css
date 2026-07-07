@@ -144,11 +144,22 @@ body {
   );
 }
 
-/* Buzlu cam yüzey */
+/* Buzlu cam yüzey. Varsayılan yüksek opaklık: backdrop-filter'ın
+   desteklenmediği/kapalı olduğu cihazlarda header ve alt bar neredeyse
+   şeffaf kalıyor, sayfa içeriği barın içinden okunuyordu. Blur destekleyen
+   tarayıcılarda düşük opaklık + blur ile cam görünümü korunur. */
 .glass {
-  background: color-mix(in oklch, var(--background) 72%, transparent);
-  backdrop-filter: blur(14px) saturate(1.4);
-  -webkit-backdrop-filter: blur(14px) saturate(1.4);
+  /* color-mix desteklemeyen tarayıcılar bir sonraki satırı yok sayar ve
+     düz arka planda kalır (tamamen şeffaf kalmaktan iyidir). */
+  background: var(--background);
+  background: color-mix(in oklch, var(--background) 94%, transparent);
+}
+@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+  .glass {
+    background: color-mix(in oklch, var(--background) 72%, transparent);
+    backdrop-filter: blur(14px) saturate(1.4);
+    -webkit-backdrop-filter: blur(14px) saturate(1.4);
+  }
 }
 
 /* Hover'da yumuşak yükselme + parıltı */

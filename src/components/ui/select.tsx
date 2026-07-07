@@ -53,8 +53,11 @@ function SelectTrigger({
 function SelectContent({
   className,
   children,
-  position = "item-aligned",
-  align = "center",
+  // popper: panel trigger'ın hemen altında, trigger genişliğinde ve ekrana
+  // sığan yükseklikte açılır. item-aligned mod uzun listelerde panelin sayfa
+  // içeriğinin üzerine yayılmasına neden oluyordu.
+  position = "popper",
+  align = "start",
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Content>) {
   return (
