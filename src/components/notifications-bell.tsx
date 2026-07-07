@@ -89,7 +89,11 @@ export function NotificationsBell({ userId }: { userId: string }) {
   const [items, setItems] = useState<AppNotification[]>([]);
   const [open, setOpen] = useState(false);
   const [ringing, setRinging] = useState(false);
-  const [panelPos, setPanelPos] = useState<{ top: number; right: number } | null>(null);
+  const [panelPos, setPanelPos] = useState<{
+    top: number;
+    right: number;
+    width: number;
+  } | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const supabaseRef = useRef<ReturnType<typeof createClient> | null>(null);
@@ -143,10 +147,15 @@ export function NotificationsBell({ userId }: { userId: string }) {
   const updatePanelPos = useCallback(() => {
     const rect = buttonRef.current?.getBoundingClientRect();
     if (!rect) return;
-    setPanelPos({
-      top: rect.bottom + 8,
-      right: Math.max(PANEL_MARGIN, window.innerWidth - rect.right),
-    });
+    // Önce genişlik hesaplanır; right değeri panelin sol kenarı ekran dışına
+    // taşmayacak şekilde kıskaçlanır (right + width <= innerWidth - margin).
+    const width = Math.min(PANEL_MAX_WIDTH, window.innerWidth - PANEL_MARGIN * 2);
+    const maxRight = window.innerWidth - PANEL_MARGIN - width;
+    const right = Math.min(
+      Math.max(PANEL_MARGIN, window.innerWidth - rect.right),
+      Math.max(PANEL_MARGIN, maxRight),
+    );
+    setPanelPos({ top: rect.bottom + 8, right, width });
   }, []);
 
   // Panel dışına tıklanınca kapan; ekran boyutu değişirse yeniden konumlan
@@ -226,7 +235,7 @@ export function NotificationsBell({ userId }: { userId: string }) {
             style={{
               top: panelPos.top,
               right: panelPos.right,
-              width: `min(${PANEL_MAX_WIDTH}px, calc(100vw - ${PANEL_MARGIN * 2}px))`,
+              width: panelPos.width,
               // Kısa/mobil ekranlarda panel ekrandan taşmasın; liste kendi
               // içinde kaydırılır, alt kısımdaki push anahtarı hep görünür kalır.
               maxHeight: `calc(100dvh - ${panelPos.top}px - ${PANEL_MARGIN}px)`,
