@@ -93,6 +93,12 @@
   --font-mono: var(--font-geist-mono);
 }
 
+html {
+  /* Kaydırma çubuğu yeri her zaman ayrılır; Radix Select/Dialog açıldığında
+     react-remove-scroll çubuğu kaldırınca içerik yana kaymaz. */
+  scrollbar-gutter: stable;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);

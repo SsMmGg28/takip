@@ -5,19 +5,13 @@ import Link from "next/link";
 import {
   BookOpen,
   CalendarDays,
+  ChevronDown,
   ChevronRight,
   ClipboardList,
   Paperclip,
   Search,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { EmptyState } from "@/components/empty-state";
 import {
   HOMEWORK_STATUS_LABEL,
@@ -176,19 +170,24 @@ export function HomeworkCenter({
               className="pl-9"
             />
           </div>
-          <Select value={studentFilter} onValueChange={setStudentFilter}>
-            <SelectTrigger className="w-52">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tüm öğrenciler</SelectItem>
+          {/* Yerel <select>: portal/kaydırma kilidi yok; açılınca sayfa düzeni
+              kaymıyor, mobilde de cihazın yerel seçicisi açılıyor. */}
+          <div className="relative w-52">
+            <select
+              value={studentFilter}
+              onChange={(e) => setStudentFilter(e.target.value)}
+              aria-label="Öğrenciye göre filtrele"
+              className="h-9 w-full appearance-none rounded-md border border-input bg-transparent px-3 pr-8 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 dark:bg-input/30"
+            >
+              <option value="all">Tüm öğrenciler</option>
               {students.map((s) => (
-                <SelectItem key={s.id} value={s.id}>
+                <option key={s.id} value={s.id}>
                   {s.fullName}
-                </SelectItem>
+                </option>
               ))}
-            </SelectContent>
-          </Select>
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          </div>
         </div>
       </div>
 
@@ -278,18 +277,22 @@ export function HomeworkCenter({
                     return (
                       <li
                         key={e.homeworkId}
-                        className="flex flex-wrap items-center gap-2 rounded-xl border bg-muted/30 px-3 py-2"
+                        className="flex flex-col gap-2 rounded-xl border bg-muted/30 px-3 py-2"
                       >
-                        <span className="min-w-0 flex-1 truncate text-sm font-medium">
-                          {e.studentName}
-                        </span>
-                        {claim && (
-                          <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
-                            {claim}
+                        {/* Üst satır: ad + beyan + durum (dar ekranda sarar) */}
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="min-w-0 flex-1 truncate text-sm font-medium">
+                            {e.studentName}
                           </span>
-                        )}
-                        <HomeworkStatusBadge status={status} />
-                        <div className="flex shrink-0 items-center gap-1.5">
+                          {claim && (
+                            <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
+                              {claim}
+                            </span>
+                          )}
+                          <HomeworkStatusBadge status={status} />
+                        </div>
+                        {/* Alt satır: aksiyonlar — dar ekranda taşmadan sarar */}
+                        <div className="flex flex-wrap items-center gap-1.5">
                           <CheckHomeworkDialog
                             homeworkId={e.homeworkId}
                             homeworkTitle={g.title}
@@ -313,7 +316,7 @@ export function HomeworkCenter({
                           )}
                           <Link
                             href={`/teacher/homework/${e.studentId}`}
-                            className="inline-flex items-center gap-0.5 rounded-md px-2 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                            className="ml-auto inline-flex items-center gap-0.5 rounded-md px-2 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
                           >
                             Detay
                             <ChevronRight className="h-3.5 w-3.5" />
