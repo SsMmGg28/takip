@@ -16,6 +16,7 @@ import {
   ClipboardList,
   GraduationCap,
   MailQuestion,
+  Megaphone,
   PencilLine,
   type LucideIcon,
 } from "lucide-react";
@@ -38,6 +39,7 @@ const TYPE_ICON: Record<NotificationType, LucideIcon> = {
   homework_due_soon: CalendarClock,
   event_created: CalendarDays,
   bug_report: Bug,
+  announcement_created: Megaphone,
 };
 
 const TYPE_TONE: Record<NotificationType, string> = {
@@ -53,6 +55,7 @@ const TYPE_TONE: Record<NotificationType, string> = {
   homework_due_soon: "bg-warning/15 text-warning",
   event_created: "bg-primary/12 text-primary",
   bug_report: "bg-destructive/12 text-destructive",
+  announcement_created: "bg-primary/12 text-primary",
 };
 
 function timeAgo(iso: string): string {

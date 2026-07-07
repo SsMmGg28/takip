@@ -12,6 +12,7 @@ import {
   Calendar,
   CalendarClock,
   LineChart,
+  Megaphone,
   Menu,
   X,
   Pin,
@@ -40,6 +41,7 @@ export const LINKS_BY_ROLE: Record<Role, NavLinkDef[]> = {
     { href: "/teacher/resources", label: "Kütüphane", icon: BookOpen },
     { href: "/teacher/calendar", label: "Takvim", icon: Calendar },
     { href: "/teacher/exams", label: "Deneme Analizi", shortLabel: "Deneme", icon: LineChart },
+    { href: "/teacher/announcements", label: "Duyurular", shortLabel: "Duyuru", icon: Megaphone },
     { href: "/teacher/profile", label: "Profilim", shortLabel: "Profil", icon: UserRound },
   ],
   student: [
@@ -49,6 +51,7 @@ export const LINKS_BY_ROLE: Record<Role, NavLinkDef[]> = {
     { href: "/student/calendar", label: "Takvim", icon: Calendar },
     { href: "/student/schedule", label: "Çalışma Programım", shortLabel: "Program", icon: CalendarClock },
     { href: "/student/exams", label: "Deneme Analizim", shortLabel: "Deneme", icon: LineChart },
+    { href: "/student/announcements", label: "Duyurular", shortLabel: "Duyuru", icon: Megaphone },
     { href: "/student/profile", label: "Profilim", shortLabel: "Profil", icon: UserRound },
   ],
   parent: [
@@ -58,6 +61,7 @@ export const LINKS_BY_ROLE: Record<Role, NavLinkDef[]> = {
     { href: "/parent/calendar", label: "Takvim", icon: Calendar },
     { href: "/parent/schedule", label: "Çalışma Programı", shortLabel: "Program", icon: CalendarClock },
     { href: "/parent/exams", label: "Deneme Analizi", shortLabel: "Deneme", icon: LineChart },
+    { href: "/parent/announcements", label: "Duyurular", shortLabel: "Duyuru", icon: Megaphone },
     { href: "/parent/profile", label: "Profilim", shortLabel: "Profil", icon: UserRound },
   ],
 };

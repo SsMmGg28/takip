@@ -447,6 +447,7 @@ const NOTIF_ICON: Record<NotificationType, LucideIcon> = {
   homework_due_soon: AlertTriangle,
   event_created: CalendarDays,
   bug_report: AlertTriangle,
+  announcement_created: Bell,
 };
 
 function timeAgo(iso: string): string {

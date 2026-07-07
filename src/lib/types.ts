@@ -117,7 +117,26 @@ export type NotificationType =
   | "exam_edit_resolved"
   | "homework_due_soon"
   | "event_created"
-  | "bug_report";
+  | "bug_report"
+  | "announcement_created";
+
+// Duyurular ---------------------------------------------------------------
+
+export type AnnouncementAudience = "all" | "students" | "parents";
+export type AnnouncementScope = "all" | "grade" | "students";
+
+export interface Announcement {
+  id: string;
+  title: string;
+  body: string;
+  audience_role: AnnouncementAudience;
+  target_scope: AnnouncementScope;
+  grade_level: number | null;
+  attachment_path: string | null;
+  attachment_name: string | null;
+  created_by: string;
+  created_at: string;
+}
 
 export interface BugReport {
   id: string;
