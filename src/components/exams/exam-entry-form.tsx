@@ -86,9 +86,10 @@ function buildInitialState(initial?: ExamFormInitial): Record<string, SubjectFor
 const toInt = (value: string) => (value.trim() === "" ? 0 : Number(value));
 
 /**
- * Deneme giriş formu: dersler sekmelere ayrılmıştır ve hiçbir sayı alanı
- * zorunlu değildir — boş bırakılan alan 0 sayılır, hiç verisi olmayan ders
- * denemeye dahil edilmez. En az bir derste veri olması yeterlidir.
+ * Deneme giriş formu: dersler sekmelere ayrılmıştır. Katı giriş kuralı:
+ * her derste doğru+yanlış+boş toplamı dersin soru sayısına TAM eşit olmalı
+ * (Türkçe/Mat/Fen 20; İnkılap/Din/İng 10) ve puan zorunludur; tüm dersler
+ * tamamlanmadan kayıt yapılamaz.
  */
 export function ExamEntryForm({
   studentId,
@@ -131,10 +132,22 @@ export function ExamEntryForm({
 
   const subjectTotal = (s: SubjectFormState) =>
     toInt(s.correct) + toInt(s.incorrect) + toInt(s.blank);
-  const filledSubjects = LGS_SUBJECTS.filter((def) => subjectTotal(subjects[def.name]) > 0);
+  /** Ders durumu: boş / eksik (toplam kotayla eşleşmiyor) / tam. */
+  const subjectState = (def: (typeof LGS_SUBJECTS)[number]): "empty" | "partial" | "done" => {
+    const total = subjectTotal(subjects[def.name]);
+    if (total === 0) return "empty";
+    return total === def.questionCount ? "done" : "partial";
+  };
+  const completedSubjects = LGS_SUBJECTS.filter((def) => subjectState(def) === "done");
+  const missingSubjects = LGS_SUBJECTS.filter((def) => subjectState(def) !== "done");
+  const canSubmit =
+    missingSubjects.length === 0 &&
+    examName.trim() !== "" &&
+    examDate !== "" &&
+    score.trim() !== "";
   const totalNet =
     Math.round(
-      filledSubjects.reduce(
+      LGS_SUBJECTS.reduce(
         (sum, def) =>
           sum +
           calculateNet(toInt(subjects[def.name].correct), toInt(subjects[def.name].incorrect)),
@@ -237,12 +250,19 @@ export function ExamEntryForm({
             <span className="rounded-full bg-accent px-3 py-1 font-medium text-accent-foreground tabular-nums">
               Toplam Net: {totalNet}
             </span>
-            <span className="rounded-full bg-muted px-3 py-1 tabular-nums">
-              {filledSubjects.length}/{LGS_SUBJECTS.length} ders girildi
+            <span
+              className={cn(
+                "rounded-full px-3 py-1 font-medium tabular-nums",
+                completedSubjects.length === LGS_SUBJECTS.length
+                  ? "bg-success/15 text-success"
+                  : "bg-muted",
+              )}
+            >
+              {completedSubjects.length}/{LGS_SUBJECTS.length} ders tamamlandı
             </span>
             <span>
-              Yalnızca sonucu olan dersleri doldurman yeterli; boş bırakılan alan 0
-              sayılır.
+              Her derste doğru+yanlış+boş toplamı dersin soru sayısına eşit olmalı
+              (20/20/20/10/10/10).
             </span>
           </div>
         </CardContent>
@@ -252,13 +272,15 @@ export function ExamEntryForm({
       <Tabs defaultValue={LGS_SUBJECTS[0].name} className="animate-fade-up">
         <TabsList className="h-auto w-full flex-wrap justify-start gap-1">
           {LGS_SUBJECTS.map((def) => {
-            const filled = subjectTotal(subjects[def.name]) > 0;
+            const state = subjectState(def);
             return (
               <TabsTrigger key={def.name} value={def.name} className="gap-1.5">
                 <span
                   className={cn(
                     "h-1.5 w-1.5 rounded-full",
-                    filled ? "bg-primary" : "bg-muted-foreground/40",
+                    state === "done" && "bg-success",
+                    state === "partial" && "bg-warning",
+                    state === "empty" && "bg-muted-foreground/40",
                   )}
                 />
                 {SHORT_NAME[def.name] ?? def.name}
@@ -288,9 +310,17 @@ export function ExamEntryForm({
                       </span>
                     </h3>
                     <div className="flex items-center gap-2">
-                      {total > def.questionCount && (
+                      {total > def.questionCount ? (
                         <span className="rounded-full bg-destructive/10 px-3 py-1 text-xs font-medium text-destructive tabular-nums">
-                          Toplam {total} — {def.questionCount} soruyu aşıyor
+                          {total - def.questionCount} soru fazla
+                        </span>
+                      ) : total === def.questionCount ? (
+                        <span className="rounded-full bg-success/15 px-3 py-1 text-xs font-medium text-success">
+                          Tam ✓
+                        </span>
+                      ) : (
+                        <span className="rounded-full bg-warning/15 px-3 py-1 text-xs font-medium text-warning tabular-nums">
+                          Kalan: {def.questionCount - total} soru
                         </span>
                       )}
                       <span className="rounded-full bg-accent px-3 py-1 text-xs font-medium text-accent-foreground tabular-nums">
@@ -301,36 +331,36 @@ export function ExamEntryForm({
 
                   <div className="grid grid-cols-3 gap-3">
                     <div className="flex flex-col gap-1.5">
-                      <Label className="text-xs text-muted-foreground">Doğru</Label>
+                      <Label className="text-xs text-muted-foreground">Doğru *</Label>
                       <Input
                         type="number"
                         min={0}
                         max={def.questionCount}
                         value={s.correct}
                         onChange={(e) => patchSubject(def.name, { correct: e.target.value })}
-                        placeholder="0"
+                        required
                       />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <Label className="text-xs text-muted-foreground">Yanlış</Label>
+                      <Label className="text-xs text-muted-foreground">Yanlış *</Label>
                       <Input
                         type="number"
                         min={0}
                         max={def.questionCount}
                         value={s.incorrect}
                         onChange={(e) => patchSubject(def.name, { incorrect: e.target.value })}
-                        placeholder="0"
+                        required
                       />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <Label className="text-xs text-muted-foreground">Boş</Label>
+                      <Label className="text-xs text-muted-foreground">Boş *</Label>
                       <Input
                         type="number"
                         min={0}
                         max={def.questionCount}
                         value={s.blank}
                         onChange={(e) => patchSubject(def.name, { blank: e.target.value })}
-                        placeholder="0"
+                        required
                       />
                     </div>
                   </div>
@@ -431,11 +461,20 @@ export function ExamEntryForm({
         })}
       </Tabs>
 
-      <div className="flex items-center justify-end gap-3 pb-4">
+      <div className="flex flex-wrap items-center justify-end gap-3 pb-4">
+        {!canSubmit && (
+          <p className="text-xs text-muted-foreground">
+            {missingSubjects.length > 0
+              ? `Eksik dersler: ${missingSubjects
+                  .map((d) => SHORT_NAME[d.name] ?? d.name)
+                  .join(", ")}`
+              : "Deneme adı, tarih ve puan zorunlu."}
+          </p>
+        )}
         <Button type="button" variant="outline" onClick={() => router.push(backHref)}>
           Vazgeç
         </Button>
-        <Button type="submit" disabled={saving} size="lg">
+        <Button type="submit" disabled={saving || !canSubmit} size="lg">
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
           {saving ? "Kaydediliyor..." : examId ? "Değişiklikleri Kaydet" : "Denemeyi Kaydet"}
         </Button>
