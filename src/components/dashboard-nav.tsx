@@ -68,13 +68,13 @@ export const LINKS_BY_ROLE: Record<Role, NavLinkDef[]> = {
 
 const MAX_PINNED = 4;
 
-function getLinks(role: Role, showExams: boolean) {
+export function getLinks(role: Role, showExams: boolean) {
   return LINKS_BY_ROLE[role].filter(
     (link) => showExams || !link.href.endsWith("/exams"),
   );
 }
 
-function useActiveCheck(role: Role) {
+export function useActiveCheck(role: Role) {
   const pathname = usePathname();
   const roleRoot = `/${role}`;
   return (href: string) =>
@@ -83,41 +83,8 @@ function useActiveCheck(role: Role) {
       : pathname === href || pathname.startsWith(href + "/");
 }
 
-/** Masaüstü: header içinde hap (pill) navigasyon. Mobilde gizli. */
-export function DashboardNav({
-  role,
-  showExams = true,
-}: {
-  role: Role;
-  showExams?: boolean;
-}) {
-  const isActive = useActiveCheck(role);
-  const links = getLinks(role, showExams);
-
-  return (
-    <nav className="hidden items-center gap-1 rounded-full border bg-card/60 p-1 shadow-sm sm:flex">
-      {links.map((link) => {
-        const active = isActive(link.href);
-        const Icon = link.icon;
-        return (
-          <Link
-            key={link.href}
-            href={link.href}
-            className={cn(
-              "relative inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-medium whitespace-nowrap",
-              active
-                ? "gradient-surface text-white shadow-md shadow-primary/30 scale-[1.03]"
-                : "text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:scale-[1.03] active:scale-95",
-            )}
-          >
-            <Icon className="h-4 w-4" />
-            <span>{link.label}</span>
-          </Link>
-        );
-      })}
-    </nav>
-  );
-}
+// Masaüstü navigasyonu artık dashboard-sidebar.tsx'teki yan menüdür;
+// buradaki getLinks/useActiveCheck yardımcıları oradan da kullanılır.
 
 // ─── Mobil: sabit butonlar + menü adası ──────────────────────────────────────
 

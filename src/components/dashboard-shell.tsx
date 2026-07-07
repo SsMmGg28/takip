@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { DashboardNav, MobileNav } from "@/components/dashboard-nav";
+import { MobileNav } from "@/components/dashboard-nav";
+import { DashboardSidebar } from "@/components/dashboard-sidebar";
 import { NotificationsBell } from "@/components/notifications-bell";
 import { ServiceWorkerRegistrar } from "@/components/push-manager";
 import { SignOutButton } from "@/components/sign-out-button";
@@ -83,14 +84,15 @@ export async function DashboardShell({
             <SignOutButton />
           </div>
         </div>
-        <div className="mx-auto hidden max-w-6xl overflow-x-auto px-4 pb-3 sm:block">
-          <DashboardNav role={role} showExams={showExams} />
-        </div>
       </header>
 
-      <main className="animate-fade-up mx-auto max-w-6xl space-y-6 p-4 pb-28 sm:p-6 sm:pb-10">
-        {children}
-      </main>
+      {/* sm+ ekranda içerik, açılıp kapanabilen yan menüyle yan yana akar */}
+      <div className="mx-auto flex w-full max-w-7xl sm:gap-4 sm:px-6 sm:pt-6">
+        <DashboardSidebar role={role} showExams={showExams} />
+        <main className="animate-fade-up min-w-0 flex-1 space-y-6 p-4 pb-28 sm:p-0 sm:pb-10">
+          {children}
+        </main>
+      </div>
 
       <MobileNav role={role} showExams={showExams} />
     </div>
