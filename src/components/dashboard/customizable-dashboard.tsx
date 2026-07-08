@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
+import Link from "next/link";
 import {
+  ArrowUpRight,
   Check,
   ChevronDown,
   ChevronLeft,
@@ -265,9 +267,25 @@ export function CustomizableDashboard({
                 ) : (
                   <Icon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                 )}
-                <p className="min-w-0 flex-1 truncate text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  {widgetTitle(def, role)}
-                </p>
+                {(() => {
+                  const href = !editing ? def.href?.(role) : undefined;
+                  if (href) {
+                    return (
+                      <Link
+                        href={href}
+                        className="group/title flex min-w-0 flex-1 items-center gap-1 truncate text-xs font-semibold uppercase tracking-wide text-muted-foreground transition-colors hover:text-primary"
+                      >
+                        <span className="truncate">{widgetTitle(def, role)}</span>
+                        <ArrowUpRight className="h-3 w-3 shrink-0 opacity-0 transition-opacity group-hover/title:opacity-100" />
+                      </Link>
+                    );
+                  }
+                  return (
+                    <p className="min-w-0 flex-1 truncate text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      {widgetTitle(def, role)}
+                    </p>
+                  );
+                })()}
                 {editing && (
                   <button
                     type="button"

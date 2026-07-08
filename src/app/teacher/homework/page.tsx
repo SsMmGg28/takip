@@ -1,41 +1,17 @@
 import Link from "next/link";
-import {
-  AlertTriangle,
-  BookOpen,
-  CalendarClock,
-  CheckCircle2,
-  ClipboardList,
-  Hourglass,
-  Paperclip,
-  Users,
-} from "lucide-react";
+import { Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/lib/auth";
 import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
-import { StatCard } from "@/components/stat-card";
 import { CreateHomeworkDialog } from "@/components/teacher/create-homework-dialog";
-import { DeleteHomeworkGroupButton } from "@/components/teacher/homework-row-actions";
-import { HOMEWORK_STATUS_LABEL } from "@/components/homework/homework-status-badge";
+import {
+  HomeworkCenter,
+  type CenterGroup,
+} from "@/components/teacher/homework-center";
 import { getApprovedBooks } from "@/lib/books";
-import { effectiveHomeworkStatus } from "@/lib/homework";
 import { getAssignmentGroups } from "@/lib/homework-fetch";
-import { cn } from "@/lib/utils";
-import type { HomeworkStatus, Profile } from "@/lib/types";
-
-const CHIP_CLASS: Record<HomeworkStatus, string> = {
-  assigned: "border-input bg-background text-foreground hover:bg-accent",
-  completed: "border-success/40 bg-success/10 text-success hover:bg-success/20",
-  incomplete: "border-warning/40 bg-warning/10 text-warning hover:bg-warning/20",
-  overdue: "border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/20",
-};
-
-const DOT_CLASS: Record<HomeworkStatus, string> = {
-  assigned: "bg-muted-foreground",
-  completed: "bg-success",
-  incomplete: "bg-warning",
-  overdue: "bg-destructive",
-};
+import type { Profile } from "@/lib/types";
 
 export default async function TeacherHomeworkPage() {
   await requireRole(["teacher"]);
@@ -59,23 +35,49 @@ export default async function TeacherHomeworkPage() {
       testCount: s.test_count,
     })),
   }));
+  const bookOptionById = new Map(bookOptions.map((b) => [b.id, b]));
 
-  const allEntries = groups.flatMap((g) => g.entries);
-  const statusOf = (e: (typeof allEntries)[number]) =>
-    effectiveHomeworkStatus(e.homework);
-  const waitingCheck = allEntries.filter((e) => statusOf(e) === "assigned").length;
-  const overdueCount = allEntries.filter((e) => statusOf(e) === "overdue").length;
-  const incompleteCount = allEntries.filter((e) => statusOf(e) === "incomplete").length;
-  const completedCount = allEntries.filter((e) => statusOf(e) === "completed").length;
+  // Client bileşenine düz veri: Map yerine bölüm adları test satırlarına işlenir.
+  const centerGroups: CenterGroup[] = groups.map((g) => {
+    const firstEntry = g.entries[0];
+    return {
+      groupId: g.groupId,
+      title: g.title,
+      description: g.description,
+      dueDate: g.dueDate,
+      createdAt: g.createdAt,
+      attachmentName: g.attachmentName,
+      bookName: g.book?.name ?? null,
+      book: g.book ? (bookOptionById.get(g.book.id) ?? null) : null,
+      initialTests: (firstEntry?.tests ?? []).map(
+        (t) => `${t.section_id}:${t.test_number}`,
+      ),
+      entries: g.entries.map(({ homework, student, tests }) => ({
+        homeworkId: homework.id,
+        studentId: homework.student_id,
+        studentName: student?.full_name ?? "?",
+        status: homework.status,
+        dueDate: homework.due_date,
+        checked: Boolean(homework.checked_at),
+        feedback: homework.feedback,
+        studentSaysDone: Boolean(homework.student_marked_done_at),
+        tests: tests.map((t) => ({
+          sectionId: t.section_id,
+          sectionName: g.sectionById.get(t.section_id)?.name ?? "Bölüm",
+          testNumber: t.test_number,
+          completed: t.completed,
+          studentMarked: t.student_marked,
+        })),
+      })),
+    };
+  });
 
   return (
     <>
       <PageHeader
         title="Ödev Merkezi"
-        description="Öğrencileri seç, aynı ödevi hepsine tek seferde gönder; kontrolü öğrenci öğrenci yap."
-        action={
-          <CreateHomeworkDialog students={studentOptions} books={bookOptions} />
-        }
+        description="Durum sekmeleriyle süz, öğrenciye göre filtrele; kontrolü buradan sayfa değiştirmeden yap."
+        action={<CreateHomeworkDialog students={studentOptions} books={bookOptions} />}
       />
 
       {studentList.length === 0 ? (
@@ -93,97 +95,7 @@ export default async function TeacherHomeworkPage() {
           }
         />
       ) : (
-        <>
-          <div className="stagger grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <StatCard label="Kontrol Bekleyen" value={waitingCheck} icon={Hourglass} />
-            <StatCard label="Geciken" value={overdueCount} icon={CalendarClock} />
-            <StatCard label="Eksik" value={incompleteCount} icon={AlertTriangle} />
-            <StatCard label="Tamamlanan" value={completedCount} icon={CheckCircle2} />
-          </div>
-
-          {groups.length === 0 ? (
-            <EmptyState
-              icon={ClipboardList}
-              title="Henüz ödev gönderilmedi"
-              description="“Yeni Ödev Gönder” ile başla: öğrencileri seç, testleri işaretle, tek tıkla hepsine gitsin."
-            />
-          ) : (
-            <div className="stagger space-y-3">
-              {groups.map((g) => (
-                <div key={g.groupId} className="rounded-2xl border bg-card p-4 shadow-sm">
-                  <div className="flex flex-wrap items-start justify-between gap-2">
-                    <div className="min-w-0 space-y-1">
-                      <p className="font-semibold leading-tight">{g.title}</p>
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                        <span>
-                          {new Date(g.createdAt).toLocaleDateString("tr-TR")} gönderildi
-                        </span>
-                        {g.dueDate && (
-                          <span>
-                            Teslim: {new Date(g.dueDate).toLocaleDateString("tr-TR")}
-                          </span>
-                        )}
-                        {g.book && (
-                          <span className="inline-flex items-center gap-1">
-                            <BookOpen className="h-3.5 w-3.5" /> {g.book.name}
-                          </span>
-                        )}
-                        {g.attachmentName && (
-                          <span className="inline-flex items-center gap-1">
-                            <Paperclip className="h-3.5 w-3.5" /> {g.attachmentName}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <DeleteHomeworkGroupButton
-                      groupId={g.groupId}
-                      studentCount={g.entries.length}
-                    />
-                  </div>
-
-                  <div className="mt-3 flex flex-wrap gap-1.5">
-                    {g.entries.map(({ homework, student }) => {
-                      const status = effectiveHomeworkStatus(homework);
-                      return (
-                        <Link
-                          key={homework.id}
-                          href={`/teacher/homework/${homework.student_id}`}
-                          className={cn(
-                            "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all hover:-translate-y-0.5 active:translate-y-0",
-                            CHIP_CLASS[status],
-                          )}
-                          title={`${student?.full_name ?? "?"} — ${HOMEWORK_STATUS_LABEL[status]}`}
-                        >
-                          <span
-                            className={cn("h-1.5 w-1.5 rounded-full", DOT_CLASS[status])}
-                          />
-                          {student?.full_name ?? "?"}
-                        </Link>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <section className="space-y-3">
-            <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
-              Öğrenciye Göre
-            </h2>
-            <div className="stagger flex flex-wrap gap-1.5">
-              {studentList.map((s) => (
-                <Link
-                  key={s.id}
-                  href={`/teacher/homework/${s.id}`}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-input bg-background px-3 py-1.5 text-sm font-medium text-muted-foreground transition-all hover:-translate-y-0.5 hover:bg-accent hover:text-accent-foreground"
-                >
-                  {s.full_name}
-                </Link>
-              ))}
-            </div>
-          </section>
-        </>
+        <HomeworkCenter groups={centerGroups} students={studentOptions} />
       )}
     </>
   );

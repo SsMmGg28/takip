@@ -48,6 +48,8 @@ export interface WidgetDef {
   description: string;
   icon: LucideIcon;
   roles: Role[];
+  /** Verilirse widget başlığı ilgili sayfaya tıklanabilir link olur. */
+  href?: (role: Role) => string | undefined;
   /** Varsayılan boyut ve izin verilen aralıklar (ızgara birimi). */
   defaultW: number;
   defaultH: number;
@@ -72,6 +74,7 @@ export const WIDGETS: WidgetDef[] = [
     id: "homework",
     title: (role) => (role === "student" ? "Bekleyen Ödevlerim" : "Bekleyen Ödevler"),
     description: "Teslim tarihine göre sıralı ödev listesi",
+    href: (role) => `/${role}/homework`,
     icon: ClipboardList,
     roles: ["teacher", "student", "parent"],
     defaultW: 2, defaultH: 2, minW: 1, maxW: 4, minH: 1, maxH: 3,
@@ -81,6 +84,7 @@ export const WIDGETS: WidgetDef[] = [
     id: "today-schedule",
     title: "Bugünün Programı",
     description: "Çalışma programında bugüne ait saatler",
+    href: (role) => `/${role}/schedule`,
     icon: CalendarDays,
     roles: ["student", "parent"],
     defaultW: 2, defaultH: 2, minW: 1, maxW: 4, minH: 1, maxH: 3,
@@ -90,6 +94,7 @@ export const WIDGETS: WidgetDef[] = [
     id: "weekly-schedule",
     title: "Haftalık Program",
     description: "Haftanın yoğunluğunu gösteren mini grafik",
+    href: (role) => `/${role}/schedule`,
     icon: CalendarRange,
     roles: ["student", "parent"],
     defaultW: 2, defaultH: 2, minW: 2, maxW: 4, minH: 2, maxH: 3,
@@ -99,6 +104,7 @@ export const WIDGETS: WidgetDef[] = [
     id: "events",
     title: "Yaklaşan Etkinlikler",
     description: "Takvimdeki dersler, hatırlatmalar ve teslimler",
+    href: (role) => `/${role}/calendar`,
     icon: CalendarDays,
     roles: ["teacher", "student", "parent"],
     defaultW: 2, defaultH: 2, minW: 1, maxW: 4, minH: 1, maxH: 3,
@@ -108,6 +114,7 @@ export const WIDGETS: WidgetDef[] = [
     id: "exams",
     title: "Son Denemeler",
     description: "Net gelişimini gösteren deneme özeti",
+    href: (role) => `/${role}/exams`,
     icon: LineChart,
     roles: ["student", "parent"],
     defaultW: 2, defaultH: 2, minW: 2, maxW: 4, minH: 1, maxH: 3,
@@ -117,6 +124,7 @@ export const WIDGETS: WidgetDef[] = [
     id: "books",
     title: "Kitap İlerlemesi",
     description: "Kitaplıktaki kaynakların test ilerlemesi",
+    href: (role) => `/${role}/resources`,
     icon: BookOpen,
     roles: ["student", "parent"],
     defaultW: 2, defaultH: 2, minW: 2, maxW: 4, minH: 1, maxH: 3,
@@ -126,6 +134,7 @@ export const WIDGETS: WidgetDef[] = [
     id: "weekly-summary",
     title: "Haftalık Özet",
     description: "Çocuk başına bu haftanın ödev, test ve net dökümü",
+    href: () => "/parent/homework",
     icon: BarChart3,
     roles: ["parent"],
     defaultW: 2, defaultH: 2, minW: 1, maxW: 4, minH: 1, maxH: 3,
@@ -144,6 +153,7 @@ export const WIDGETS: WidgetDef[] = [
     id: "book-approvals",
     title: "Onay Bekleyen Kitaplar",
     description: "Velilerin eklediği, onay bekleyen kaynaklar",
+    href: () => "/teacher/resources",
     icon: BookMarked,
     roles: ["teacher"],
     defaultW: 2, defaultH: 2, minW: 1, maxW: 4, minH: 1, maxH: 3,
@@ -153,6 +163,7 @@ export const WIDGETS: WidgetDef[] = [
     id: "people",
     title: (role) => (role === "teacher" ? "Öğrencilerim" : "Çocuklarım"),
     description: "Takip edilen öğrencilerin listesi",
+    href: (role) => (role === "teacher" ? "/teacher/students" : undefined),
     icon: Users,
     roles: ["teacher", "parent"],
     defaultW: 2, defaultH: 2, minW: 1, maxW: 4, minH: 1, maxH: 3,

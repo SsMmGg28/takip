@@ -53,15 +53,16 @@ function validatePayload(payload: ExamPayload): string | null {
     return "Puan gerekli.";
   if (payload.score > 500) return "Puan 500'den büyük olamaz.";
 
+  // Katı giriş: her LGS dersi zorunludur ve doğru+yanlış+boş toplamı dersin
+  // soru sayısına TAM eşit olmalıdır (Türkçe/Mat/Fen 20; İnkılap/Din/İng 10).
   for (const def of LGS_SUBJECTS) {
     const subject = payload.subjects.find((s) => s.name === def.name);
     if (!subject) return `${def.name} sonuçları eksik.`;
     if (!isCount(subject.correct) || !isCount(subject.incorrect) || !isCount(subject.blank))
       return `${def.name} için doğru/yanlış/boş sayıları eksik veya hatalı.`;
     const total = subject.correct + subject.incorrect + subject.blank;
-    if (total === 0) return `${def.name} için doğru, yanlış ve boş sayıları girilmeli.`;
-    if (total > def.questionCount)
-      return `${def.name} toplamı ${def.questionCount} soruyu aşamaz (girilen: ${total}).`;
+    if (total !== def.questionCount)
+      return `${def.name} için doğru+yanlış+boş toplamı tam ${def.questionCount} olmalı (girilen: ${total}).`;
 
     for (const k of subject.kazanimlar) {
       if (!isCount(k.correct) || !isCount(k.incorrect) || !isCount(k.blank))

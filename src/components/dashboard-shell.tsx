@@ -1,4 +1,6 @@
-import { DashboardNav, MobileNav } from "@/components/dashboard-nav";
+import Link from "next/link";
+import { MobileNav } from "@/components/dashboard-nav";
+import { DashboardSidebar } from "@/components/dashboard-sidebar";
 import { NotificationsBell } from "@/components/notifications-bell";
 import { ServiceWorkerRegistrar } from "@/components/push-manager";
 import { SignOutButton } from "@/components/sign-out-button";
@@ -61,10 +63,11 @@ export async function DashboardShell({
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-3 py-2.5 sm:gap-3 sm:px-4 sm:py-3">
           <Brand size="sm" />
           <div className="flex items-center gap-1.5 sm:gap-3">
-            {/* Kullanıcı rozeti: mobilde yalnızca avatar, sm+ ekranda ad/rol de görünür */}
-            <div
-              className="flex items-center gap-2 rounded-full border bg-card/60 p-1 shadow-sm sm:pr-3"
-              title={`${profile.full_name} — ${ROLE_LABELS[role]}`}
+            {/* Kullanıcı rozeti profil sayfasına gider: mobilde yalnızca avatar, sm+ ekranda ad/rol de görünür */}
+            <Link
+              href={`/${role}/profile`}
+              className="flex items-center gap-2 rounded-full border bg-card/60 p-1 shadow-sm transition-colors hover:bg-accent sm:pr-3"
+              title={`${profile.full_name} — ${ROLE_LABELS[role]} · Profilim`}
             >
               <span className="gradient-surface flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold text-white">
                 {initials(profile.full_name)}
@@ -75,20 +78,21 @@ export async function DashboardShell({
                   {ROLE_LABELS[role]}
                 </span>
               </span>
-            </div>
+            </Link>
             <NotificationsBell userId={profile.id} />
             <ThemeToggle />
             <SignOutButton />
           </div>
         </div>
-        <div className="mx-auto hidden max-w-6xl overflow-x-auto px-4 pb-3 sm:block">
-          <DashboardNav role={role} showExams={showExams} />
-        </div>
       </header>
 
-      <main className="animate-fade-up mx-auto max-w-6xl space-y-6 p-4 pb-28 sm:p-6 sm:pb-10">
-        {children}
-      </main>
+      {/* sm+ ekranda içerik, açılıp kapanabilen yan menüyle yan yana akar */}
+      <div className="mx-auto flex w-full max-w-7xl sm:gap-4 sm:px-6 sm:pt-6">
+        <DashboardSidebar role={role} showExams={showExams} />
+        <main className="animate-fade-up min-w-0 flex-1 space-y-6 p-4 pb-28 sm:p-0 sm:pb-10">
+          {children}
+        </main>
+      </div>
 
       <MobileNav role={role} showExams={showExams} />
     </div>

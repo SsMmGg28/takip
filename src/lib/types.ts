@@ -7,6 +7,8 @@ export interface Profile {
   full_name: string;
   phone: string | null;
   must_change_password: boolean;
+  /** Yönetici bayrağı: role='teacher' hesaba ek yetkiler verir; yalnızca service-role değiştirebilir. */
+  is_admin?: boolean;
   created_at: string;
 }
 
@@ -16,6 +18,8 @@ export interface StudentProfile {
   notes: string | null;
   /** Öğretmenin belirlediği hedef deneme puanı (grafikte hedef çizgisi). */
   target_score: number | null;
+  /** true ise çalışma programı her hafta önceki haftadan otomatik kopyalanır. */
+  schedule_auto_repeat: boolean;
 }
 
 export interface ParentStudentLink {
@@ -114,7 +118,37 @@ export type NotificationType =
   | "exam_edit_requested"
   | "exam_edit_resolved"
   | "homework_due_soon"
-  | "event_created";
+  | "event_created"
+  | "bug_report"
+  | "announcement_created"
+  | "schedule_assigned";
+
+// Duyurular ---------------------------------------------------------------
+
+export type AnnouncementAudience = "all" | "students" | "parents";
+export type AnnouncementScope = "all" | "grade" | "students";
+
+export interface Announcement {
+  id: string;
+  title: string;
+  body: string;
+  audience_role: AnnouncementAudience;
+  target_scope: AnnouncementScope;
+  grade_level: number | null;
+  attachment_path: string | null;
+  attachment_name: string | null;
+  created_by: string;
+  created_at: string;
+}
+
+export interface BugReport {
+  id: string;
+  reporter_id: string;
+  page: string | null;
+  description: string;
+  status: "open" | "resolved";
+  created_at: string;
+}
 
 export interface AppNotification {
   id: string;
@@ -152,6 +186,8 @@ export interface StudyScheduleEntry {
   start_time: string;
   end_time: string;
   activity_label: string;
+  /** Kaydın ait olduğu haftanın Pazartesi tarihi (YYYY-MM-DD). */
+  week_start: string;
   updated_by: string;
   updated_at: string;
 }

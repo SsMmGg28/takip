@@ -4,6 +4,7 @@ import { getStudentShelf, getPendingBooks } from "@/lib/books";
 import { getStudentCalendarItems } from "@/lib/calendar";
 import { calculateNet } from "@/lib/exam-shared";
 import { effectiveHomeworkStatus } from "@/lib/homework";
+import { currentWeekStart } from "@/lib/week";
 import type {
   AppNotification,
   Exam,
@@ -99,6 +100,7 @@ async function getScheduleItems(studentId: string): Promise<ScheduleItem[]> {
   const { data } = await supabase
     .from("study_schedule_entries")
     .select("*")
+    .eq("week_start", currentWeekStart())
     .eq("student_id", studentId)
     .order("day_of_week")
     .order("start_time");
@@ -149,13 +151,19 @@ async function getStudentData(profile: Profile): Promise<DashboardData> {
     role: "student",
     firstName: firstName(profile.full_name),
     stats: [
-      { label: "Bekleyen Ödev", value: pendingCount },
-      { label: "Tamamlanan Ödev", value: completedCount },
-      { label: "Haftalık Etkinlik", value: schedule.length, hint: "çalışma programında" },
+      { label: "Bekleyen Ödev", value: pendingCount, href: "/student/homework" },
+      { label: "Tamamlanan Ödev", value: completedCount, href: "/student/homework" },
+      {
+        label: "Haftalık Etkinlik",
+        value: schedule.length,
+        hint: "çalışma programında",
+        href: "/student/schedule",
+      },
       {
         label: "Son Deneme Neti",
         value: exams[0] ? exams[0].totalNet : "—",
         hint: exams[0]?.name,
+        href: "/student/exams",
       },
     ],
     homework,
@@ -285,9 +293,14 @@ async function getParentData(profile: Profile): Promise<DashboardData> {
     firstName: firstName(profile.full_name),
     stats: [
       { label: "Çocuk", value: children.length },
-      { label: "Bekleyen Ödev", value: pendingCount ?? 0 },
-      { label: "Haftalık Etkinlik", value: schedule.length, hint: "çalışma programında" },
-      { label: "Kitaplıkta Kitap", value: books.length },
+      { label: "Bekleyen Ödev", value: pendingCount ?? 0, href: "/parent/homework" },
+      {
+        label: "Haftalık Etkinlik",
+        value: schedule.length,
+        hint: "çalışma programında",
+        href: "/parent/schedule",
+      },
+      { label: "Kitaplıkta Kitap", value: books.length, href: "/parent/resources" },
     ],
     homework,
     schedule,
@@ -357,10 +370,19 @@ async function getTeacherData(profile: Profile): Promise<DashboardData> {
     role: "teacher",
     firstName: firstName(profile.full_name),
     stats: [
-      { label: "Öğrenci", value: studentCount ?? 0 },
-      { label: "Veli", value: parentCount ?? 0 },
-      { label: "Bekleyen Ödev", value: pendingHomeworkCount ?? 0, hint: "tüm öğrenciler" },
-      { label: "Onay Bekleyen Kitap", value: pendingBooksRaw.length },
+      { label: "Öğrenci", value: studentCount ?? 0, href: "/teacher/students" },
+      { label: "Veli", value: parentCount ?? 0, href: "/teacher/students" },
+      {
+        label: "Bekleyen Ödev",
+        value: pendingHomeworkCount ?? 0,
+        hint: "tüm öğrenciler",
+        href: "/teacher/homework",
+      },
+      {
+        label: "Onay Bekleyen Kitap",
+        value: pendingBooksRaw.length,
+        href: "/teacher/resources",
+      },
     ],
     homework: ((recentHomework as Homework[]) ?? []).map((h) => ({
       id: h.id,

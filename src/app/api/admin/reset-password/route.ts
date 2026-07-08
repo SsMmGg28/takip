@@ -12,7 +12,7 @@ export async function POST(request: Request) {
 
   const { data: callerProfile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, is_admin")
     .eq("id", userData.user.id)
     .single();
 

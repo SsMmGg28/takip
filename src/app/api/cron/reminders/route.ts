@@ -1,12 +1,62 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getParentIdsByStudent, notifyUsers } from "@/lib/notifications";
+import { addWeeks, currentWeekStart } from "@/lib/week";
+import type { StudyScheduleEntry } from "@/lib/types";
 
 /**
- * Günlük teslim hatırlatması (Vercel cron, vercel.json'da tanımlı):
- * yarın teslim olup henüz kontrol edilmemiş ödevler için öğrenci ve veliye
- * bildirim gönderir. Aynı gün tekrar çalıştırılırsa daha önce atılmış
- * bildirimler (type + link eşleşmesi) atlanır.
+ * Pazartesi günleri: "her hafta otomatik devam" açık öğrencilerde, güncel
+ * hafta boşsa önceki haftanın programını kopyalar. Yalnızca boş haftayı
+ * doldurduğu için aynı gün tekrar çalıştırılması güvenlidir (idempotent).
+ */
+async function runScheduleAutoRepeat(admin: ReturnType<typeof createAdminClient>) {
+  const current = currentWeekStart();
+  const previous = addWeeks(current, -1);
+
+  const { data: students } = await admin
+    .from("student_profiles")
+    .select("id")
+    .eq("schedule_auto_repeat", true);
+
+  let copied = 0;
+  for (const s of students ?? []) {
+    const { count: currentCount } = await admin
+      .from("study_schedule_entries")
+      .select("id", { count: "exact", head: true })
+      .eq("student_id", s.id)
+      .eq("week_start", current);
+    if ((currentCount ?? 0) > 0) continue;
+
+    const { data: prevEntries } = await admin
+      .from("study_schedule_entries")
+      .select("*")
+      .eq("student_id", s.id)
+      .eq("week_start", previous);
+    const list = (prevEntries as StudyScheduleEntry[] | null) ?? [];
+    if (!list.length) continue;
+
+    const { error } = await admin.from("study_schedule_entries").insert(
+      list.map((e) => ({
+        student_id: s.id,
+        day_of_week: e.day_of_week,
+        start_time: e.start_time,
+        end_time: e.end_time,
+        activity_label: e.activity_label,
+        week_start: current,
+        updated_by: e.updated_by,
+      })),
+    );
+    if (!error) copied += 1;
+  }
+  return copied;
+}
+
+/**
+ * Günlük cron (Vercel, vercel.json'da tanımlı):
+ * 1) Yarın teslim olup henüz kontrol edilmemiş ödevler için öğrenci ve veliye
+ *    hatırlatma gönderir (mükerrer koruması: type + link eşleşmesi).
+ * 2) Pazartesi günleri otomatik devam eden çalışma programlarını yeni
+ *    haftaya kopyalar.
  */
 export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET;
@@ -19,10 +69,14 @@ export async function GET(request: Request) {
 
   // "Yarın" Türkiye saatine göre hesaplanır (due_date salt tarih tutar).
   const now = new Date();
-  const tr = new Date(now.toLocaleString("en-US", { timeZone: "Europe/Istanbul" }));
+  const trToday = new Date(now.toLocaleString("en-US", { timeZone: "Europe/Istanbul" }));
+  const isMonday = trToday.getDay() === 1;
+  const tr = new Date(trToday);
   tr.setDate(tr.getDate() + 1);
   const pad = (n: number) => String(n).padStart(2, "0");
   const tomorrow = `${tr.getFullYear()}-${pad(tr.getMonth() + 1)}-${pad(tr.getDate())}`;
+
+  const autoRepeatCopied = isMonday ? await runScheduleAutoRepeat(admin) : 0;
 
   const { data: homework, error } = await admin
     .from("homework")
@@ -34,7 +88,8 @@ export async function GET(request: Request) {
   }
 
   const list = homework ?? [];
-  if (!list.length) return NextResponse.json({ ok: true, notified: 0 });
+  if (!list.length)
+    return NextResponse.json({ ok: true, notified: 0, autoRepeatCopied });
 
   const parentsByStudent = await getParentIdsByStudent(list.map((h) => h.student_id));
 
@@ -70,5 +125,5 @@ export async function GET(request: Request) {
     notified += 1;
   }
 
-  return NextResponse.json({ ok: true, notified });
+  return NextResponse.json({ ok: true, notified, autoRepeatCopied });
 }

@@ -1,5 +1,6 @@
+import Link from "next/link";
 import { BookOpen, CalendarDays, Check, ClipboardCheck, MessageSquareText } from "lucide-react";
-import { AttachmentDownloadLink } from "@/components/homework/attachment-download-link";
+import { AttachmentDownloadButton } from "@/components/attachment-download-button";
 import { HomeworkStatusBadge } from "@/components/homework/homework-status-badge";
 import { effectiveHomeworkStatus } from "@/lib/homework";
 import { cn } from "@/lib/utils";
@@ -26,7 +27,9 @@ function dueInfo(homework: Homework): { label: string; urgent: boolean } | null 
  * Öğrenci/veli ödev kartı. Kontrol yapıldıysa test bazında yapıldı/eksik
  * durumunu, yapılmadıysa öğrencinin "yaptım" beyanını gösterir.
  * `testsSlot` verilirse test chip'lerinin yerine o çizilir (öğrencinin
- * etkileşimli işaretleme paneli için).
+ * etkileşimli işaretleme paneli için). `href` verilirse kartın tamamı
+ * tıklanabilir olur (gerilmiş link deseni); içerideki düğmeler/paneller
+ * z-10 ile linkin üzerinde kalır.
  */
 export function HomeworkCard({
   homework,
@@ -35,6 +38,7 @@ export function HomeworkCard({
   sectionById,
   actions,
   testsSlot,
+  href,
 }: {
   homework: Homework;
   book: ResourceBook | null;
@@ -42,13 +46,26 @@ export function HomeworkCard({
   sectionById: Map<string, ResourceBookSection>;
   actions?: React.ReactNode;
   testsSlot?: React.ReactNode;
+  href?: string;
 }) {
   const due = dueInfo(homework);
   const checked = Boolean(homework.checked_at);
   const doneCount = tests.filter((t) => t.completed).length;
 
   return (
-    <div className="hover-lift rounded-2xl border bg-card p-4 shadow-sm">
+    <div
+      className={cn(
+        "hover-lift relative rounded-2xl border bg-card p-4 shadow-sm",
+        href && "transition-colors hover:border-primary/40",
+      )}
+    >
+      {href && (
+        <Link
+          href={href}
+          aria-label={`${homework.title} — kitaba git`}
+          className="absolute inset-0 rounded-2xl"
+        />
+      )}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 space-y-1.5">
           <div className="flex flex-wrap items-center gap-2">
@@ -89,14 +106,14 @@ export function HomeworkCard({
             )}
           </div>
         </div>
-        {actions}
+        {actions && <div className="relative z-10">{actions}</div>}
       </div>
 
       {homework.description && (
         <p className="mt-3 text-sm text-muted-foreground">{homework.description}</p>
       )}
 
-      {testsSlot ??
+      {(testsSlot && <div className="relative z-10">{testsSlot}</div>) ??
         (tests.length > 0 && (
           <div className="mt-3 flex flex-wrap gap-1.5">
             {tests.map((t) => {
@@ -146,8 +163,9 @@ export function HomeworkCard({
       )}
 
       {homework.attachment_path && homework.attachment_name && (
-        <div className="mt-3">
-          <AttachmentDownloadLink
+        <div className="relative z-10 mt-3">
+          <AttachmentDownloadButton
+            bucket="homework-attachments"
             path={homework.attachment_path}
             name={homework.attachment_name}
           />

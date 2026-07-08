@@ -1,19 +1,23 @@
+import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
+/** Sayfa üstü istatistik kartı; href verilirse tamamı tıklanabilir. */
 export function StatCard({
   label,
   value,
   icon: Icon,
   hint,
+  href,
 }: {
   label: string;
   value: string | number;
   icon: LucideIcon;
   hint?: string;
+  href?: string;
 }) {
-  return (
-    <Card className="hover-lift group relative overflow-hidden">
+  const card = (
+    <Card className="hover-lift group relative h-full overflow-hidden">
       <span className="gradient-surface absolute inset-x-0 top-0 h-1 opacity-70 transition-opacity group-hover:opacity-100" />
       <CardContent className="flex items-center justify-between gap-3 p-5">
         <div>
@@ -29,4 +33,13 @@ export function StatCard({
       </CardContent>
     </Card>
   );
+
+  if (href) {
+    return (
+      <Link href={href} className="block h-full">
+        {card}
+      </Link>
+    );
+  }
+  return card;
 }

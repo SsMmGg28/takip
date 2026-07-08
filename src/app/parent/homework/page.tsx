@@ -49,6 +49,11 @@ export default async function ParentHomeworkPage() {
                     book={it.book}
                     tests={it.tests}
                     sectionById={sectionById}
+                    href={
+                      it.book
+                        ? `/parent/resources/${it.book.id}?student=${student.id}`
+                        : undefined
+                    }
                   />
                 ))}
               </div>

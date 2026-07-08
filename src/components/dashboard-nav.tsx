@@ -6,11 +6,13 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   Users,
+  UserRound,
   ClipboardList,
   BookOpen,
   Calendar,
   CalendarClock,
   LineChart,
+  Megaphone,
   Menu,
   X,
   Pin,
@@ -39,6 +41,8 @@ export const LINKS_BY_ROLE: Record<Role, NavLinkDef[]> = {
     { href: "/teacher/resources", label: "Kütüphane", icon: BookOpen },
     { href: "/teacher/calendar", label: "Takvim", icon: Calendar },
     { href: "/teacher/exams", label: "Deneme Analizi", shortLabel: "Deneme", icon: LineChart },
+    { href: "/teacher/announcements", label: "Duyurular", shortLabel: "Duyuru", icon: Megaphone },
+    { href: "/teacher/profile", label: "Profilim", shortLabel: "Profil", icon: UserRound },
   ],
   student: [
     { href: "/student", label: "Anasayfa", icon: LayoutDashboard },
@@ -47,6 +51,8 @@ export const LINKS_BY_ROLE: Record<Role, NavLinkDef[]> = {
     { href: "/student/calendar", label: "Takvim", icon: Calendar },
     { href: "/student/schedule", label: "Çalışma Programım", shortLabel: "Program", icon: CalendarClock },
     { href: "/student/exams", label: "Deneme Analizim", shortLabel: "Deneme", icon: LineChart },
+    { href: "/student/announcements", label: "Duyurular", shortLabel: "Duyuru", icon: Megaphone },
+    { href: "/student/profile", label: "Profilim", shortLabel: "Profil", icon: UserRound },
   ],
   parent: [
     { href: "/parent", label: "Anasayfa", icon: LayoutDashboard },
@@ -55,18 +61,20 @@ export const LINKS_BY_ROLE: Record<Role, NavLinkDef[]> = {
     { href: "/parent/calendar", label: "Takvim", icon: Calendar },
     { href: "/parent/schedule", label: "Çalışma Programı", shortLabel: "Program", icon: CalendarClock },
     { href: "/parent/exams", label: "Deneme Analizi", shortLabel: "Deneme", icon: LineChart },
+    { href: "/parent/announcements", label: "Duyurular", shortLabel: "Duyuru", icon: Megaphone },
+    { href: "/parent/profile", label: "Profilim", shortLabel: "Profil", icon: UserRound },
   ],
 };
 
 const MAX_PINNED = 4;
 
-function getLinks(role: Role, showExams: boolean) {
+export function getLinks(role: Role, showExams: boolean) {
   return LINKS_BY_ROLE[role].filter(
     (link) => showExams || !link.href.endsWith("/exams"),
   );
 }
 
-function useActiveCheck(role: Role) {
+export function useActiveCheck(role: Role) {
   const pathname = usePathname();
   const roleRoot = `/${role}`;
   return (href: string) =>
@@ -75,41 +83,8 @@ function useActiveCheck(role: Role) {
       : pathname === href || pathname.startsWith(href + "/");
 }
 
-/** Masaüstü: header içinde hap (pill) navigasyon. Mobilde gizli. */
-export function DashboardNav({
-  role,
-  showExams = true,
-}: {
-  role: Role;
-  showExams?: boolean;
-}) {
-  const isActive = useActiveCheck(role);
-  const links = getLinks(role, showExams);
-
-  return (
-    <nav className="hidden items-center gap-1 rounded-full border bg-card/60 p-1 shadow-sm sm:flex">
-      {links.map((link) => {
-        const active = isActive(link.href);
-        const Icon = link.icon;
-        return (
-          <Link
-            key={link.href}
-            href={link.href}
-            className={cn(
-              "relative inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-medium whitespace-nowrap",
-              active
-                ? "gradient-surface text-white shadow-md shadow-primary/30 scale-[1.03]"
-                : "text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:scale-[1.03] active:scale-95",
-            )}
-          >
-            <Icon className="h-4 w-4" />
-            <span>{link.label}</span>
-          </Link>
-        );
-      })}
-    </nav>
-  );
-}
+// Masaüstü navigasyonu artık dashboard-sidebar.tsx'teki yan menüdür;
+// buradaki getLinks/useActiveCheck yardımcıları oradan da kullanılır.
 
 // ─── Mobil: sabit butonlar + menü adası ──────────────────────────────────────
 

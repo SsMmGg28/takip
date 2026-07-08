@@ -10,11 +10,13 @@ import {
   BookOpen,
   BookCheck,
   BookX,
+  Bug,
   CalendarClock,
   CalendarDays,
   ClipboardList,
   GraduationCap,
   MailQuestion,
+  Megaphone,
   PencilLine,
   type LucideIcon,
 } from "lucide-react";
@@ -36,6 +38,9 @@ const TYPE_ICON: Record<NotificationType, LucideIcon> = {
   exam_edit_resolved: PencilLine,
   homework_due_soon: CalendarClock,
   event_created: CalendarDays,
+  bug_report: Bug,
+  announcement_created: Megaphone,
+  schedule_assigned: CalendarClock,
 };
 
 const TYPE_TONE: Record<NotificationType, string> = {
@@ -50,6 +55,9 @@ const TYPE_TONE: Record<NotificationType, string> = {
   exam_edit_resolved: "bg-success/15 text-success",
   homework_due_soon: "bg-warning/15 text-warning",
   event_created: "bg-primary/12 text-primary",
+  bug_report: "bg-destructive/12 text-destructive",
+  announcement_created: "bg-primary/12 text-primary",
+  schedule_assigned: "bg-primary/12 text-primary",
 };
 
 function timeAgo(iso: string): string {
@@ -81,7 +89,11 @@ export function NotificationsBell({ userId }: { userId: string }) {
   const [items, setItems] = useState<AppNotification[]>([]);
   const [open, setOpen] = useState(false);
   const [ringing, setRinging] = useState(false);
-  const [panelPos, setPanelPos] = useState<{ top: number; right: number } | null>(null);
+  const [panelPos, setPanelPos] = useState<{
+    top: number;
+    right: number;
+    width: number;
+  } | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const supabaseRef = useRef<ReturnType<typeof createClient> | null>(null);
@@ -135,10 +147,15 @@ export function NotificationsBell({ userId }: { userId: string }) {
   const updatePanelPos = useCallback(() => {
     const rect = buttonRef.current?.getBoundingClientRect();
     if (!rect) return;
-    setPanelPos({
-      top: rect.bottom + 8,
-      right: Math.max(PANEL_MARGIN, window.innerWidth - rect.right),
-    });
+    // Önce genişlik hesaplanır; right değeri panelin sol kenarı ekran dışına
+    // taşmayacak şekilde kıskaçlanır (right + width <= innerWidth - margin).
+    const width = Math.min(PANEL_MAX_WIDTH, window.innerWidth - PANEL_MARGIN * 2);
+    const maxRight = window.innerWidth - PANEL_MARGIN - width;
+    const right = Math.min(
+      Math.max(PANEL_MARGIN, window.innerWidth - rect.right),
+      Math.max(PANEL_MARGIN, maxRight),
+    );
+    setPanelPos({ top: rect.bottom + 8, right, width });
   }, []);
 
   // Panel dışına tıklanınca kapan; ekran boyutu değişirse yeniden konumlan
@@ -218,11 +235,14 @@ export function NotificationsBell({ userId }: { userId: string }) {
             style={{
               top: panelPos.top,
               right: panelPos.right,
-              width: `min(${PANEL_MAX_WIDTH}px, calc(100vw - ${PANEL_MARGIN * 2}px))`,
+              width: panelPos.width,
+              // Kısa/mobil ekranlarda panel ekrandan taşmasın; liste kendi
+              // içinde kaydırılır, alt kısımdaki push anahtarı hep görünür kalır.
+              maxHeight: `calc(100dvh - ${panelPos.top}px - ${PANEL_MARGIN}px)`,
             }}
-            className="animate-scale-in fixed z-50 origin-top-right overflow-hidden rounded-2xl border bg-popover text-popover-foreground shadow-2xl shadow-primary/15"
+            className="animate-scale-in fixed z-50 flex origin-top-right flex-col overflow-hidden rounded-2xl border bg-popover text-popover-foreground shadow-2xl shadow-primary/15"
           >
-            <div className="flex items-center justify-between border-b px-4 py-2.5">
+            <div className="flex shrink-0 items-center justify-between border-b px-4 py-2.5">
               <p className="text-sm font-semibold">Bildirimler</p>
               {unreadCount > 0 ? (
                 <button
@@ -247,7 +267,7 @@ export function NotificationsBell({ userId }: { userId: string }) {
                 <p className="text-sm text-muted-foreground">Henüz bildirim yok</p>
               </div>
             ) : (
-              <ul className="max-h-[55vh] overflow-y-auto">
+              <ul className="min-h-0 flex-1 overflow-y-auto">
                 {items.map((n) => {
                   const Icon = TYPE_ICON[n.type] ?? Bell;
                   const inner = (
@@ -310,7 +330,9 @@ export function NotificationsBell({ userId }: { userId: string }) {
               </ul>
             )}
 
-            <PushNotificationToggle />
+            <div className="shrink-0">
+              <PushNotificationToggle />
+            </div>
           </div>,
           document.body,
         )}
