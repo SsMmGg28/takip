@@ -9,7 +9,7 @@ import { ExamAnalysisSection } from "@/components/exams/exam-analysis-section";
 import { ExamList } from "@/components/exams/exam-list";
 import { getExamOverview } from "@/lib/exam-analysis";
 import { getEditRequestsForStudent } from "@/lib/exams";
-import { getStudentGrade } from "@/lib/students";
+import { getStudentExamInfo } from "@/lib/students";
 import { examsEnabledForGrade } from "@/lib/kazanim";
 
 export default async function ParentStudentExamsPage({
@@ -29,7 +29,7 @@ export default async function ParentStudentExamsPage({
     .single();
   if (!student) notFound();
 
-  const grade = await getStudentGrade(studentId);
+  const { grade, targetScore } = await getStudentExamInfo(studentId);
   if (!examsEnabledForGrade(grade)) notFound();
 
   const [overview, editRequests] = await Promise.all([
@@ -52,7 +52,11 @@ export default async function ParentStudentExamsPage({
         }
       />
 
-      <ExamAnalysisSection overview={overview} studentId={studentId} />
+      <ExamAnalysisSection
+        overview={overview}
+        studentId={studentId}
+        targetScore={targetScore}
+      />
 
       <section className="flex flex-col gap-3">
         <h2 className="text-lg font-semibold">Geçmiş Denemeler</h2>

@@ -213,6 +213,7 @@ export async function checkHomework(formData: FormData) {
   const doneEntries = new Set(formData.getAll("done").map((v) => String(v)));
   // Testsiz (serbest) ödevlerde sonuç doğrudan gelir
   const manualResult = String(formData.get("result") ?? "");
+  const feedback = String(formData.get("feedback") ?? "").trim() || null;
 
   const { data: current } = await supabase
     .from("homework")
@@ -267,6 +268,23 @@ export async function checkHomework(formData: FormData) {
       );
     }
 
+    // Kontrolde işareti kaldırılan testleri kitap ilerlemesinden de geri al;
+    // yoksa daha önce "yapıldı" sayılan test yüzdeleri şişik bırakır.
+    const undoneTests = testList.filter((t) => undoneIds.includes(t.id));
+    const undoneBySection = new Map<string, number[]>();
+    for (const t of undoneTests) {
+      if (!undoneBySection.has(t.section_id)) undoneBySection.set(t.section_id, []);
+      undoneBySection.get(t.section_id)!.push(t.test_number);
+    }
+    for (const [sectionId, testNumbers] of undoneBySection) {
+      await supabase
+        .from("student_test_progress")
+        .delete()
+        .eq("student_id", hw.student_id)
+        .eq("section_id", sectionId)
+        .in("test_number", testNumbers);
+    }
+
     missingCount = undoneIds.length;
     status = missingCount === 0 ? "completed" : "incomplete";
   } else {
@@ -275,20 +293,29 @@ export async function checkHomework(formData: FormData) {
 
   const { error } = await supabase
     .from("homework")
-    .update({ status, checked_at: new Date().toISOString() })
+    .update({ status, feedback, checked_at: new Date().toISOString() })
     .eq("id", id);
   if (error) throw new Error(error.message);
 
   if (status === "incomplete") {
+    const body = testList.length
+      ? `"${hw.title}" ödevinde ${missingCount} test eksik kaldı.`
+      : `"${hw.title}" ödevi tamamlanmadı.`;
     const parentsByStudent = await getParentIdsByStudent([hw.student_id]);
-    await notifyUsers(parentsByStudent.get(hw.student_id) ?? [], {
-      type: "homework_incomplete",
-      title: "Ödev eksik yapıldı",
-      body: testList.length
-        ? `"${hw.title}" ödevinde ${missingCount} test eksik kaldı.`
-        : `"${hw.title}" ödevi tamamlanmadı.`,
-      link: "/parent/homework",
-    });
+    await Promise.all([
+      notifyUsers(parentsByStudent.get(hw.student_id) ?? [], {
+        type: "homework_incomplete",
+        title: "Ödev eksik yapıldı",
+        body,
+        link: "/parent/homework",
+      }),
+      notifyUsers([hw.student_id], {
+        type: "homework_incomplete",
+        title: "Ödevin eksik",
+        body: feedback ? `${body} Öğretmen notu: ${feedback}` : body,
+        link: "/student/homework",
+      }),
+    ]);
   }
 
   revalidateHomeworkPaths([hw.student_id]);

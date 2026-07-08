@@ -28,19 +28,84 @@ export function examsEnabledForGrade(grade: number | null | undefined): grade is
 }
 
 /**
- * 8. sınıf (LGS) kazanım listesi.
- * 7. sınıf listesi henüz iletilmedi; iletildiğinde aşağıdaki `7` anahtarındaki
- * boş dizilere aynı formatta ({ code, name }) eklenmesi yeterli — arayüz ve
- * analizler otomatik çalışır.
+ * Sınıf bazında kazanım (ünite/konu) listeleri.
+ * 7. sınıf listesi MEB müfredatındaki ünite/konu başlıklarından derlendi;
+ * ders adları LGS ders yuvalarına sabitlendiği için 7. sınıfta
+ * "T.C. İnkılap Tarihi" yuvası Sosyal Bilgiler üniteleriyle doldurulur
+ * (7. sınıf denemelerinde bu derste Sosyal Bilgiler soruları çıkar).
  */
 export const KAZANIM_KATALOG: Record<ExamGrade, Record<SubjectName, Kazanim[]>> = {
   7: {
-    "Türkçe": [],
-    "Matematik": [],
-    "Fen Bilimleri": [],
-    "T.C. İnkılap Tarihi": [],
-    "Din Kültürü": [],
-    "İngilizce": [],
+    "Türkçe": [
+      { code: "T7-01", name: "Sözcükte ve Söz Gruplarında Anlam" },
+      { code: "T7-02", name: "Deyimler ve Atasözleri" },
+      { code: "T7-03", name: "Cümlede Anlam" },
+      { code: "T7-04", name: "Paragrafta Anlam ve Ana Düşünce" },
+      { code: "T7-05", name: "Paragrafta Yardımcı Düşünce" },
+      { code: "T7-06", name: "Paragrafta Yapı ve Anlatım Teknikleri" },
+      { code: "T7-07", name: "Sözel Mantık ve Muhakeme" },
+      { code: "T7-08", name: "Görsel, Grafik ve Tablo Yorumlama" },
+      { code: "T7-09", name: "Metin Türleri" },
+      { code: "T7-10", name: "Söz Sanatları" },
+      { code: "T7-11", name: "Fiiller (Anlam ve Kip)" },
+      { code: "T7-12", name: "Ek Fiil" },
+      { code: "T7-13", name: "Zarflar" },
+      { code: "T7-14", name: "Fiilde Yapı" },
+      { code: "T7-15", name: "Yazım Kuralları" },
+      { code: "T7-16", name: "Noktalama İşaretleri" },
+    ],
+    "Matematik": [
+      { code: "M7-01", name: "Tam Sayılarla İşlemler" },
+      { code: "M7-02", name: "Rasyonel Sayılar" },
+      { code: "M7-03", name: "Rasyonel Sayılarla İşlemler" },
+      { code: "M7-04", name: "Cebirsel İfadeler" },
+      { code: "M7-05", name: "Eşitlik ve Denklem" },
+      { code: "M7-06", name: "Oran ve Orantı" },
+      { code: "M7-07", name: "Yüzdeler" },
+      { code: "M7-08", name: "Doğrular ve Açılar" },
+      { code: "M7-09", name: "Çokgenler" },
+      { code: "M7-10", name: "Çember ve Daire" },
+      { code: "M7-11", name: "Veri Analizi" },
+      { code: "M7-12", name: "Cisimlerin Farklı Yönlerden Görünümleri" },
+    ],
+    "Fen Bilimleri": [
+      { code: "F7-01", name: "Güneş Sistemi ve Ötesi" },
+      { code: "F7-02", name: "Hücre ve Bölünmeler" },
+      { code: "F7-03", name: "Kuvvet ve Enerji" },
+      { code: "F7-04", name: "Saf Madde ve Karışımlar" },
+      { code: "F7-05", name: "Işığın Madde ile Etkileşimi" },
+      { code: "F7-06", name: "Canlılarda Üreme, Büyüme ve Gelişme" },
+      { code: "F7-07", name: "Elektrik Devreleri" },
+    ],
+    // 7. sınıfta bu ders yuvasında Sosyal Bilgiler soruları çıkar.
+    "T.C. İnkılap Tarihi": [
+      { code: "S7-01", name: "Birey ve Toplum (İletişim ve İnsan İlişkileri)" },
+      { code: "S7-02", name: "Kültür ve Miras (Türk Tarihinde Yolculuk)" },
+      { code: "S7-03", name: "İnsanlar, Yerler ve Çevreler (Ülkemizde Nüfus)" },
+      { code: "S7-04", name: "Bilim, Teknoloji ve Toplum (Zaman İçinde Bilim)" },
+      { code: "S7-05", name: "Üretim, Dağıtım ve Tüketim (Ekonomi ve Sosyal Hayat)" },
+      { code: "S7-06", name: "Etkin Vatandaşlık (Yaşayan Demokrasi)" },
+      { code: "S7-07", name: "Küresel Bağlantılar (Ülkeler Arası Köprüler)" },
+    ],
+    "Din Kültürü": [
+      { code: "D7-01", name: "Melek ve Ahiret İnancı" },
+      { code: "D7-02", name: "Hac ve Kurban İbadeti" },
+      { code: "D7-03", name: "Ahlaki Davranışlar" },
+      { code: "D7-04", name: "Allah'ın Kulu ve Elçisi: Hz. Muhammed" },
+      { code: "D7-05", name: "İslam Düşüncesinde Yorumlar" },
+    ],
+    "İngilizce": [
+      { code: "E7-01", name: "Appearance and Personality" },
+      { code: "E7-02", name: "Sports" },
+      { code: "E7-03", name: "Biographies" },
+      { code: "E7-04", name: "Wild Animals" },
+      { code: "E7-05", name: "Television" },
+      { code: "E7-06", name: "Celebrations" },
+      { code: "E7-07", name: "Dreams" },
+      { code: "E7-08", name: "Public Buildings" },
+      { code: "E7-09", name: "Environment" },
+      { code: "E7-10", name: "Planets" },
+    ],
   },
   8: {
     "Türkçe": [

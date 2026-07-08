@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, ShieldCheck } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { completePasswordSetup } from "@/lib/actions/account";
+import { MIN_PASSWORD_LENGTH } from "@/lib/password";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,8 +23,8 @@ export default function SetPasswordPage() {
     e.preventDefault();
     setError(null);
 
-    if (password.length < 6) {
-      setError("Şifre en az 6 karakter olmalı.");
+    if (password.length < MIN_PASSWORD_LENGTH) {
+      setError(`Şifre en az ${MIN_PASSWORD_LENGTH} karakter olmalı.`);
       return;
     }
     if (password !== confirm) {
@@ -32,26 +33,19 @@ export default function SetPasswordPage() {
     }
 
     setLoading(true);
-    const supabase = createClient();
 
-    const { data: userData } = await supabase.auth.getUser();
-    const { error: updateError } = await supabase.auth.updateUser({ password });
+    // Parola uzunluğu ve profil güncellemesi sunucuda (server action) yapılır;
+    // istemci uzunluk kontrolü yalnızca UX içindir. Rolü çekip doğrudan panele
+    // gidiyoruz; profil okunamazsa "/" middleware tarafından çözülür.
+    const result = await completePasswordSetup(password);
 
-    if (updateError) {
+    if (!result.ok) {
       setLoading(false);
-      setError("Şifre güncellenemedi, lütfen tekrar deneyin.");
+      setError(result.error ?? "Şifre güncellenemedi, lütfen tekrar deneyin.");
       return;
     }
 
-    if (userData.user) {
-      await supabase
-        .from("profiles")
-        .update({ must_change_password: false })
-        .eq("id", userData.user.id);
-    }
-
-    setLoading(false);
-    router.push("/");
+    router.push(result.role ? `/${result.role}` : "/");
     router.refresh();
   }
 
@@ -97,7 +91,9 @@ export default function SetPasswordPage() {
                   autoComplete="new-password"
                   required
                 />
-                <p className="text-xs text-muted-foreground">En az 6 karakter.</p>
+                <p className="text-xs text-muted-foreground">
+                  En az {MIN_PASSWORD_LENGTH} karakter.
+                </p>
               </div>
               <div className="flex flex-col gap-2">
                 <Label htmlFor="confirm">Yeni şifre (tekrar)</Label>

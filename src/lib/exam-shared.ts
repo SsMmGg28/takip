@@ -43,11 +43,22 @@ export interface KazanimPriority extends KazanimStat {
   priorityScore: number;
 }
 
+/** Deneme başına, ders bazında kazanım doğruluk yüzdesi (trend grafiği satırı). */
+export interface KazanimTrendRow {
+  examLabel: string;
+  examDate: string;
+  [subject: string]: string | number | null;
+}
+
 export interface KazanimAnalysis {
   /** Tüm denemelerdeki kazanım toplamları. */
   stats: KazanimStat[];
   /** Son 10 denemeye ve soru sıklığına göre çalışma önceliği listesi. */
   priorities: KazanimPriority[];
+  /** Deneme sırasına göre ders bazında kazanım doğruluk gelişimi (0-100). */
+  trend: KazanimTrendRow[];
+  /** Trend grafiğinde çizilecek dersler (kazanım verisi olanlar). */
+  trendSubjects: string[];
   examCount: number;
 }
 

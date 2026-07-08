@@ -1,13 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { deleteScheduleEntry } from "@/lib/actions/schedule";
 import { DAY_LABELS } from "@/lib/schedule";
-import type { StudySchedureEntry } from "@/lib/types";
+import type { StudyScheduleEntry } from "@/lib/types";
 
 export function WeeklySchedule({
   entries,
   redirectPath,
 }: {
-  entries: StudySchedureEntry[];
+  entries: StudyScheduleEntry[];
   redirectPath: string;
 }) {
   return (

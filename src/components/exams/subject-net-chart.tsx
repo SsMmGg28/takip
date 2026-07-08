@@ -8,13 +8,14 @@ import {
   Legend,
   Line,
   LineChart,
+  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
 import { LGS_SUBJECTS } from "@/lib/kazanim";
-import type { ExamChartRow } from "@/lib/exam-shared";
+import type { ExamChartRow, KazanimTrendRow } from "@/lib/exam-shared";
 
 // Doğrulanmış kategorik palet (dataviz kontrolünden geçti); renk derse
 // sabittir, seri sayısı değişse de ders rengi değişmez.
@@ -107,8 +108,14 @@ export function SubjectNetChart({
   );
 }
 
-/** Deneme puanı gelişimi: tek seri alan grafiği. */
-export function ScoreChart({ rows }: { rows: ExamChartRow[] }) {
+/** Deneme puanı gelişimi: tek seri alan grafiği; hedef puan varsa kesikli çizgi. */
+export function ScoreChart({
+  rows,
+  targetScore,
+}: {
+  rows: ExamChartRow[];
+  targetScore?: number | null;
+}) {
   const theme = useChartTheme();
   const data = rows.filter((r) => r.score != null);
 
@@ -148,6 +155,20 @@ export function ScoreChart({ rows }: { rows: ExamChartRow[] }) {
             width={38}
           />
           <Tooltip contentStyle={theme.tooltip} />
+          {targetScore != null && (
+            <ReferenceLine
+              y={targetScore}
+              stroke={SERIES_COLORS[theme.mode][2]}
+              strokeDasharray="6 4"
+              strokeWidth={1.5}
+              label={{
+                value: `Hedef: ${targetScore}`,
+                position: "insideTopRight",
+                fontSize: 11,
+                fill: theme.tick,
+              }}
+            />
+          )}
           <Area
             type="monotone"
             dataKey="score"
@@ -159,6 +180,72 @@ export function ScoreChart({ rows }: { rows: ExamChartRow[] }) {
             activeDot={{ r: 5 }}
           />
         </AreaChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+/**
+ * Kazanım doğruluk gelişimi: deneme sırasına göre ders bazında kazanım
+ * sorularındaki doğruluk yüzdesi. Ders renkleri net grafiğiyle aynıdır.
+ */
+export function KazanimTrendChart({
+  rows,
+  subjects,
+}: {
+  rows: KazanimTrendRow[];
+  subjects: string[];
+}) {
+  const theme = useChartTheme();
+
+  if (rows.length < 2) {
+    return (
+      <p className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">
+        Gelişim grafiği için kazanım verili en az iki deneme gerekli.
+      </p>
+    );
+  }
+
+  const ordered = SUBJECT_ORDER.filter((s) => subjects.includes(s)).concat(
+    subjects.filter((s) => !SUBJECT_ORDER.includes(s)),
+  );
+
+  return (
+    <div className="h-72 w-full">
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart data={rows} margin={{ top: 8, right: 16, bottom: 8, left: 0 }}>
+          <CartesianGrid stroke={theme.grid} vertical={false} />
+          <XAxis
+            dataKey="examLabel"
+            tick={{ fontSize: 11, fill: theme.tick }}
+            tickLine={false}
+            axisLine={{ stroke: theme.grid }}
+            interval="preserveStartEnd"
+          />
+          <YAxis
+            domain={[0, 100]}
+            tick={{ fontSize: 11, fill: theme.tick }}
+            tickLine={false}
+            axisLine={false}
+            width={34}
+            tickFormatter={(v) => `%${v}`}
+          />
+          <Tooltip contentStyle={theme.tooltip} formatter={(v) => [`%${v}`, undefined]} />
+          <Legend iconType="circle" wrapperStyle={{ fontSize: 12 }} />
+          {ordered.map((subject) => (
+            <Line
+              key={subject}
+              type="monotone"
+              dataKey={subject}
+              name={subject}
+              stroke={subjectColor(subject, theme.mode)}
+              strokeWidth={2}
+              dot={{ r: 3, strokeWidth: 0, fill: subjectColor(subject, theme.mode) }}
+              activeDot={{ r: 5 }}
+              connectNulls
+            />
+          ))}
+        </LineChart>
       </ResponsiveContainer>
     </div>
   );

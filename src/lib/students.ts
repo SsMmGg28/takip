@@ -12,6 +12,22 @@ export async function getStudentGrade(studentId: string): Promise<number | null>
   return data?.grade_level ?? null;
 }
 
+/** Sınıf düzeyi + hedef puan (deneme sayfaları için tek sorgu). */
+export async function getStudentExamInfo(
+  studentId: string,
+): Promise<{ grade: number | null; targetScore: number | null }> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("student_profiles")
+    .select("grade_level, target_score")
+    .eq("id", studentId)
+    .single();
+  return {
+    grade: data?.grade_level ?? null,
+    targetScore: data?.target_score ?? null,
+  };
+}
+
 export interface StudentWithGrade extends Profile {
   grade_level: number | null;
 }

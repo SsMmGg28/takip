@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AddScheduleEntryDialog } from "@/components/schedule/add-schedule-entry-dialog";
 import { WeeklySchedule } from "@/components/schedule/weekly-schedule";
-import type { StudySchedureEntry } from "@/lib/types";
+import type { StudyScheduleEntry } from "@/lib/types";
 
 export default async function TeacherStudentSchedulePage({
   params,
@@ -34,7 +34,7 @@ export default async function TeacherStudentSchedulePage({
         <AddScheduleEntryDialog studentId={studentId} redirectPath={redirectPath} />
       </div>
       <WeeklySchedule
-        entries={(entries as StudySchedureEntry[]) ?? []}
+        entries={(entries as StudyScheduleEntry[]) ?? []}
         redirectPath={redirectPath}
       />
     </div>

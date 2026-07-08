@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getKazanimAnalysis } from "@/lib/exam-analysis";
+import { getTeacherIds, notifyUsers } from "@/lib/notifications";
 import type { KazanimAnalysis } from "@/lib/exam-shared";
 import { LGS_SUBJECTS, examsEnabledForGrade } from "@/lib/kazanim";
 
@@ -155,6 +156,26 @@ export async function createFullExam(payload: ExamPayload): Promise<ActionResult
     return { ok: false, error: insertError };
   }
 
+  // Veli girdiyse öğretmen haberdar olsun (öğretmen kendi girişinde bildirim almaz).
+  const { data: creator } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", userData.user.id)
+    .single();
+  if (creator?.role !== "teacher") {
+    const { data: student } = await supabase
+      .from("profiles")
+      .select("full_name")
+      .eq("id", payload.studentId)
+      .single();
+    await notifyUsers(await getTeacherIds(), {
+      type: "exam_created",
+      title: "Yeni deneme sonucu girildi",
+      body: `${student?.full_name ?? "Öğrenci"} — "${payload.examName.trim()}"`,
+      link: `/teacher/exams/${payload.studentId}`,
+    });
+  }
+
   revalidateExamPages();
   return { ok: true };
 }
@@ -248,6 +269,21 @@ export async function requestExamEdit(examId: string, reason: string): Promise<A
   });
   if (error) return { ok: false, error: error.message };
 
+  // Öğretmen talebi sayfaya girmeden görsün.
+  const { data: exam } = await supabase
+    .from("exams")
+    .select("exam_name")
+    .eq("id", examId)
+    .single();
+  await notifyUsers(await getTeacherIds(), {
+    type: "exam_edit_requested",
+    title: "Deneme düzenleme talebi",
+    body: exam
+      ? `"${exam.exam_name}" denemesi için veli düzenleme talebi gönderdi.`
+      : "Bir deneme için veli düzenleme talebi gönderdi.",
+    link: "/teacher/exams",
+  });
+
   revalidateExamPages();
   return { ok: true };
 }
@@ -269,9 +305,62 @@ export async function reviewExamEditRequest(
     })
     .eq("id", requestId)
     .eq("status", "pending")
-    .select("id");
+    .select("id, exam_id, requested_by");
   if (error) return { ok: false, error: error.message };
   if (!updated?.length) return { ok: false, error: "Talep bulunamadı veya zaten incelendi." };
+
+  // Talebi açan veli sonucu bildirimle öğrensin.
+  const request = updated[0];
+  const { data: exam } = await supabase
+    .from("exams")
+    .select("exam_name, student_id")
+    .eq("id", request.exam_id)
+    .single();
+  await notifyUsers([request.requested_by], {
+    type: "exam_edit_resolved",
+    title: approve ? "Düzenleme talebin onaylandı" : "Düzenleme talebin reddedildi",
+    body: exam
+      ? approve
+        ? `"${exam.exam_name}" denemesini artık düzenleyebilirsin.`
+        : `"${exam.exam_name}" denemesi için talebin reddedildi.`
+      : undefined,
+    link: exam ? `/parent/exams/${exam.student_id}` : "/parent/exams",
+  });
+
+  revalidateExamPages();
+  return { ok: true };
+}
+
+// ─── Hedef puan ──────────────────────────────────────────────────────────────
+
+/** Öğrenci için hedef deneme puanı belirler/temizler (yalnızca öğretmen). */
+export async function setTargetScore(
+  studentId: string,
+  targetScore: number | null,
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData.user) return { ok: false, error: "Yetkisiz." };
+
+  if (
+    targetScore !== null &&
+    (typeof targetScore !== "number" ||
+      Number.isNaN(targetScore) ||
+      targetScore < 0 ||
+      targetScore > 500)
+  ) {
+    return { ok: false, error: "Hedef puan 0-500 aralığında olmalı." };
+  }
+
+  // RLS (student_profiles_write_teacher) yalnızca öğretmene izin verir;
+  // izin yoksa güncellenen satır dönmez.
+  const { data: updated, error } = await supabase
+    .from("student_profiles")
+    .update({ target_score: targetScore })
+    .eq("id", studentId)
+    .select("id");
+  if (error) return { ok: false, error: error.message };
+  if (!updated?.length) return { ok: false, error: "Hedef puanı yalnızca öğretmen belirleyebilir." };
 
   revalidateExamPages();
   return { ok: true };

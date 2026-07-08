@@ -39,6 +39,7 @@ import {
   StatsWidget,
   TodayScheduleWidget,
   WeeklyScheduleWidget,
+  WeeklySummaryWidget,
 } from "@/components/dashboard/widgets-data";
 
 export interface WidgetDef {
@@ -120,6 +121,15 @@ export const WIDGETS: WidgetDef[] = [
     roles: ["student", "parent"],
     defaultW: 2, defaultH: 2, minW: 2, maxW: 4, minH: 1, maxH: 3,
     component: BooksWidget,
+  },
+  {
+    id: "weekly-summary",
+    title: "Haftalık Özet",
+    description: "Çocuk başına bu haftanın ödev, test ve net dökümü",
+    icon: BarChart3,
+    roles: ["parent"],
+    defaultW: 2, defaultH: 2, minW: 1, maxW: 4, minH: 1, maxH: 3,
+    component: WeeklySummaryWidget,
   },
   {
     id: "notifications",
@@ -240,6 +250,7 @@ const DEFAULT_IDS: Record<Role, string[]> = {
   ],
   parent: [
     "stats",
+    "weekly-summary",
     "homework",
     "people",
     "clock",

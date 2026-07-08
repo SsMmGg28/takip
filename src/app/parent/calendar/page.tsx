@@ -20,7 +20,9 @@ export default async function ParentCalendarPage() {
 
   // Birden fazla çocuk varsa hepsinin etkinlikleri tek takvimde birleşir
   const allItems = (
-    await Promise.all(students.map((s) => getStudentCalendarItems(s.id)))
+    await Promise.all(
+      students.map((s) => getStudentCalendarItems(s.id, "/parent/homework")),
+    )
   ).flat();
 
   return (

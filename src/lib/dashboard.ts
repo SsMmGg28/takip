@@ -3,13 +3,14 @@ import { getAccessibleStudents, withGrades } from "@/lib/students";
 import { getStudentShelf, getPendingBooks } from "@/lib/books";
 import { getStudentCalendarItems } from "@/lib/calendar";
 import { calculateNet } from "@/lib/exam-shared";
+import { effectiveHomeworkStatus } from "@/lib/homework";
 import type {
   AppNotification,
   Exam,
   ExamSubject,
   Homework,
   Profile,
-  StudySchedureEntry,
+  StudyScheduleEntry,
 } from "@/lib/types";
 import type {
   BookItem,
@@ -19,6 +20,7 @@ import type {
   HomeworkItem,
   ScheduleItem,
   StoredLayout,
+  WeeklySummaryChild,
 } from "@/lib/dashboard-types";
 
 function firstName(fullName: string) {
@@ -88,7 +90,7 @@ async function getPendingHomework(studentId: string): Promise<HomeworkItem[]> {
     id: h.id,
     title: h.title,
     dueDate: h.due_date,
-    status: h.status,
+    status: effectiveHomeworkStatus(h),
   }));
 }
 
@@ -100,7 +102,7 @@ async function getScheduleItems(studentId: string): Promise<ScheduleItem[]> {
     .eq("student_id", studentId)
     .order("day_of_week")
     .order("start_time");
-  return ((data as StudySchedureEntry[]) ?? []).map((e) => ({
+  return ((data as StudyScheduleEntry[]) ?? []).map((e) => ({
     id: e.id,
     day: e.day_of_week,
     start: shortTime(e.start_time),
@@ -171,6 +173,7 @@ async function getStudentData(profile: Profile): Promise<DashboardData> {
     pendingBooks: [],
     people: [],
     notifications,
+    weeklySummary: [],
   };
 }
 
@@ -187,17 +190,60 @@ async function getParentData(profile: Profile): Promise<DashboardData> {
         .in("status", ["assigned", "incomplete", "overdue"])
     : { count: 0 };
 
+  // Haftanın başı (Pazartesi 00:00) — haftalık özet sayaçları için.
+  const weekStart = new Date();
+  weekStart.setHours(0, 0, 0, 0);
+  weekStart.setDate(weekStart.getDate() - ((weekStart.getDay() + 6) % 7));
+  const weekStartIso = weekStart.toISOString();
+
   const perChild = await Promise.all(
     children.map(async (child) => {
       const name = firstName(child.full_name);
-      const [homework, schedule, calendarItems, exams, shelf] = await Promise.all([
+      const [
+        homework,
+        schedule,
+        calendarItems,
+        exams,
+        shelf,
+        { count: weeklyCompleted },
+        { count: weeklyIncomplete },
+        { count: weeklyTests },
+      ] = await Promise.all([
         getPendingHomework(child.id),
         getScheduleItems(child.id),
         getStudentCalendarItems(child.id),
         getRecentExams(child.id, 3),
         getStudentShelf(child.id),
+        supabase
+          .from("homework")
+          .select("id", { count: "exact", head: true })
+          .eq("student_id", child.id)
+          .eq("status", "completed")
+          .gte("checked_at", weekStartIso),
+        supabase
+          .from("homework")
+          .select("id", { count: "exact", head: true })
+          .eq("student_id", child.id)
+          .eq("status", "incomplete")
+          .gte("checked_at", weekStartIso),
+        supabase
+          .from("student_test_progress")
+          .select("id", { count: "exact", head: true })
+          .eq("student_id", child.id)
+          .gte("completed_at", weekStartIso),
       ]);
-      return { child, name, homework, schedule, calendarItems, exams, shelf };
+      const weeklySummary: WeeklySummaryChild = {
+        studentId: child.id,
+        studentName: firstName(child.full_name),
+        completedHomework: weeklyCompleted ?? 0,
+        incompleteHomework: weeklyIncomplete ?? 0,
+        testsSolved: weeklyTests ?? 0,
+        netChange:
+          exams.length >= 2
+            ? Math.round((exams[0].totalNet - exams[1].totalNet) * 100) / 100
+            : null,
+      };
+      return { child, name, homework, schedule, calendarItems, exams, shelf, weeklySummary };
     }),
   );
 
@@ -255,6 +301,7 @@ async function getParentData(profile: Profile): Promise<DashboardData> {
       grade: s.grade_level,
     })),
     notifications: await getOwnNotifications(),
+    weeklySummary: perChild.map((c) => c.weeklySummary),
   };
 }
 
@@ -319,7 +366,7 @@ async function getTeacherData(profile: Profile): Promise<DashboardData> {
       id: h.id,
       title: h.title,
       dueDate: h.due_date,
-      status: h.status,
+      status: effectiveHomeworkStatus(h),
       studentName: nameById.get(h.student_id),
     })),
     schedule: [],
@@ -344,6 +391,7 @@ async function getTeacherData(profile: Profile): Promise<DashboardData> {
       grade: s.grade_level,
     })),
     notifications,
+    weeklySummary: [],
   };
 }
 

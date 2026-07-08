@@ -11,6 +11,7 @@ import {
   CalendarDays,
   ClipboardList,
   GraduationCap,
+  MailQuestion,
   PencilLine,
   Presentation,
   type LucideIcon,
@@ -407,6 +408,11 @@ const NOTIF_ICON: Record<NotificationType, LucideIcon> = {
   book_pending: BookOpen,
   book_approved: BookCheck,
   book_rejected: BookX,
+  exam_created: GraduationCap,
+  exam_edit_requested: MailQuestion,
+  exam_edit_resolved: PencilLine,
+  homework_due_soon: AlertTriangle,
+  event_created: CalendarDays,
 };
 
 function timeAgo(iso: string): string {
@@ -552,6 +558,59 @@ export function PeopleWidget({ data, h }: WidgetProps) {
         })}
       </ul>
       {linkBase && <FooterLink href={linkBase} label="Tüm öğrenciler" />}
+    </div>
+  );
+}
+
+// ─── Haftalık Özet (veli) ────────────────────────────────────────────────────
+
+export function WeeklySummaryWidget({ data }: WidgetProps) {
+  const summaries = data.weeklySummary;
+  if (!summaries.length) {
+    return <EmptyState text="Haftalık özet için bağlı bir öğrenci gerekli." />;
+  }
+  return (
+    <div className="flex h-full flex-col">
+      <ul className="min-h-0 flex-1 space-y-1.5 overflow-y-auto">
+        {summaries.map((s) => (
+          <li key={s.studentId} className="rounded-xl border bg-muted/30 px-2.5 py-2">
+            <div className="flex items-center justify-between gap-2">
+              <span className="truncate text-xs font-semibold">{s.studentName}</span>
+              {s.netChange !== null && (
+                <span
+                  className={cn(
+                    "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold",
+                    s.netChange > 0
+                      ? "bg-success/15 text-success"
+                      : s.netChange < 0
+                        ? "bg-destructive/12 text-destructive"
+                        : "bg-accent text-accent-foreground",
+                  )}
+                  title="Son iki denemenin toplam net farkı"
+                >
+                  {s.netChange > 0 ? "+" : ""}
+                  {s.netChange} net
+                </span>
+              )}
+            </div>
+            <div className="mt-1.5 grid grid-cols-3 gap-1.5 text-center">
+              <div className="rounded-lg bg-background/60 px-1 py-1">
+                <p className="text-sm font-bold tabular-nums">{s.completedHomework}</p>
+                <p className="text-[10px] text-muted-foreground">Tam. ödev</p>
+              </div>
+              <div className="rounded-lg bg-background/60 px-1 py-1">
+                <p className="text-sm font-bold tabular-nums">{s.incompleteHomework}</p>
+                <p className="text-[10px] text-muted-foreground">Eksik ödev</p>
+              </div>
+              <div className="rounded-lg bg-background/60 px-1 py-1">
+                <p className="text-sm font-bold tabular-nums">{s.testsSolved}</p>
+                <p className="text-[10px] text-muted-foreground">Çözülen test</p>
+              </div>
+            </div>
+          </li>
+        ))}
+      </ul>
+      <FooterLink href="/parent/homework" label="Ödevler" />
     </div>
   );
 }

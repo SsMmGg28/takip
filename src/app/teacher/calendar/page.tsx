@@ -2,7 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/page-header";
 import { CalendarView } from "@/components/calendar/calendar-view";
 import { CreateCalendarEventDialog } from "@/components/teacher/create-calendar-event-dialog";
-import type { CalendarItem } from "@/lib/calendar";
+import { EventManageList } from "@/components/teacher/event-manage-list";
+import { expandCalendarEvent, type CalendarItem } from "@/lib/calendar";
 import type { CalendarEvent, Profile } from "@/lib/types";
 
 export default async function TeacherCalendarPage() {
@@ -25,18 +26,13 @@ export default async function TeacherCalendarPage() {
     ((students as Profile[] | null) ?? []).map((s) => [s.id, s.full_name]),
   );
 
+  const eventList = (events as CalendarEvent[] | null) ?? [];
   const items: CalendarItem[] = [];
-  for (const e of (events as CalendarEvent[] | null) ?? []) {
+  for (const e of eventList) {
     const studentLabel = e.student_id
       ? studentNameById.get(e.student_id) ?? ""
       : "";
-    items.push({
-      id: e.id,
-      title: studentLabel ? `${e.title} — ${studentLabel}` : e.title,
-      description: e.description,
-      type: e.type,
-      date: e.start_at,
-    });
+    items.push(...expandCalendarEvent(e, studentLabel));
   }
   for (const h of homework ?? []) {
     const studentLabel = studentNameById.get(h.student_id) ?? "";
@@ -46,6 +42,7 @@ export default async function TeacherCalendarPage() {
       description: null,
       type: "homework_deadline",
       date: h.due_date as string,
+      href: `/teacher/homework/${h.student_id}`,
     });
   }
   items.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
@@ -58,6 +55,7 @@ export default async function TeacherCalendarPage() {
         action={<CreateCalendarEventDialog students={(students as Profile[]) ?? []} />}
       />
       <CalendarView items={items} />
+      <EventManageList events={eventList} students={(students as Profile[]) ?? []} />
     </>
   );
 }

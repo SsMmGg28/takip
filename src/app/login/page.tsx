@@ -26,19 +26,35 @@ export default function LoginPage() {
     setLoading(true);
 
     const supabase = createClient();
-    const { error: signInError } = await supabase.auth.signInWithPassword({
+    const { data, error: signInError } = await supabase.auth.signInWithPassword({
       email: usernameToEmail(username),
       password,
     });
 
-    setLoading(false);
-
     if (signInError) {
+      setLoading(false);
       setError("Kullanıcı adı veya şifre hatalı.");
       return;
     }
 
-    router.push("/");
+    // Rolü burada çekip doğrudan panele gidiyoruz; "/" üzerinden gitmek
+    // middleware'de fazladan bir yönlendirme turu (2 ek Supabase çağrısı +
+    // redirect) demekti. Profil okunamazsa "/"'a düşer, middleware çözer.
+    // setLoading(false) çağrılmıyor: buton, yönlendirme tamamlanana kadar
+    // dönmeye devam etsin.
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role, must_change_password")
+      .eq("id", data.user.id)
+      .single();
+
+    router.push(
+      !profile
+        ? "/"
+        : profile.must_change_password
+          ? "/set-password"
+          : `/${profile.role}`,
+    );
     router.refresh();
   }
 

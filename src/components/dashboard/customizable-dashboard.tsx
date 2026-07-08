@@ -66,8 +66,9 @@ function sanitize(items: LayoutItem[], role: DashboardData["role"]): LayoutItem[
 
 /**
  * Özelleştirilebilir Anasayfa: widget'lar sürüklenerek sıralanır, ok
- * düğmeleriyle büyütülüp küçültülür, eklenip çıkarılabilir. Yerleşim cihaz
- * bazında localStorage'da saklanır.
+ * düğmeleriyle büyütülüp küçültülür, eklenip çıkarılabilir. Yerleşim kullanıcı
+ * hesabına bağlı olarak sunucuda (dashboard_layouts) saklanır ve cihazlar
+ * arasında eşitlenir.
  */
 /** Kayıtlı yerleşimi doğrular; sonradan eklenen widget türlerini sona ekler. */
 function reconcile(
