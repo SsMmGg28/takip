@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { getStudentGrade } from "@/lib/students";
-import { examsEnabledForGrade } from "@/lib/kazanim";
+import { examsEnabledForGrade, getKazanimlar, LGS_SUBJECTS, type ExamGrade } from "@/lib/kazanim";
 import { callGeminiJson, isGeminiConfigured } from "@/lib/ai/gemini";
 import { normalizeImportedExam, type RawParsedExam } from "@/lib/exams/import-normalize";
 import type { ExamFormInitial } from "@/components/exams/exam-entry-form";
@@ -26,32 +26,55 @@ const MAX_BYTES = 10 * 1024 * 1024; // 10 MB
 
 // Gemini'nin uyması gereken JSON şeması (OpenAPI alt kümesi). score STRING'dir;
 // Türkçe ondalık ("494,51" / "462,700") normalize katmanında ayrıştırılır.
-const RESPONSE_SCHEMA = {
-  type: "OBJECT",
-  properties: {
-    examName: { type: "STRING" },
-    examDate: { type: "STRING" },
-    score: { type: "STRING" },
-    subjects: {
+// includeKazanim ise ders başına "kazanimlar" (katalog kodu + sayılar) eklenir.
+function buildSchema(includeKazanim: boolean) {
+  const subjectProps: Record<string, unknown> = {
+    name: { type: "STRING" },
+    correct: { type: "INTEGER" },
+    incorrect: { type: "INTEGER" },
+    blank: { type: "INTEGER" },
+  };
+  const required = ["name", "correct", "incorrect", "blank"];
+  const ordering = ["name", "correct", "incorrect", "blank"];
+  if (includeKazanim) {
+    subjectProps.kazanimlar = {
       type: "ARRAY",
       items: {
         type: "OBJECT",
         properties: {
-          name: { type: "STRING" },
+          code: { type: "STRING" },
           correct: { type: "INTEGER" },
           incorrect: { type: "INTEGER" },
           blank: { type: "INTEGER" },
         },
-        required: ["name", "correct", "incorrect", "blank"],
-        propertyOrdering: ["name", "correct", "incorrect", "blank"],
+        required: ["code", "correct", "incorrect", "blank"],
+        propertyOrdering: ["code", "correct", "incorrect", "blank"],
+      },
+    };
+    ordering.push("kazanimlar");
+  }
+  return {
+    type: "OBJECT",
+    properties: {
+      examName: { type: "STRING" },
+      examDate: { type: "STRING" },
+      score: { type: "STRING" },
+      subjects: {
+        type: "ARRAY",
+        items: {
+          type: "OBJECT",
+          properties: subjectProps,
+          required,
+          propertyOrdering: ordering,
+        },
       },
     },
-  },
-  required: ["examName", "examDate", "subjects"],
-  propertyOrdering: ["examName", "examDate", "score", "subjects"],
-};
+    required: ["examName", "examDate", "subjects"],
+    propertyOrdering: ["examName", "examDate", "score", "subjects"],
+  };
+}
 
-const PROMPT = `Bu bir Türkiye LGS deneme sonuç belgesidir (PDF veya fotoğraf). Görevin, SADECE bu denemenin ders bazlı sonuçlarını ve genel bilgilerini çıkarmak.
+const BASE_PROMPT = `Bu bir Türkiye LGS deneme sonuç belgesidir (PDF veya fotoğraf). Görevin, SADECE bu denemenin ders bazlı sonuçlarını ve genel bilgilerini çıkarmak.
 
 ÇOK ÖNEMLİ KURALLAR:
 1. Belgede "SON 15 SINAV", geçmiş denemeler listesi, sıralama/istatistik tabloları olabilir. BUNLARI TAMAMEN YOK SAY. Yalnızca bu denemenin ana ders sonuç tablosunu (ör. "DERS ANALİZİ" ya da "DERSLER" tablosu) kullan.
@@ -67,9 +90,33 @@ const PROMPT = `Bu bir Türkiye LGS deneme sonuç belgesidir (PDF veya fotoğraf
    - Her derste correct + incorrect + blank, o dersin soru sayısına (20 veya 10) TAM EŞİT olmalı.
 4. score: denemenin LGS puanı (genelde "LGS" satırında, 0-500 arası, ondalıklı). Belgede yazan şekliyle METİN olarak ver (ör. "494,51"). Bulamazsan boş string.
 5. examName: denemenin adı; parantez içindeki tekrarı temizle (ör. "AYDIN GELİŞİM LGS-5(AYDIN GELİŞİM LGS-5)" -> "AYDIN GELİŞİM LGS-5").
-6. examDate: sınav tarihi, ISO "YYYY-MM-DD" biçiminde (ör. 11.06.2026 -> 2026-06-11). Bulamazsan boş string.
+6. examDate: sınav tarihi, ISO "YYYY-MM-DD" biçiminde (ör. 11.06.2026 -> 2026-06-11). Bulamazsan boş string.`;
 
-Yanıtı yalnızca verilen JSON şemasına uygun ver, açıklama ekleme.`;
+const CLOSING = "\n\nYanıtı yalnızca verilen JSON şemasına uygun ver, açıklama ekleme.";
+
+/** Sınıfın kazanım kataloğunu prompt'a gömülecek "kod — ad" listesine çevirir. */
+function catalogBlock(grade: ExamGrade): string {
+  const lines: string[] = [];
+  for (const def of LGS_SUBJECTS) {
+    lines.push(`### ${def.name}`);
+    for (const k of getKazanimlar(grade, def.name)) lines.push(`${k.code} — ${k.name}`);
+  }
+  return lines.join("\n");
+}
+
+function buildPrompt(includeKazanim: boolean, grade: ExamGrade): string {
+  if (!includeKazanim) return BASE_PROMPT + CLOSING;
+  return (
+    BASE_PROMPT +
+    `
+
+7. Ayrıca her ders için "kazanimlar" listesi üret: belgedeki kazanım/konu dökümünü kullan ve HER kazanımı SADECE aşağıdaki katalogdan uygun ünite koduna ("code") ata; o ünitede doğru/yanlış/boş say. Katalogda OLMAYAN kod uydurma; eşleştiremediğin kazanımı atla. Belgede kazanım/konu detayı yoksa "kazanimlar" boş kalsın. Aynı üniteye düşen soruları o kodda topla; bir dersin kazanım toplamı o dersin soru sayısını AŞMAMALI.
+
+KATALOG (yalnız bu kodları kullan):
+${catalogBlock(grade)}` +
+    CLOSING
+  );
+}
 
 /**
  * Yüklenen deneme belgesini Gemini'ye gönderip formu önden doldurmaya uygun
@@ -87,6 +134,9 @@ export async function parseExamDocument(formData: FormData): Promise<ParseExamRe
 
   const studentId = String(formData.get("studentId") ?? "");
   if (!studentId) return { ok: false, error: "Öğrenci bilgisi eksik." };
+
+  // Kazanım eşleştirme varsayılan açık; yalnız açıkça "false" ise kapanır.
+  const includeKazanim = String(formData.get("includeKazanim") ?? "true") !== "false";
 
   // Erişim + sınıf kontrolü: RLS sayesinde erişilemeyen öğrenci null döner.
   const grade = await getStudentGrade(studentId);
@@ -117,15 +167,15 @@ export async function parseExamDocument(formData: FormData): Promise<ParseExamRe
   let raw: RawParsedExam;
   try {
     raw = await callGeminiJson<RawParsedExam>({
-      prompt: PROMPT,
+      prompt: buildPrompt(includeKazanim, grade),
       file: { base64, mimeType },
-      schema: RESPONSE_SCHEMA,
+      schema: buildSchema(includeKazanim),
     });
   } catch (err) {
     console.error("[exam-import] Gemini hatası", err);
     return { ok: false, error: "Belge okunamadı; tekrar deneyin veya elle girin." };
   }
 
-  const { initial, warnings } = normalizeImportedExam(raw);
+  const { initial, warnings } = normalizeImportedExam(raw, grade);
   return { ok: true, initial, warnings };
 }

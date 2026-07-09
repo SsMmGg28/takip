@@ -5,6 +5,8 @@ import { FileUp, Loader2, Sparkles, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { ExamEntryForm, type ExamFormInitial } from "@/components/exams/exam-entry-form";
 import { parseExamDocument } from "@/lib/actions/exam-import";
 import type { ExamGrade } from "@/lib/kazanim";
@@ -28,6 +30,7 @@ export function ExamImportPanel({
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
+  const [includeKazanim, setIncludeKazanim] = useState(true);
   const [loading, setLoading] = useState(false);
   const [initial, setInitial] = useState<ExamFormInitial | undefined>(undefined);
   const [formKey, setFormKey] = useState(0);
@@ -41,6 +44,7 @@ export function ExamImportPanel({
       const fd = new FormData();
       fd.set("studentId", studentId);
       fd.set("file", file);
+      fd.set("includeKazanim", includeKazanim ? "true" : "false");
       const res = await parseExamDocument(fd);
       if (!res.ok || !res.initial) {
         toast.error(res.error ?? "Belge okunamadı.");
@@ -74,6 +78,18 @@ export function ExamImportPanel({
               doğru/yanlış/boş sayıları otomatik doldurulsun. Sonucu kaydetmeden önce
               kontrol edebilirsin. Belge saklanmaz.
             </p>
+
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="include-kazanim"
+                checked={includeKazanim}
+                onCheckedChange={(v) => setIncludeKazanim(v === true)}
+                disabled={loading}
+              />
+              <Label htmlFor="include-kazanim" className="text-xs font-normal text-muted-foreground">
+                Kazanımları da eşleştir (biraz daha uzun sürer)
+              </Label>
+            </div>
 
             <input
               ref={inputRef}

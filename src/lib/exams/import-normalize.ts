@@ -1,17 +1,26 @@
-import { LGS_SUBJECTS, type SubjectName } from "@/lib/kazanim";
+import { LGS_SUBJECTS, getKazanimlar, type SubjectName, type ExamGrade } from "@/lib/kazanim";
 import type { ExamFormInitial } from "@/components/exams/exam-entry-form";
 
 // Gemini'den gelen ham JSON'u mevcut deneme formunun beklediği ExamFormInitial
 // yapısına çeviren SAF/deterministik katman. Ders adlarını kanonik LGS
 // adlarına eşler, boş sayısını gerekiyorsa hesaplar, puan/tarih/ad'ı normalize
-// eder ve doğrulanamayan noktalar için uyarı üretir. Kazanım eşleştirme MVP
-// kapsamı dışında (Faz 2) olduğundan kazanimlar her zaman boş döner.
+// eder ve doğrulanamayan noktalar için uyarı üretir. Kazanım eşleştirme
+// (Faz 2, opsiyonel): Gemini katalog kodlarını döndürürse yalnızca geçerli
+// kodlar kabul edilir; aksi halde kazanimlar boş kalır.
+
+export interface RawParsedKazanim {
+  code?: unknown;
+  correct?: unknown;
+  incorrect?: unknown;
+  blank?: unknown;
+}
 
 export interface RawParsedSubject {
   name?: unknown;
   correct?: unknown;
   incorrect?: unknown;
   blank?: unknown;
+  kazanimlar?: unknown;
 }
 
 export interface RawParsedExam {
@@ -127,11 +136,70 @@ function parseDate(value: unknown): string {
   return "";
 }
 
-export function normalizeImportedExam(raw: RawParsedExam): NormalizedImport {
+interface KazanimRow {
+  code: string;
+  correct: number;
+  incorrect: number;
+  blank: number;
+}
+
+/**
+ * Bir dersin ham kazanımlarını (Gemini'nin atadığı katalog kodları) doğrular ve
+ * forma uygun satırlara çevirir: yalnızca o sınıf+ders için geçerli katalog
+ * kodları kabul edilir, aynı kod toplanır, D+Y+B=0 satırlar atılır (form ve
+ * validatePayload boş satırı reddeder). Kazanım toplamı ders soru sayısını
+ * aşarsa (Gemini hatası) o dersin kazanımları enjekte edilmez ve uyarı verilir
+ * — böylece kayıt bloklanmaz, kullanıcı elle işaretleyebilir.
+ */
+function buildKazanimlar(
+  grade: ExamGrade,
+  subjectName: SubjectName,
+  questionCount: number,
+  raw: RawParsedKazanim[],
+  warnings: string[],
+): KazanimRow[] {
+  if (raw.length === 0) return [];
+  const validCodes = new Set(getKazanimlar(grade, subjectName).map((k) => k.code));
+  const byCode = new Map<string, { correct: number; incorrect: number; blank: number }>();
+  for (const rk of raw) {
+    const code = typeof rk.code === "string" ? rk.code.trim() : "";
+    if (!validCodes.has(code)) {
+      if (code) warnings.push(`${subjectName}: "${code}" kodu katalogda yok, atlandı.`);
+      continue;
+    }
+    const correct = toCount(rk.correct) ?? 0;
+    const incorrect = toCount(rk.incorrect) ?? 0;
+    const blank = toCount(rk.blank) ?? 0;
+    const cur = byCode.get(code);
+    if (cur) {
+      cur.correct += correct;
+      cur.incorrect += incorrect;
+      cur.blank += blank;
+    } else {
+      byCode.set(code, { correct, incorrect, blank });
+    }
+  }
+  const rows: KazanimRow[] = [...byCode.entries()]
+    .filter(([, v]) => v.correct + v.incorrect + v.blank > 0)
+    .map(([code, v]) => ({ code, ...v }));
+  const kTotal = rows.reduce((s, r) => s + r.correct + r.incorrect + r.blank, 0);
+  if (kTotal > questionCount) {
+    warnings.push(
+      `${subjectName}: kazanım toplamı (${kTotal}) ders soru sayısını (${questionCount}) aşıyor; kazanım eşleştirme atlandı, elle işaretle.`,
+    );
+    return [];
+  }
+  return rows;
+}
+
+export function normalizeImportedExam(raw: RawParsedExam, grade: ExamGrade): NormalizedImport {
   const warnings: string[] = [];
 
   // Ham dersleri kanonik ada göre grupla (aynı derse birden çok satır gelirse topla).
-  const byCanonical = new Map<SubjectName, { correct: number; incorrect: number; blank: number | null }>();
+  const byCanonical = new Map<
+    SubjectName,
+    { correct: number; incorrect: number; blank: number | null; kazanimlar: RawParsedKazanim[] }
+  >();
   const rawSubjects = Array.isArray(raw.subjects) ? (raw.subjects as RawParsedSubject[]) : [];
   for (const rs of rawSubjects) {
     const canonical = typeof rs.name === "string" ? matchCanonicalSubject(rs.name) : null;
@@ -143,13 +211,15 @@ export function normalizeImportedExam(raw: RawParsedExam): NormalizedImport {
     const correct = toCount(rs.correct) ?? 0;
     const incorrect = toCount(rs.incorrect) ?? 0;
     const blank = toCount(rs.blank);
+    const kazanimlar = Array.isArray(rs.kazanimlar) ? (rs.kazanimlar as RawParsedKazanim[]) : [];
     const existing = byCanonical.get(canonical);
     if (existing) {
       existing.correct += correct;
       existing.incorrect += incorrect;
       existing.blank = (existing.blank ?? 0) + (blank ?? 0);
+      existing.kazanimlar.push(...kazanimlar);
     } else {
-      byCanonical.set(canonical, { correct, incorrect, blank });
+      byCanonical.set(canonical, { correct, incorrect, blank, kazanimlar: [...kazanimlar] });
     }
   }
 
@@ -181,7 +251,14 @@ export function normalizeImportedExam(raw: RawParsedExam): NormalizedImport {
         `${def.name}: toplam ${def.questionCount} tutmuyor, formda düzelt.`,
       );
     }
-    return { name: def.name, correct, incorrect, blank, kazanimlar: [] };
+    const kazanimlar = buildKazanimlar(
+      grade,
+      def.name,
+      def.questionCount,
+      parsed.kazanimlar,
+      warnings,
+    );
+    return { name: def.name, correct, incorrect, blank, kazanimlar };
   });
 
   const initial: ExamFormInitial = {
