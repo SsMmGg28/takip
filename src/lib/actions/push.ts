@@ -46,6 +46,13 @@ export async function deletePushSubscription(endpoint: string) {
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) throw new Error("Yetkisiz.");
 
+  // Sahiplik kontrolü: service-role RLS'i atladığı için silmeyi mutlaka
+  // çağıran kullanıcının kaydıyla sınırla; aksi halde endpoint'i bilen biri
+  // başkasının aboneliğini silebilir.
   const admin = createAdminClient();
-  await admin.from("push_subscriptions").delete().eq("endpoint", endpoint);
+  await admin
+    .from("push_subscriptions")
+    .delete()
+    .eq("endpoint", endpoint)
+    .eq("user_id", userData.user.id);
 }

@@ -27,15 +27,20 @@ export async function POST(request: Request) {
 
   const admin = createAdminClient();
 
-  // Öğretmen hesaplarının şifresini yalnızca yönetici sıfırlayabilir.
-  const { data: target } = await admin
+  // Hedef yalnızca öğrenci veya veli olabilir; öğretmenler (admin rolü)
+  // birbirinin şifresini sıfırlayıp hesabını ele geçiremesin.
+  const { data: targetProfile } = await admin
     .from("profiles")
     .select("role")
     .eq("id", profile_id)
     .single();
-  if (target?.role === "teacher" && !callerProfile.is_admin) {
+
+  if (!targetProfile) {
+    return NextResponse.json({ error: "Kullanıcı bulunamadı." }, { status: 404 });
+  }
+  if (!["student", "parent"].includes(targetProfile.role)) {
     return NextResponse.json(
-      { error: "Öğretmen şifrelerini yalnızca yönetici sıfırlayabilir." },
+      { error: "Yalnızca öğrenci veya veli şifresi sıfırlanabilir." },
       { status: 403 },
     );
   }
