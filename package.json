@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest run"
+    "test": "vitest run",
+    "seed:preview": "node --env-file=.env.local scripts/seed-preview.mjs"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.3.5",
