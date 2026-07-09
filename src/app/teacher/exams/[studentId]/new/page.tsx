@@ -1,9 +1,10 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/page-header";
-import { ExamEntryForm } from "@/components/exams/exam-entry-form";
+import { ExamImportPanel } from "@/components/exams/exam-import-panel";
 import { getStudentGrade } from "@/lib/students";
 import { examsEnabledForGrade } from "@/lib/kazanim";
+import { isGeminiConfigured } from "@/lib/ai/gemini";
 
 export default async function TeacherNewExamPage({
   params,
@@ -29,10 +30,11 @@ export default async function TeacherNewExamPage({
         title="Yeni Deneme"
         description={`${student.full_name} için ders ders sonuçları gir; istersen kazanım işaretle.`}
       />
-      <ExamEntryForm
+      <ExamImportPanel
         studentId={studentId}
         grade={grade}
         backHref={`/teacher/exams/${studentId}`}
+        aiEnabled={isGeminiConfigured()}
       />
     </>
   );
