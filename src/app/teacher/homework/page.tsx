@@ -10,6 +10,7 @@ import {
   type CenterGroup,
 } from "@/components/teacher/homework-center";
 import { getApprovedBooks } from "@/lib/books";
+import { withGrades } from "@/lib/students";
 import { getAssignmentGroups } from "@/lib/homework-fetch";
 import type { Profile } from "@/lib/types";
 
@@ -23,12 +24,17 @@ export default async function TeacherHomeworkPage() {
     getAssignmentGroups(),
   ]);
 
-  const studentList = (students as Profile[] | null) ?? [];
-  const studentOptions = studentList.map((s) => ({ id: s.id, fullName: s.full_name }));
+  const studentList = await withGrades((students as Profile[] | null) ?? []);
+  const studentOptions = studentList.map((s) => ({
+    id: s.id,
+    fullName: s.full_name,
+    grade: s.grade_level,
+  }));
   const bookOptions = books.map((b) => ({
     id: b.id,
     name: b.name,
     subject: b.subject,
+    grade: b.grade_level,
     sections: b.sections.map((s) => ({
       id: s.id,
       name: s.name,

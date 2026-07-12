@@ -14,6 +14,7 @@ import {
   ReassignMissingButton,
 } from "@/components/teacher/homework-row-actions";
 import { getApprovedBooks } from "@/lib/books";
+import { withGrades } from "@/lib/students";
 import { getHomeworkForStudent } from "@/lib/homework-fetch";
 import type { Profile } from "@/lib/types";
 
@@ -57,14 +58,14 @@ export default async function TeacherStudentHomeworkPage({
     );
   }
 
-  const studentOptions = ((allStudents as Profile[] | null) ?? []).map((s) => ({
-    id: s.id,
-    fullName: s.full_name,
-  }));
+  const studentOptions = (await withGrades((allStudents as Profile[] | null) ?? [])).map(
+    (s) => ({ id: s.id, fullName: s.full_name, grade: s.grade_level }),
+  );
   const bookOptions = books.map((b) => ({
     id: b.id,
     name: b.name,
     subject: b.subject,
+    grade: b.grade_level,
     sections: b.sections.map((s) => ({
       id: s.id,
       name: s.name,

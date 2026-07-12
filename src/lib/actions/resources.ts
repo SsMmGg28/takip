@@ -46,6 +46,12 @@ function parseGrade(formData: FormData): number | null {
   return g === 5 || g === 6 || g === 7 || g === 8 ? g : null;
 }
 
+/** Zorluk derecesi (1-5). Boş/geçersizse null. Yalnızca öğretmen atar. */
+function parseDifficulty(formData: FormData): number | null {
+  const d = Number(formData.get("difficulty"));
+  return Number.isFinite(d) && d >= 1 && d <= 5 ? Math.round(d) : null;
+}
+
 /**
  * Bir kitabın bölümlerini istenen listeye senkronlar. Kazanım kodu (yoksa ad)
  * üzerinden eşleştirir: var olanı GÜNCELLER (test ilerlemesi korunur), yeniyi
@@ -140,6 +146,8 @@ export async function createBook(formData: FormData) {
       name,
       subject,
       grade_level: grade,
+      // Zorluk yalnızca öğretmen atar; veli eklerse null kalır (öğretmen sonra verir).
+      difficulty: isTeacher ? parseDifficulty(formData) : null,
       created_by: userData.user.id,
       approved: isTeacher,
       approved_by: isTeacher ? userData.user.id : null,
@@ -252,7 +260,7 @@ export async function updateBookWithSections(formData: FormData) {
 
   const { error } = await supabase
     .from("resource_books")
-    .update({ name, subject, grade_level: grade })
+    .update({ name, subject, grade_level: grade, difficulty: parseDifficulty(formData) })
     .eq("id", id);
   if (error) throw new Error(error.message);
 

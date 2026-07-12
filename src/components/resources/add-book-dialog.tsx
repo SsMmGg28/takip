@@ -23,6 +23,7 @@ import {
 import { createBook } from "@/lib/actions/resources";
 import { BOOK_GRADES, getBookSubjects } from "@/lib/book-catalog";
 import { KazanimTestGrid } from "@/components/resources/kazanim-test-grid";
+import { StarRatingInput } from "@/components/resources/star-rating-input";
 
 /**
  * Kütüphaneye kitap ekleme: ad + sınıf + ders seçilir, seçilen sınıf/dersin
@@ -33,6 +34,7 @@ export function AddBookDialog({ role }: { role: "teacher" | "parent" }) {
   const [open, setOpen] = useState(false);
   const [grade, setGrade] = useState("");
   const [subject, setSubject] = useState("");
+  const [difficulty, setDifficulty] = useState(0);
   const [pending, setPending] = useState(false);
   const [done, setDone] = useState<"approved" | "pending" | null>(null);
 
@@ -43,6 +45,7 @@ export function AddBookDialog({ role }: { role: "teacher" | "parent" }) {
   function reset() {
     setGrade("");
     setSubject("");
+    setDifficulty(0);
     setPending(false);
     setDone(null);
   }
@@ -110,6 +113,9 @@ export function AddBookDialog({ role }: { role: "teacher" | "parent" }) {
           >
             <input type="hidden" name="grade_level" value={grade} />
             <input type="hidden" name="subject" value={subject} />
+            {!isParent && (
+              <input type="hidden" name="difficulty" value={difficulty || ""} />
+            )}
 
             <div className="flex flex-col gap-2">
               <Label htmlFor="book-name">Kitap adı</Label>
@@ -159,6 +165,17 @@ export function AddBookDialog({ role }: { role: "teacher" | "parent" }) {
                 </Select>
               </div>
             </div>
+
+            {!isParent && (
+              <div className="flex flex-col gap-2">
+                <Label>Zorluk derecesi (opsiyonel)</Label>
+                <StarRatingInput value={difficulty} onChange={setDifficulty} />
+                <p className="text-xs text-muted-foreground">
+                  Kazanım önerisinde kullanılır: öğrencinin başarısı yüksek konularda daha
+                  zor, düşük konularda daha kolay kitap önerilir. Sonradan da atayabilirsin.
+                </p>
+              </div>
+            )}
 
             {ready ? (
               <KazanimTestGrid key={`${grade}-${subject}`} grade={Number(grade)} subject={subject} />

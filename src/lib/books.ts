@@ -38,14 +38,17 @@ async function attachSections(books: ResourceBook[]): Promise<BookWithSections[]
   });
 }
 
-/** Onaylı katalog (kütüphane). */
-export async function getApprovedBooks(): Promise<BookWithSections[]> {
+/**
+ * Onaylı katalog (kütüphane). `grade` verilirse yalnızca o sınıfın kitapları
+ * döner — veli görünümünde çocuğun sınıfı dışındaki kitapları hiç göstermemek için.
+ */
+export async function getApprovedBooks(options?: {
+  grade?: number | null;
+}): Promise<BookWithSections[]> {
   const supabase = await createClient();
-  const { data: books } = await supabase
-    .from("resource_books")
-    .select("*")
-    .eq("approved", true)
-    .order("name");
+  let query = supabase.from("resource_books").select("*").eq("approved", true);
+  if (options?.grade != null) query = query.eq("grade_level", options.grade);
+  const { data: books } = await query.order("name");
   return attachSections((books as ResourceBook[]) ?? []);
 }
 

@@ -8,7 +8,10 @@ import { Button } from "@/components/ui/button";
 import { ExamAnalysisSection } from "@/components/exams/exam-analysis-section";
 import { ExamList } from "@/components/exams/exam-list";
 import { TargetScoreDialog } from "@/components/exams/target-score-dialog";
+import { KazanimRecommendations } from "@/components/exams/kazanim-recommendations";
 import { getExamOverview } from "@/lib/exam-analysis";
+import { getKazanimRecommendations } from "@/lib/recommendations";
+import { getApprovedBooks } from "@/lib/books";
 import { getStudentExamInfo } from "@/lib/students";
 import { examsEnabledForGrade } from "@/lib/kazanim";
 
@@ -41,7 +44,26 @@ export default async function TeacherStudentExamsPage({
     );
   }
 
-  const overview = await getExamOverview(studentId);
+  const [overview, recommendations, books] = await Promise.all([
+    getExamOverview(studentId),
+    getKazanimRecommendations(studentId),
+    getApprovedBooks({ grade }),
+  ]);
+
+  const studentOptions = [
+    { id: studentId, fullName: student.full_name, grade },
+  ];
+  const bookOptions = books.map((b) => ({
+    id: b.id,
+    name: b.name,
+    subject: b.subject,
+    grade: b.grade_level,
+    sections: b.sections.map((s) => ({
+      id: s.id,
+      name: s.name,
+      testCount: s.test_count,
+    })),
+  }));
 
   return (
     <>
@@ -65,6 +87,13 @@ export default async function TeacherStudentExamsPage({
         overview={overview}
         studentId={studentId}
         targetScore={targetScore}
+      />
+
+      <KazanimRecommendations
+        recommendations={recommendations}
+        studentId={studentId}
+        books={bookOptions}
+        students={studentOptions}
       />
 
       <section className="flex flex-col gap-3">

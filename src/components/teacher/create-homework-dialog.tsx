@@ -29,13 +29,26 @@ const NO_BOOK = "__none__";
 export interface HomeworkStudentOption {
   id: string;
   fullName: string;
+  grade?: number | null;
 }
 
 export interface HomeworkBookOption {
   id: string;
   name: string;
   subject: string | null;
+  grade?: number | null;
   sections: { id: string; name: string; testCount: number }[];
+}
+
+/** Prefill (öneriden "ödev olarak ata") için seçili test listesini state'e çevirir. */
+function buildTestState(
+  tests?: { sectionId: string; testNumber: number }[],
+): Record<string, Set<number>> {
+  const init: Record<string, Set<number>> = {};
+  for (const t of tests ?? []) {
+    (init[t.sectionId] ??= new Set<number>()).add(t.testNumber);
+  }
+  return init;
 }
 
 /**
@@ -46,25 +59,69 @@ export function CreateHomeworkDialog({
   students,
   books,
   defaultStudentIds = [],
+  defaultBookId,
+  defaultTests,
   triggerLabel = "Yeni Ödev Gönder",
 }: {
   students: HomeworkStudentOption[];
   books: HomeworkBookOption[];
   defaultStudentIds?: string[];
+  /** Öneriden ön-doldurma: seçili kitap. */
+  defaultBookId?: string;
+  /** Öneriden ön-doldurma: seçili testler. */
+  defaultTests?: { sectionId: string; testNumber: number }[];
   triggerLabel?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [selectedStudents, setSelectedStudents] = useState<Set<string>>(
     () => new Set(defaultStudentIds),
   );
-  const [bookId, setBookId] = useState<string>(NO_BOOK);
-  const [selectedTests, setSelectedTests] = useState<Record<string, Set<number>>>({});
+  const [bookId, setBookId] = useState<string>(defaultBookId ?? NO_BOOK);
+  const [subjectFilter, setSubjectFilter] = useState<string>("all");
+  const [selectedTests, setSelectedTests] = useState<Record<string, Set<number>>>(
+    () => buildTestState(defaultTests),
+  );
   const [fileName, setFileName] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
+  // Seçili öğrencilerin (bilinen) sınıfları — kitap listesini bunlara göre daraltırız.
+  const selectedGrades = useMemo(() => {
+    const set = new Set<number>();
+    for (const s of students) {
+      if (selectedStudents.has(s.id) && s.grade != null) set.add(s.grade);
+    }
+    return set;
+  }, [students, selectedStudents]);
+
+  // Sınıfı seçili öğrencilerin sınıfları dışında kalan kitapları gizle
+  // (sınıfsız/legacy kitaplar görünür kalır; hiç öğrenci seçilmediyse hepsi görünür).
+  const gradeFilteredBooks = useMemo(() => {
+    if (selectedGrades.size === 0) return books;
+    return books.filter((b) => b.grade == null || selectedGrades.has(b.grade));
+  }, [books, selectedGrades]);
+
+  const subjectOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(gradeFilteredBooks.map((b) => b.subject).filter((s): s is string => Boolean(s))),
+      ).sort((a, b) => a.localeCompare(b, "tr")),
+    [gradeFilteredBooks],
+  );
+
+  const visibleBooks = useMemo(
+    () =>
+      gradeFilteredBooks.filter(
+        (b) => subjectFilter === "all" || b.subject === subjectFilter,
+      ),
+    [gradeFilteredBooks, subjectFilter],
+  );
+
+  // Aktif kitap yalnızca görünür listeden türetilir: seçili kitap filtre dışında
+  // kalırsa (öğrenci/ders değişince) otomatik "seçili değil" sayılır — böylece
+  // efekt içinde setState yapmadan tutarlı kalırız.
   const activeBook = useMemo(
-    () => books.find((b) => b.id === bookId) ?? null,
-    [books, bookId],
+    () => visibleBooks.find((b) => b.id === bookId) ?? null,
+    [visibleBooks, bookId],
   );
 
   const testCount = Object.values(selectedTests).reduce((acc, s) => acc + s.size, 0);
@@ -92,8 +149,9 @@ export function CreateHomeworkDialog({
 
   function reset() {
     setSelectedStudents(new Set(defaultStudentIds));
-    setBookId(NO_BOOK);
-    setSelectedTests({});
+    setBookId(defaultBookId ?? NO_BOOK);
+    setSubjectFilter("all");
+    setSelectedTests(buildTestState(defaultTests));
     setFileName(null);
     setPending(false);
   }
@@ -123,11 +181,15 @@ export function CreateHomeworkDialog({
               return;
             }
             for (const id of selectedStudents) formData.append("student_ids", id);
-            for (const [sid, nums] of Object.entries(selectedTests)) {
-              for (const n of nums) formData.append("tests", `${sid}:${n}`);
+            // Kitap ve testleri yalnızca seçili kitap hâlâ görünürse gönder.
+            if (activeBook) {
+              formData.set("book_id", activeBook.id);
+              for (const [sid, nums] of Object.entries(selectedTests)) {
+                for (const n of nums) formData.append("tests", `${sid}:${n}`);
+              }
+            } else {
+              formData.delete("book_id");
             }
-            if (bookId !== NO_BOOK) formData.set("book_id", bookId);
-            else formData.delete("book_id");
 
             setPending(true);
             try {
@@ -207,8 +269,23 @@ export function CreateHomeworkDialog({
             </div>
             <div className="flex flex-col gap-2">
               <Label>Kaynak kitap (opsiyonel)</Label>
+              {subjectOptions.length > 1 && (
+                <Select value={subjectFilter} onValueChange={setSubjectFilter}>
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue placeholder="Ders filtresi" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tüm dersler</SelectItem>
+                    {subjectOptions.map((s) => (
+                      <SelectItem key={s} value={s}>
+                        {s}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
               <Select
-                value={bookId}
+                value={activeBook ? bookId : NO_BOOK}
                 onValueChange={(v) => {
                   setBookId(v);
                   setSelectedTests({});
@@ -219,7 +296,7 @@ export function CreateHomeworkDialog({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={NO_BOOK}>Kitap yok (serbest ödev)</SelectItem>
-                  {books.map((b) => (
+                  {visibleBooks.map((b) => (
                     <SelectItem key={b.id} value={b.id}>
                       {b.name}
                       {b.subject ? ` — ${b.subject}` : ""}
@@ -227,6 +304,11 @@ export function CreateHomeworkDialog({
                   ))}
                 </SelectContent>
               </Select>
+              {selectedGrades.size > 0 && (
+                <p className="text-[11px] text-muted-foreground">
+                  Seçili öğrencilerin sınıfına uygun kitaplar gösteriliyor.
+                </p>
+              )}
             </div>
           </div>
 
