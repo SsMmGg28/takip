@@ -172,10 +172,12 @@ export default async function ParentResourcesPage({
           />
         ) : (
           <BookFilters
+            showDifficulty
             books={library.map((b) => ({
               id: b.id,
               grade: b.grade_level,
               subject: b.subject,
+              difficulty: b.difficulty,
               node: (
                 <BookCard
                   name={b.name}

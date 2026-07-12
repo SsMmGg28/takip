@@ -25,10 +25,12 @@ export default async function StudentResourcesPage() {
         />
       ) : (
         <BookFilters
+          showDifficulty
           books={shelf.map((b) => ({
             id: b.id,
             grade: b.grade_level,
             subject: b.subject,
+            difficulty: b.difficulty,
             node: (
               <BookCard
                 href={`/student/resources/${b.id}`}

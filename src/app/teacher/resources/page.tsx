@@ -95,10 +95,13 @@ export default async function TeacherResourcesPage() {
         </h2>
         {approved.length ? (
           <BookFilters
+            showDifficulty
+            alwaysShow
             books={approved.map((b) => ({
               id: b.id,
               grade: b.grade_level,
               subject: b.subject,
+              difficulty: b.difficulty,
               node: (
                 <BookCard
                   href={`/teacher/resources/${b.id}`}
