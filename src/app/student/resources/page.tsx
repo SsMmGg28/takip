@@ -3,6 +3,7 @@ import { requireRole } from "@/lib/auth";
 import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
 import { BookCard } from "@/components/resources/book-card";
+import { BookFilters } from "@/components/resources/book-filters";
 import { getStudentShelf } from "@/lib/books";
 
 export default async function StudentResourcesPage() {
@@ -23,19 +24,24 @@ export default async function StudentResourcesPage() {
           description="Velin kütüphaneden kitap eklediğinde burada görünecek."
         />
       ) : (
-        <div className="stagger grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {shelf.map((b) => (
-            <BookCard
-              key={b.id}
-              href={`/student/resources/${b.id}`}
-              name={b.name}
-              subject={b.subject}
-              sectionCount={b.sections.length}
-              testCount={b.totalTests}
-              completedCount={b.completedCount}
-            />
-          ))}
-        </div>
+        <BookFilters
+          books={shelf.map((b) => ({
+            id: b.id,
+            grade: b.grade_level,
+            subject: b.subject,
+            node: (
+              <BookCard
+                href={`/student/resources/${b.id}`}
+                name={b.name}
+                subject={b.subject}
+                grade={b.grade_level}
+                sectionCount={b.sections.length}
+                testCount={b.totalTests}
+                completedCount={b.completedCount}
+              />
+            ),
+          }))}
+        />
       )}
     </>
   );

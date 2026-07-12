@@ -64,9 +64,15 @@ export async function getParentIdsByStudent(
   return map;
 }
 
-/** Sistemdeki öğretmen hesapları (kitap onayı bildirimleri için). */
-export async function getTeacherIds(): Promise<string[]> {
+/**
+ * Sistemdeki öğretmen hesapları (kitap onayı bildirimleri için).
+ * `demo` verilirse yalnız o dünyaya ait öğretmenler döner (demo veli → demo öğretmen,
+ * gerçek veli → gerçek öğretmen); verilmezse tüm öğretmenler.
+ */
+export async function getTeacherIds(opts?: { demo?: boolean }): Promise<string[]> {
   const supabase = createAdminClient();
-  const { data } = await supabase.from("profiles").select("id").eq("role", "teacher");
+  let query = supabase.from("profiles").select("id").eq("role", "teacher");
+  if (opts?.demo !== undefined) query = query.eq("is_demo", opts.demo);
+  const { data } = await query;
   return (data ?? []).map((p) => p.id);
 }

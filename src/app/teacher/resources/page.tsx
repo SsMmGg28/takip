@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
 import { AddBookDialog } from "@/components/resources/add-book-dialog";
 import { BookCard } from "@/components/resources/book-card";
+import { BookFilters } from "@/components/resources/book-filters";
 import { BookApprovalActions } from "@/components/resources/book-approval-actions";
 import { getApprovedBooks, getPendingBooks } from "@/lib/books";
 import type { Profile } from "@/lib/types";
@@ -57,6 +58,7 @@ export default async function TeacherResourcesPage() {
                   <div className="min-w-0">
                     <p className="font-semibold leading-tight">{b.name}</p>
                     <p className="mt-0.5 text-xs text-muted-foreground">
+                      {b.grade_level ? `${b.grade_level}. sınıf · ` : ""}
                       {b.subject ?? "Genel"} · {b.sections.length} bölüm · {b.totalTests}{" "}
                       test
                     </p>
@@ -92,18 +94,23 @@ export default async function TeacherResourcesPage() {
           Kütüphane ({approved.length})
         </h2>
         {approved.length ? (
-          <div className="stagger grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {approved.map((b) => (
-              <BookCard
-                key={b.id}
-                href={`/teacher/resources/${b.id}`}
-                name={b.name}
-                subject={b.subject}
-                sectionCount={b.sections.length}
-                testCount={b.totalTests}
-              />
-            ))}
-          </div>
+          <BookFilters
+            books={approved.map((b) => ({
+              id: b.id,
+              grade: b.grade_level,
+              subject: b.subject,
+              node: (
+                <BookCard
+                  href={`/teacher/resources/${b.id}`}
+                  name={b.name}
+                  subject={b.subject}
+                  grade={b.grade_level}
+                  sectionCount={b.sections.length}
+                  testCount={b.totalTests}
+                />
+              ),
+            }))}
+          />
         ) : (
           <EmptyState
             icon={Inbox}

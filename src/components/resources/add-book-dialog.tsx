@@ -1,11 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { BookPlus, CheckCircle2, Clock3, Plus, Trash2 } from "lucide-react";
+import { BookPlus, CheckCircle2, Clock3 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -14,38 +21,30 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { createBook } from "@/lib/actions/resources";
-
-interface SectionRow {
-  key: number;
-  name: string;
-  testCount: string;
-}
-
-let rowKey = 0;
-function newRow(): SectionRow {
-  return { key: ++rowKey, name: "", testCount: "10" };
-}
+import { BOOK_GRADES, getBookSubjects } from "@/lib/book-catalog";
+import { KazanimTestGrid } from "@/components/resources/kazanim-test-grid";
 
 /**
- * Kütüphaneye kitap ekleme: ad + ders + bölümler tek akışta girilir.
+ * Kütüphaneye kitap ekleme: ad + sınıf + ders seçilir, seçilen sınıf/dersin
+ * kazanımları otomatik listelenir ve her ünitenin test sayısı girilir.
  * Öğretmen eklerse anında yayınlanır; veli eklerse öğretmen onayı bekler.
  */
 export function AddBookDialog({ role }: { role: "teacher" | "parent" }) {
   const [open, setOpen] = useState(false);
-  const [rows, setRows] = useState<SectionRow[]>([newRow()]);
+  const [grade, setGrade] = useState("");
+  const [subject, setSubject] = useState("");
   const [pending, setPending] = useState(false);
   const [done, setDone] = useState<"approved" | "pending" | null>(null);
 
   const isParent = role === "parent";
+  const subjects = grade ? getBookSubjects(Number(grade)) : [];
+  const ready = Boolean(grade && subject);
 
   function reset() {
-    setRows([newRow()]);
+    setGrade("");
+    setSubject("");
     setPending(false);
     setDone(null);
-  }
-
-  function updateRow(key: number, patch: Partial<SectionRow>) {
-    setRows((prev) => prev.map((r) => (r.key === key ? { ...r, ...patch } : r)));
   }
 
   return (
@@ -109,6 +108,9 @@ export function AddBookDialog({ role }: { role: "teacher" | "parent" }) {
             }}
             className="flex flex-col gap-4"
           >
+            <input type="hidden" name="grade_level" value={grade} />
+            <input type="hidden" name="subject" value={subject} />
+
             <div className="flex flex-col gap-2">
               <Label htmlFor="book-name">Kitap adı</Label>
               <Input
@@ -118,67 +120,53 @@ export function AddBookDialog({ role }: { role: "teacher" | "parent" }) {
                 placeholder="Örn: Yeni Nesil Matematik"
               />
             </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="book-subject">Ders (opsiyonel)</Label>
-              <Input id="book-subject" name="subject" placeholder="Örn: Matematik" />
-            </div>
 
-            <div className="flex flex-col gap-2 rounded-xl border bg-muted/30 p-3">
-              <div className="flex items-center justify-between">
-                <Label>Bölümler ve test sayıları</Label>
-                <span className="text-[11px] text-muted-foreground">
-                  {isParent ? "Onaydan sonra sadece öğretmen düzenler" : ""}
-                </span>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-col gap-2">
+                <Label>Sınıf</Label>
+                <Select
+                  value={grade}
+                  onValueChange={(v) => {
+                    setGrade(v);
+                    setSubject("");
+                  }}
+                >
+                  <SelectTrigger className="w-full bg-background">
+                    <SelectValue placeholder="Sınıf seç" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {BOOK_GRADES.map((g) => (
+                      <SelectItem key={g} value={String(g)}>
+                        {g}. sınıf
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="flex flex-col gap-2">
-                {rows.map((row, i) => (
-                  <div key={row.key} className="animate-scale-in flex items-center gap-2">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-secondary-foreground">
-                      {i + 1}
-                    </span>
-                    <Input
-                      name="section_name"
-                      value={row.name}
-                      onChange={(e) => updateRow(row.key, { name: e.target.value })}
-                      placeholder="Bölüm adı (örn: Kesirler)"
-                      className="flex-1 bg-background"
-                    />
-                    <Input
-                      name="section_test_count"
-                      type="number"
-                      min={1}
-                      max={200}
-                      value={row.testCount}
-                      onChange={(e) => updateRow(row.key, { testCount: e.target.value })}
-                      className="w-20 bg-background"
-                      aria-label="Test sayısı"
-                    />
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setRows((prev) =>
-                          prev.length > 1 ? prev.filter((r) => r.key !== row.key) : prev,
-                        )
-                      }
-                      className="text-muted-foreground transition-colors hover:text-destructive disabled:opacity-40"
-                      disabled={rows.length <= 1}
-                      aria-label="Bölümü kaldır"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                ))}
+                <Label>Ders</Label>
+                <Select value={subject} onValueChange={setSubject} disabled={!grade}>
+                  <SelectTrigger className="w-full bg-background">
+                    <SelectValue placeholder={grade ? "Ders seç" : "Önce sınıf"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {subjects.map((s) => (
+                      <SelectItem key={s} value={s}>
+                        {s}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="mt-1 gap-1.5 self-start"
-                onClick={() => setRows((prev) => [...prev, newRow()])}
-              >
-                <Plus className="h-3.5 w-3.5" /> Bölüm ekle
-              </Button>
             </div>
+
+            {ready ? (
+              <KazanimTestGrid key={`${grade}-${subject}`} grade={Number(grade)} subject={subject} />
+            ) : (
+              <p className="rounded-lg border border-dashed bg-muted/30 px-3 py-4 text-center text-sm text-muted-foreground">
+                Üniteleri görmek için önce sınıf ve ders seç.
+              </p>
+            )}
 
             {isParent && (
               <p className="rounded-lg bg-primary/5 px-3 py-2 text-xs text-muted-foreground">
@@ -187,7 +175,7 @@ export function AddBookDialog({ role }: { role: "teacher" | "parent" }) {
               </p>
             )}
 
-            <Button type="submit" disabled={pending}>
+            <Button type="submit" disabled={pending || !ready}>
               {pending
                 ? "Kaydediliyor..."
                 : isParent

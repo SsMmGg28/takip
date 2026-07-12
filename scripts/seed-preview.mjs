@@ -43,6 +43,8 @@ async function ensureUser({ username, fullName, role, gradeLevel }) {
     .eq("username", username)
     .maybeSingle();
   if (existing) {
+    // Var olan hesabı da demo olarak işaretle (izolasyon için, idempotent).
+    await admin.from("profiles").update({ is_demo: true }).eq("id", existing.id);
     console.log(`• ${username} zaten var.`);
     return existing.id;
   }
@@ -64,6 +66,7 @@ async function ensureUser({ username, fullName, role, gradeLevel }) {
     username,
     full_name: fullName,
     must_change_password: false,
+    is_demo: true,
   });
   if (profileError) {
     await admin.auth.admin.deleteUser(id);
@@ -175,6 +178,100 @@ async function seedExams(studentId, teacherId) {
   console.log(`✓ ${DEMO_EXAMS.length} örnek deneme eklendi.`);
 }
 
+// Örnek kaynak kitap (8. sınıf Matematik) — yeni kazanım tabanlı model.
+const DEMO_BOOK = {
+  name: "Örnek LGS Matematik Soru Bankası",
+  subject: "Matematik",
+  grade_level: 8,
+  sections: [
+    { code: "M8-01", name: "Çarpanlar ve Katlar", test_count: 8 },
+    { code: "M8-02", name: "Üslü İfadeler", test_count: 6 },
+    { code: "M8-03", name: "Kareköklü İfadeler", test_count: 6 },
+    { code: "M8-09", name: "Üçgenler", test_count: 10 },
+  ],
+};
+
+async function seedBookAndHomework(studentId, teacherId, parentId) {
+  const { data: existingBook } = await admin
+    .from("resource_books")
+    .select("id")
+    .eq("name", DEMO_BOOK.name)
+    .eq("created_by", teacherId)
+    .maybeSingle();
+  if (existingBook) {
+    console.log("• Demo kitap zaten var, kitap/ödev atlandı.");
+    return;
+  }
+
+  const { data: book, error: bookErr } = await admin
+    .from("resource_books")
+    .insert({
+      name: DEMO_BOOK.name,
+      subject: DEMO_BOOK.subject,
+      grade_level: DEMO_BOOK.grade_level,
+      created_by: teacherId,
+      approved: true,
+      approved_by: teacherId,
+      approved_at: new Date().toISOString(),
+    })
+    .select("id")
+    .single();
+  if (bookErr || !book) throw new Error(`Demo kitap: ${bookErr?.message}`);
+
+  const { data: sections, error: secErr } = await admin
+    .from("resource_book_sections")
+    .insert(
+      DEMO_BOOK.sections.map((s, i) => ({
+        book_id: book.id,
+        name: s.name,
+        order_index: i,
+        test_count: s.test_count,
+        kazanim_code: s.code,
+      })),
+    )
+    .select("id, kazanim_code");
+  if (secErr) throw new Error(`Demo bölümler: ${secErr.message}`);
+
+  const { error: shelfErr } = await admin
+    .from("student_books")
+    .insert({ student_id: studentId, book_id: book.id, added_by: parentId });
+  if (shelfErr && !shelfErr.message.includes("duplicate")) {
+    throw new Error(`Kitaplık ataması: ${shelfErr.message}`);
+  }
+
+  // İlerleme grafiği dolu görünsün diye birkaç testi tamamlanmış işaretle.
+  const uslu = (sections ?? []).find((s) => s.kazanim_code === "M8-02");
+  if (uslu) {
+    await admin.from("student_test_progress").insert([
+      { student_id: studentId, section_id: uslu.id, test_number: 1, marked_by: teacherId },
+      { student_id: studentId, section_id: uslu.id, test_number: 2, marked_by: teacherId },
+    ]);
+  }
+
+  // Kitap bazlı örnek ödev.
+  const { data: hw, error: hwErr } = await admin
+    .from("homework")
+    .insert({
+      student_id: studentId,
+      title: "Matematik — Üslü İfadeler",
+      description: "Üslü İfadeler bölümünden ilk 3 testi çöz.",
+      book_id: book.id,
+      status: "assigned",
+      created_by: teacherId,
+    })
+    .select("id")
+    .single();
+  if (hwErr || !hw) throw new Error(`Demo ödev: ${hwErr?.message}`);
+  if (uslu) {
+    const { error: hwtErr } = await admin.from("homework_tests").insert(
+      [1, 2, 3].map((n) => ({ homework_id: hw.id, section_id: uslu.id, test_number: n })),
+    );
+    if (hwtErr) throw new Error(`Demo ödev testleri: ${hwtErr.message}`);
+  }
+
+  console.log("✓ Demo kitap + kitaplık ataması + ödev eklendi.");
+}
+
 const teacherId = await ensureUser({
   username: "preview.teacher",
   fullName: "Önizleme Öğretmen",
@@ -208,6 +305,7 @@ if (!link) {
 }
 
 await seedExams(studentId, teacherId);
+await seedBookAndHomework(studentId, teacherId, parentId);
 
 console.log("\nTamam. Önizleme hesapları hazır:");
 console.log("  preview.teacher / preview.student / preview.parent");

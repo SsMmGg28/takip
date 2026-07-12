@@ -12,6 +12,7 @@ export function BookCard({
   href,
   name,
   subject,
+  grade,
   sectionCount,
   testCount,
   completedCount,
@@ -22,6 +23,7 @@ export function BookCard({
   href?: string;
   name: string;
   subject: string | null;
+  grade?: number | null;
   sectionCount: number;
   testCount: number;
   completedCount?: number;
@@ -29,6 +31,8 @@ export function BookCard({
   footer?: React.ReactNode;
   className?: string;
 }) {
+  const meta =
+    [grade ? `${grade}. sınıf` : null, subject].filter(Boolean).join(" · ") || "Genel";
   const showProgress = typeof completedCount === "number";
   const percent =
     showProgress && testCount > 0 ? Math.round((completedCount / testCount) * 100) : 0;
@@ -48,9 +52,7 @@ export function BookCard({
           </span>
           <div className="min-w-0">
             <p className="truncate font-semibold leading-tight">{name}</p>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              {subject ?? "Genel"}
-            </p>
+            <p className="mt-0.5 text-xs text-muted-foreground">{meta}</p>
           </div>
         </div>
         {href ? (
