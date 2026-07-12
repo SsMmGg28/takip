@@ -35,6 +35,7 @@ export default async function StudentResourcesPage() {
                 name={b.name}
                 subject={b.subject}
                 grade={b.grade_level}
+                difficulty={b.difficulty}
                 sectionCount={b.sections.length}
                 testCount={b.totalTests}
                 completedCount={b.completedCount}

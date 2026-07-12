@@ -75,6 +75,7 @@ export default async function TeacherBookDetailPage({
           initialName={book.name}
           initialGrade={book.grade_level}
           initialSubject={book.subject ?? ""}
+          initialDifficulty={book.difficulty}
           initialSections={sectionList.map((s) => ({
             name: s.name,
             testCount: s.test_count,

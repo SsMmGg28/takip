@@ -37,6 +37,8 @@ export interface ResourceBook {
   subject: string | null;
   /** Kitabın hedef sınıf düzeyi (5-8). Eski kayıtlarda null olabilir. */
   grade_level: number | null;
+  /** Öğretmenin atadığı zorluk derecesi (1-5). Atanmadıysa null. */
+  difficulty: number | null;
   created_by: string;
   created_at: string;
   approved: boolean;

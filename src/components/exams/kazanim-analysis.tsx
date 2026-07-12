@@ -23,6 +23,8 @@ import {
 } from "@/components/ui/table";
 import { fetchKazanimAnalysis } from "@/lib/actions/exams";
 import { KazanimTrendChart } from "@/components/exams/subject-net-chart";
+import { KazanimHeatmap } from "@/components/exams/kazanim-heatmap";
+import { estimateScoreGain, simulateKazanimGain } from "@/lib/exams/projection";
 import type { KazanimAnalysis } from "@/lib/exam-shared";
 import { LGS_SUBJECTS } from "@/lib/kazanim";
 
@@ -41,7 +43,14 @@ const SORT_OPTIONS: { value: SortKey; label: string }[] = [
  * döküm tablosu, çalışma önceliği listesi ve doğruluk gelişim grafiği.
  * Veri istek üzerine çekilir ve sonuç beklemeden gösterilir.
  */
-export function KazanimAnalysisPanel({ studentId }: { studentId: string }) {
+export function KazanimAnalysisPanel({
+  studentId,
+  puanPerNet,
+}: {
+  studentId: string;
+  /** Net başına tahmini puan; verilirse öncelik listesinde "~+X puan" gösterilir. */
+  puanPerNet?: number | null;
+}) {
   const [status, setStatus] = useState<"idle" | "loading" | "ready">("idle");
   const [data, setData] = useState<KazanimAnalysis | null>(null);
   const [subjectFilter, setSubjectFilter] = useState<string>("all");
@@ -170,6 +179,17 @@ export function KazanimAnalysisPanel({ studentId }: { studentId: string }) {
                       {p.asked} soru · {p.incorrect} yanlış
                     </p>
                     <p>%{p.wrongRate} yanlış oranı</p>
+                    {(() => {
+                      const gain =
+                        puanPerNet != null
+                          ? estimateScoreGain(simulateKazanimGain(p), puanPerNet)
+                          : null;
+                      return gain != null && gain >= 0.5 ? (
+                        <p className="font-medium text-primary">
+                          ~+{Math.round(gain)} puan
+                        </p>
+                      ) : null;
+                    })()}
                   </div>
                 </li>
               ))}
@@ -195,6 +215,26 @@ export function KazanimAnalysisPanel({ studentId }: { studentId: string }) {
           <KazanimTrendChart rows={analysis.trend} subjects={trendSubjects} />
         </CardContent>
       </Card>
+
+      {/* Kazanım ısı haritası */}
+      {analysis.stats.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <span className="gradient-surface flex h-8 w-8 items-center justify-center rounded-lg text-white">
+                <BarChart3 className="h-4 w-4" />
+              </span>
+              Kazanım Isı Haritası
+              <span className="text-xs font-normal text-muted-foreground">
+                (renk = ağırlıklı başarı)
+              </span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <KazanimHeatmap stats={analysis.stats} />
+          </CardContent>
+        </Card>
+      )}
 
       {/* Kazanım tablosu + filtreler */}
       <Card>

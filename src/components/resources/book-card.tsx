@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { BookOpen, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { StarRating } from "@/components/resources/star-rating";
 import { cn } from "@/lib/utils";
 
 /**
@@ -13,6 +14,7 @@ export function BookCard({
   name,
   subject,
   grade,
+  difficulty,
   sectionCount,
   testCount,
   completedCount,
@@ -24,6 +26,7 @@ export function BookCard({
   name: string;
   subject: string | null;
   grade?: number | null;
+  difficulty?: number | null;
   sectionCount: number;
   testCount: number;
   completedCount?: number;
@@ -82,9 +85,12 @@ export function BookCard({
       ) : null}
 
       <div className="mt-auto flex items-center justify-between gap-2 pt-1">
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap items-center gap-1.5">
           <Badge variant="outline">{sectionCount} bölüm</Badge>
           <Badge variant="outline">{testCount} test</Badge>
+          {typeof difficulty === "number" && difficulty > 0 && (
+            <StarRating value={difficulty} className="ml-0.5" />
+          )}
         </div>
         {footer}
       </div>

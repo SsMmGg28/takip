@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { BookOpen, Clock3, Library } from "lucide-react";
 import { requireRole } from "@/lib/auth";
-import { getAccessibleStudents } from "@/lib/students";
+import { getAccessibleStudents, withGrades } from "@/lib/students";
 import { getApprovedBooks, getPendingBooks, getStudentShelf } from "@/lib/books";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/page-header";
@@ -22,7 +22,7 @@ export default async function ParentResourcesPage({
   searchParams: Promise<{ student?: string }>;
 }) {
   const profile = await requireRole(["parent"]);
-  const students = await getAccessibleStudents(profile);
+  const students = await withGrades(await getAccessibleStudents(profile));
   const { student: selectedStudentId } = await searchParams;
 
   if (students.length === 0) {
@@ -39,7 +39,8 @@ export default async function ParentResourcesPage({
 
   const [shelf, approved, pending] = await Promise.all([
     getStudentShelf(activeStudent.id),
-    getApprovedBooks(),
+    // Veliye yalnızca çocuğun sınıfına ait kitaplar; sınıf bilinmiyorsa hepsi.
+    getApprovedBooks({ grade: activeStudent.grade_level }),
     getPendingBooks(), // RLS: veli yalnızca kendi eklediklerini görür
   ]);
 
@@ -96,6 +97,7 @@ export default async function ParentResourcesPage({
                 name={b.name}
                 subject={b.subject}
                 grade={b.grade_level}
+                difficulty={b.difficulty}
                 sectionCount={b.sections.length}
                 testCount={b.totalTests}
                 completedCount={b.completedCount}
@@ -179,6 +181,7 @@ export default async function ParentResourcesPage({
                   name={b.name}
                   subject={b.subject}
                   grade={b.grade_level}
+                  difficulty={b.difficulty}
                   sectionCount={b.sections.length}
                   testCount={b.totalTests}
                   footer={

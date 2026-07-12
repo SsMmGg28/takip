@@ -17,6 +17,7 @@ import {
   KazanimTestGrid,
   type InitialSection,
 } from "@/components/resources/kazanim-test-grid";
+import { StarRatingInput } from "@/components/resources/star-rating-input";
 import { updateBookWithSections } from "@/lib/actions/resources";
 
 /**
@@ -29,17 +30,20 @@ export function BookEditor({
   initialName,
   initialGrade,
   initialSubject,
+  initialDifficulty,
   initialSections,
 }: {
   bookId: string;
   initialName: string;
   initialGrade: number | null;
   initialSubject: string;
+  initialDifficulty: number | null;
   initialSections: InitialSection[];
 }) {
   const [name, setName] = useState(initialName);
   const [grade, setGrade] = useState(initialGrade ? String(initialGrade) : "");
   const [subject, setSubject] = useState(initialSubject);
+  const [difficulty, setDifficulty] = useState(initialDifficulty ?? 0);
   const [pending, setPending] = useState(false);
 
   const subjects = grade ? getBookSubjects(Number(grade)) : [];
@@ -67,6 +71,7 @@ export function BookEditor({
       <input type="hidden" name="id" value={bookId} />
       <input type="hidden" name="grade_level" value={grade} />
       <input type="hidden" name="subject" value={subject} />
+      <input type="hidden" name="difficulty" value={difficulty || ""} />
 
       <div className="flex flex-col gap-2">
         <Label htmlFor="book-name">Kitap adı</Label>
@@ -117,6 +122,15 @@ export function BookEditor({
             </SelectContent>
           </Select>
         </div>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <Label>Zorluk derecesi</Label>
+        <StarRatingInput value={difficulty} onChange={setDifficulty} />
+        <p className="text-xs text-muted-foreground">
+          Kitabın genel zorluğu. Öğrenciye kazanım önerisi yapılırken kullanılır:
+          başarısı yüksek konularda daha zor, düşük konularda daha kolay kitap önerilir.
+        </p>
       </div>
 
       {ready ? (

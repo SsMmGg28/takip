@@ -105,6 +105,7 @@ export default async function TeacherResourcesPage() {
                   name={b.name}
                   subject={b.subject}
                   grade={b.grade_level}
+                  difficulty={b.difficulty}
                   sectionCount={b.sections.length}
                   testCount={b.totalTests}
                 />
