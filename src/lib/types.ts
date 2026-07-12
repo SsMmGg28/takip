@@ -35,6 +35,8 @@ export interface ResourceBook {
   id: string;
   name: string;
   subject: string | null;
+  /** Kitabın hedef sınıf düzeyi (5-8). Eski kayıtlarda null olabilir. */
+  grade_level: number | null;
   created_by: string;
   created_at: string;
   approved: boolean;
@@ -48,6 +50,8 @@ export interface ResourceBookSection {
   name: string;
   order_index: number;
   test_count: number;
+  /** Kazanım tabanlı bölümde ait olduğu ünite kodu (book-catalog); serbest bölümde null. */
+  kazanim_code: string | null;
 }
 
 export interface StudentTestProgress {

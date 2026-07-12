@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
 import { AddBookDialog } from "@/components/resources/add-book-dialog";
 import { BookCard } from "@/components/resources/book-card";
+import { BookFilters } from "@/components/resources/book-filters";
 import {
   AddToShelfButton,
   RemoveFromShelfButton,
@@ -94,6 +95,7 @@ export default async function ParentResourcesPage({
                 key={b.id}
                 name={b.name}
                 subject={b.subject}
+                grade={b.grade_level}
                 sectionCount={b.sections.length}
                 testCount={b.totalTests}
                 completedCount={b.completedCount}
@@ -134,6 +136,7 @@ export default async function ParentResourcesPage({
                 <div className="min-w-0">
                   <p className="font-semibold leading-tight">{b.name}</p>
                   <p className="mt-0.5 text-xs text-muted-foreground">
+                    {b.grade_level ? `${b.grade_level}. sınıf · ` : ""}
                     {b.subject ?? "Genel"} · {b.sections.length} bölüm · {b.totalTests}{" "}
                     test — öğretmen onayı bekliyor
                   </p>
@@ -166,24 +169,29 @@ export default async function ParentResourcesPage({
             }
           />
         ) : (
-          <div className="stagger grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {library.map((b) => (
-              <BookCard
-                key={b.id}
-                name={b.name}
-                subject={b.subject}
-                sectionCount={b.sections.length}
-                testCount={b.totalTests}
-                footer={
-                  <AddToShelfButton
-                    studentId={activeStudent.id}
-                    bookId={b.id}
-                    studentName={activeStudent.full_name}
-                  />
-                }
-              />
-            ))}
-          </div>
+          <BookFilters
+            books={library.map((b) => ({
+              id: b.id,
+              grade: b.grade_level,
+              subject: b.subject,
+              node: (
+                <BookCard
+                  name={b.name}
+                  subject={b.subject}
+                  grade={b.grade_level}
+                  sectionCount={b.sections.length}
+                  testCount={b.totalTests}
+                  footer={
+                    <AddToShelfButton
+                      studentId={activeStudent.id}
+                      bookId={b.id}
+                      studentName={activeStudent.full_name}
+                    />
+                  }
+                />
+              ),
+            }))}
+          />
         )}
       </section>
     </>

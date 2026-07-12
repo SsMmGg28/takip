@@ -3,14 +3,11 @@ import { notFound } from "next/navigation";
 import { Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/lib/auth";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
-import { SectionManager } from "@/components/resources/section-manager";
+import { BookEditor } from "@/components/resources/book-editor";
 import { DeleteBookButton } from "@/components/resources/delete-book-button";
 import { BookApprovalActions } from "@/components/resources/book-approval-actions";
-import { updateBook } from "@/lib/actions/resources";
 import { getBookStudents } from "@/lib/books";
 import type { ResourceBook, ResourceBookSection } from "@/lib/types";
 
@@ -45,7 +42,7 @@ export default async function TeacherBookDetailPage({
     <>
       <PageHeader
         title={book.name}
-        description={`${book.subject ?? "Genel"} · ${sectionList.length} bölüm · ${totalTests} test`}
+        description={`${book.grade_level ? `${book.grade_level}. sınıf · ` : ""}${book.subject ?? "Genel"} · ${sectionList.length} bölüm · ${totalTests} test`}
         action={
           <div className="flex items-center gap-2">
             <Link
@@ -71,48 +68,19 @@ export default async function TeacherBookDetailPage({
 
       <section className="space-y-3">
         <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
-          Kitap Bilgileri
+          Kitap Bilgileri &amp; Bölümler
         </h2>
-        <form
-          action={updateBook}
-          className="flex flex-wrap items-end gap-3 rounded-2xl border bg-muted/30 p-4"
-        >
-          <input type="hidden" name="id" value={book.id} />
-          <div className="flex min-w-[200px] flex-1 flex-col gap-1.5">
-            <label htmlFor="book-name" className="text-sm font-medium">
-              Kitap adı
-            </label>
-            <Input
-              id="book-name"
-              name="name"
-              defaultValue={book.name}
-              required
-              className="bg-background"
-            />
-          </div>
-          <div className="flex w-44 flex-col gap-1.5">
-            <label htmlFor="book-subject" className="text-sm font-medium">
-              Ders
-            </label>
-            <Input
-              id="book-subject"
-              name="subject"
-              defaultValue={book.subject ?? ""}
-              placeholder="Genel"
-              className="bg-background"
-            />
-          </div>
-          <Button type="submit" variant="outline">
-            Kaydet
-          </Button>
-        </form>
-      </section>
-
-      <section className="space-y-3">
-        <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
-          Bölümler
-        </h2>
-        <SectionManager bookId={book.id} sections={sectionList} />
+        <BookEditor
+          bookId={book.id}
+          initialName={book.name}
+          initialGrade={book.grade_level}
+          initialSubject={book.subject ?? ""}
+          initialSections={sectionList.map((s) => ({
+            name: s.name,
+            testCount: s.test_count,
+            kazanimCode: s.kazanim_code,
+          }))}
+        />
       </section>
 
       {book.approved && (
