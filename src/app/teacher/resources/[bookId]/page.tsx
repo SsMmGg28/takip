@@ -101,29 +101,32 @@ export default async function TeacherBookDetailPage({
                 const percent =
                   totalTests === 0 ? 0 : Math.round((completedCount / totalTests) * 100);
                 return (
-                  <Link
-                    key={student.id}
-                    href={`/teacher/students/${student.id}/${book.id}`}
-                    className="hover-lift block rounded-2xl border bg-card p-4 shadow-sm transition-colors hover:border-primary/40"
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="font-medium">{student.full_name}</p>
-                      <span className="text-sm font-semibold text-primary">
-                        %{percent}
-                      </span>
-                    </div>
-                    <div className="mt-2 flex justify-between text-xs text-muted-foreground">
-                      <span>
-                        {completedCount} / {totalTests} test
-                      </span>
-                    </div>
-                    <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-muted">
-                      <div
-                        className="gradient-surface h-full rounded-full transition-all duration-700"
-                        style={{ width: `${percent}%` }}
-                      />
-                    </div>
-                  </Link>
+                  // min-w-0: grid hücresi içeriğin sıkışmayan genişliğine göre
+                  // büyümesin diye (bkz. BookFilters'taki aynı düzeltme notu).
+                  <div key={student.id} className="min-w-0">
+                    <Link
+                      href={`/teacher/students/${student.id}/${book.id}`}
+                      className="hover-lift block rounded-2xl border bg-card p-4 shadow-sm transition-colors hover:border-primary/40"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="min-w-0 truncate font-medium">{student.full_name}</p>
+                        <span className="shrink-0 text-sm font-semibold text-primary">
+                          %{percent}
+                        </span>
+                      </div>
+                      <div className="mt-2 flex justify-between text-xs text-muted-foreground">
+                        <span>
+                          {completedCount} / {totalTests} test
+                        </span>
+                      </div>
+                      <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-muted">
+                        <div
+                          className="gradient-surface h-full rounded-full transition-all duration-700"
+                          style={{ width: `${percent}%` }}
+                        />
+                      </div>
+                    </Link>
+                  </div>
                 );
               })}
             </div>
