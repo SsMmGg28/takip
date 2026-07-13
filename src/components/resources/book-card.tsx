@@ -84,7 +84,7 @@ export function BookCard({
         </div>
       ) : null}
 
-      <div className="mt-auto flex items-center justify-between gap-2 pt-1">
+      <div className="mt-auto flex flex-wrap items-center justify-between gap-2 pt-1">
         <div className="flex flex-wrap items-center gap-1.5">
           <Badge variant="outline">{sectionCount} bölüm</Badge>
           <Badge variant="outline">{testCount} test</Badge>

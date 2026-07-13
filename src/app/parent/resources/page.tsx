@@ -92,31 +92,34 @@ export default async function ParentResourcesPage({
         ) : (
           <div className="stagger grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {shelf.map((b) => (
-              <BookCard
-                key={b.id}
-                name={b.name}
-                subject={b.subject}
-                grade={b.grade_level}
-                difficulty={b.difficulty}
-                sectionCount={b.sections.length}
-                testCount={b.totalTests}
-                completedCount={b.completedCount}
-                footer={
-                  <div className="flex items-center gap-1">
-                    <RemoveFromShelfButton
-                      studentId={activeStudent.id}
-                      bookId={b.id}
-                    />
-                    <Button asChild size="sm" variant="outline">
-                      <Link
-                        href={`/parent/resources/${b.id}?student=${activeStudent.id}`}
-                      >
-                        Aç
-                      </Link>
-                    </Button>
-                  </div>
-                }
-              />
+              // min-w-0: grid hücresi içeriğin sıkışmayan genişliğine göre
+              // büyümesin diye (bkz. BookFilters'taki aynı düzeltme notu).
+              <div key={b.id} className="min-w-0">
+                <BookCard
+                  name={b.name}
+                  subject={b.subject}
+                  grade={b.grade_level}
+                  difficulty={b.difficulty}
+                  sectionCount={b.sections.length}
+                  testCount={b.totalTests}
+                  completedCount={b.completedCount}
+                  footer={
+                    <div className="flex items-center gap-1">
+                      <RemoveFromShelfButton
+                        studentId={activeStudent.id}
+                        bookId={b.id}
+                      />
+                      <Button asChild size="sm" variant="outline">
+                        <Link
+                          href={`/parent/resources/${b.id}?student=${activeStudent.id}`}
+                        >
+                          Aç
+                        </Link>
+                      </Button>
+                    </div>
+                  }
+                />
+              </div>
             ))}
           </div>
         )}
