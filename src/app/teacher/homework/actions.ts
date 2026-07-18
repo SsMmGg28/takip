@@ -4,6 +4,7 @@ import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getParentIdsByStudent, notifyUsers } from "@/lib/notifications";
+import { parseTestEntries } from "@/lib/homework-parse";
 import type { Homework, HomeworkTest } from "@/lib/types";
 
 function revalidateHomeworkPaths(studentIds: string[]) {
@@ -11,17 +12,6 @@ function revalidateHomeworkPaths(studentIds: string[]) {
   for (const id of studentIds) revalidatePath(`/teacher/homework/${id}`);
   revalidatePath("/student/homework");
   revalidatePath("/parent/homework");
-}
-
-function parseTestEntries(formData: FormData) {
-  return formData
-    .getAll("tests")
-    .map((v) => String(v))
-    .map((entry) => {
-      const [sectionId, num] = entry.split(":");
-      return { section_id: sectionId, test_number: Number(num) };
-    })
-    .filter((r) => r.section_id && r.test_number > 0);
 }
 
 async function notifyHomeworkAudience(

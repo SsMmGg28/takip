@@ -4,6 +4,7 @@ import {
   BookOpen,
   CalendarClock,
   ClipboardList,
+  FileText,
   Flame,
   GraduationCap,
   LineChart,
@@ -20,7 +21,9 @@ import { HomeworkStatusBadge } from "@/components/homework/homework-status-badge
 import { SubjectFilterCharts } from "@/components/exams/subject-filter-charts";
 import { AutoRepeatToggle } from "@/components/schedule/schedule-toolbar-buttons";
 import { StudentNotesCard } from "@/components/teacher/student-notes-card";
+import { StudyLogSummaryCard } from "@/components/study-log/study-log-summary-card";
 import { getStudentShelf } from "@/lib/books";
+import { getStudentStudySummary } from "@/lib/study-log-fetch";
 import { getExamOverview, getKazanimAnalysis } from "@/lib/exam-analysis";
 import { effectiveHomeworkStatus } from "@/lib/homework";
 import { examsEnabledForGrade } from "@/lib/kazanim";
@@ -56,6 +59,8 @@ export default async function TeacherStudentDetailPage({
       .order("created_at", { ascending: false })
       .limit(20),
   ]);
+
+  const studySummary = await getStudentStudySummary(studentId);
 
   const homework = ((homeworkRows as Homework[]) ?? []).map((h) => ({
     ...h,
@@ -124,6 +129,13 @@ export default async function TeacherStudentDetailPage({
             >
               <CalendarClock className="h-4 w-4" />
               Çalışma Programı
+            </Link>
+            <Link
+              href={`/rapor/${studentId}`}
+              className="inline-flex items-center gap-1.5 rounded-lg border bg-card px-3 py-1.5 text-sm shadow-sm transition-colors hover:bg-accent"
+            >
+              <FileText className="h-4 w-4" />
+              Rapor
             </Link>
           </div>
         }
@@ -267,6 +279,8 @@ export default async function TeacherStudentDetailPage({
           initialEnabled={Boolean(studentProfile?.schedule_auto_repeat)}
         />
       </div>
+
+      <StudyLogSummaryCard summary={studySummary} />
 
       <StudentNotesCard studentId={studentId} initialNotes={studentProfile?.notes ?? null} />
 

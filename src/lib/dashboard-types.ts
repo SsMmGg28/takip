@@ -73,6 +73,16 @@ export interface WeeklySummaryChild {
   testsSolved: number;
   /** Son iki denemenin toplam net farkı (tek deneme varsa null). */
   netChange: number | null;
+  /** Bu hafta çalışma günlüğü girilen gün sayısı (0-7). */
+  studyDays: number;
+}
+
+/** Öğrenci anasayfasındaki çalışma serisi (streak) widget'ı verisi. */
+export interface StudyStreakInfo {
+  current: number;
+  best: number;
+  todayMinutes: number;
+  weekDays: number;
 }
 
 // ── Yerleşim ────────────────────────────────────────────────────────────────
@@ -105,4 +115,6 @@ export interface DashboardData {
   notifications: AppNotification[];
   /** Yalnızca veli rolünde dolu: çocuk başına haftalık takip özeti. */
   weeklySummary: WeeklySummaryChild[];
+  /** Yalnızca öğrenci rolünde dolu: çalışma serisi (streak) özeti. */
+  studyStreak?: StudyStreakInfo | null;
 }

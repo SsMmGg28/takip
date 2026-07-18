@@ -198,6 +198,19 @@ export interface StudyScheduleEntry {
   updated_at: string;
 }
 
+/** Öğrencinin günlük çalışma kaydı (çalışma günlüğü + seri/streak). */
+export interface StudyLog {
+  id: string;
+  student_id: string;
+  /** Çalışmanın yapıldığı gün (Europe/Istanbul, YYYY-MM-DD). */
+  log_date: string;
+  subject: string;
+  minutes: number;
+  note: string | null;
+  created_at: string;
+  marked_by: string;
+}
+
 export interface Exam {
   id: string;
   student_id: string;

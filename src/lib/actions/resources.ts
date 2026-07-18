@@ -3,6 +3,14 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getTeacherIds, notifyUsers } from "@/lib/notifications";
+import {
+  parseDifficulty,
+  parseGrade,
+  parseSections,
+  planSectionSync,
+  type ExistingSection,
+  type SectionInput,
+} from "@/lib/resources-parse";
 
 type DbClient = Awaited<ReturnType<typeof createClient>>;
 
@@ -12,50 +20,10 @@ function revalidateResourcePaths() {
   revalidatePath("/student/resources");
 }
 
-interface SectionInput {
-  name: string;
-  testCount: number;
-  kazanimCode: string | null;
-}
-
 /**
- * Bölüm satırlarını formdan okur. `section_name`, `section_test_count` ve
- * `section_kazanim_code` alanları aynı sırada gönderilir (KazanimTestGrid). Test
- * sayısı 0/boş olan satırlar (kazanım modunda "bu üniteden test yok") atlanır.
- */
-function parseSections(formData: FormData): SectionInput[] {
-  const names = formData.getAll("section_name").map((v) => String(v).trim());
-  const counts = formData.getAll("section_test_count").map((v) => Number(v));
-  const codes = formData.getAll("section_kazanim_code").map((v) => {
-    const s = String(v).trim();
-    return s ? s : null;
-  });
-  const sections: SectionInput[] = [];
-  for (let i = 0; i < names.length; i++) {
-    const name = names[i];
-    const testCount = counts[i];
-    if (name && Number.isFinite(testCount) && testCount > 0 && testCount <= 200) {
-      sections.push({ name, testCount, kazanimCode: codes[i] ?? null });
-    }
-  }
-  return sections;
-}
-
-function parseGrade(formData: FormData): number | null {
-  const g = Number(formData.get("grade_level"));
-  return g === 5 || g === 6 || g === 7 || g === 8 ? g : null;
-}
-
-/** Zorluk derecesi (1-5). Boş/geçersizse null. Yalnızca öğretmen atar. */
-function parseDifficulty(formData: FormData): number | null {
-  const d = Number(formData.get("difficulty"));
-  return Number.isFinite(d) && d >= 1 && d <= 5 ? Math.round(d) : null;
-}
-
-/**
- * Bir kitabın bölümlerini istenen listeye senkronlar. Kazanım kodu (yoksa ad)
- * üzerinden eşleştirir: var olanı GÜNCELLER (test ilerlemesi korunur), yeniyi
- * ekler, listeden düşeni siler.
+ * Bir kitabın bölümlerini istenen listeye senkronlar. Eşleştirme/plan mantığı
+ * saf `planSectionSync`'te (test edilebilir); burada yalnız plan uygulanır:
+ * eşleşen bölüm GÜNCELLENİR (test ilerlemesi korunur), yeni EKLENİR, düşen SİLİNİR.
  */
 async function syncSections(
   supabase: DbClient,
@@ -67,47 +35,34 @@ async function syncSections(
     .select("id, name, kazanim_code")
     .eq("book_id", bookId);
 
-  const keyOf = (name: string, code: string | null) =>
-    code ? `c:${code}` : `n:${name.trim().toLocaleLowerCase("tr")}`;
-  const existingByKey = new Map(
-    ((existing as { id: string; name: string; kazanim_code: string | null }[]) ?? []).map((s) => [
-      keyOf(s.name, s.kazanim_code),
-      s,
-    ]),
-  );
-  const seen = new Set<string>();
+  const plan = planSectionSync((existing as ExistingSection[]) ?? [], desired);
 
-  for (let i = 0; i < desired.length; i++) {
-    const d = desired[i];
-    const key = keyOf(d.name, d.kazanimCode);
-    if (seen.has(key)) continue;
-    seen.add(key);
-    const ex = existingByKey.get(key);
-    if (ex) {
-      await supabase
-        .from("resource_book_sections")
-        .update({
-          name: d.name,
-          test_count: d.testCount,
-          kazanim_code: d.kazanimCode,
-          order_index: i,
-        })
-        .eq("id", ex.id);
-    } else {
-      await supabase.from("resource_book_sections").insert({
-        book_id: bookId,
-        name: d.name,
-        order_index: i,
-        test_count: d.testCount,
-        kazanim_code: d.kazanimCode,
-      });
-    }
+  for (const u of plan.toUpdate) {
+    await supabase
+      .from("resource_book_sections")
+      .update({
+        name: u.name,
+        test_count: u.testCount,
+        kazanim_code: u.kazanimCode,
+        order_index: u.orderIndex,
+      })
+      .eq("id", u.id);
   }
 
-  for (const [key, ex] of existingByKey) {
-    if (!seen.has(key)) {
-      await supabase.from("resource_book_sections").delete().eq("id", ex.id);
-    }
+  if (plan.toInsert.length) {
+    await supabase.from("resource_book_sections").insert(
+      plan.toInsert.map((s) => ({
+        book_id: bookId,
+        name: s.name,
+        order_index: s.orderIndex,
+        test_count: s.testCount,
+        kazanim_code: s.kazanimCode,
+      })),
+    );
+  }
+
+  for (const id of plan.toDeleteIds) {
+    await supabase.from("resource_book_sections").delete().eq("id", id);
   }
 }
 
