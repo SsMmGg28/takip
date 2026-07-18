@@ -4,6 +4,7 @@ import { getStudentShelf, getPendingBooks } from "@/lib/books";
 import { getStudentCalendarItems } from "@/lib/calendar";
 import { calculateNet } from "@/lib/exam-shared";
 import { effectiveHomeworkStatus } from "@/lib/homework";
+import { getStudentStudySummary } from "@/lib/study-log-fetch";
 import { currentWeekStart } from "@/lib/week";
 import type {
   AppNotification,
@@ -125,7 +126,7 @@ function upcomingOnly(events: EventItem[], limit = 8): EventItem[] {
 async function getStudentData(profile: Profile): Promise<DashboardData> {
   const supabase = await createClient();
 
-  const [homework, schedule, calendarItems, exams, shelf, notifications, statusRows] =
+  const [homework, schedule, calendarItems, exams, shelf, notifications, statusRows, study] =
     await Promise.all([
       getPendingHomework(profile.id),
       getScheduleItems(profile.id),
@@ -134,6 +135,7 @@ async function getStudentData(profile: Profile): Promise<DashboardData> {
       getStudentShelf(profile.id),
       getOwnNotifications(),
       supabase.from("homework").select("status").eq("student_id", profile.id),
+      getStudentStudySummary(profile.id),
     ]);
 
   const statuses = (statusRows.data ?? []).map((r) => r.status as string);
@@ -182,6 +184,12 @@ async function getStudentData(profile: Profile): Promise<DashboardData> {
     people: [],
     notifications,
     weeklySummary: [],
+    studyStreak: {
+      current: study.current,
+      best: study.best,
+      todayMinutes: study.todayMinutes,
+      weekDays: study.week.days,
+    },
   };
 }
 
@@ -216,6 +224,7 @@ async function getParentData(profile: Profile): Promise<DashboardData> {
         { count: weeklyCompleted },
         { count: weeklyIncomplete },
         { count: weeklyTests },
+        { data: studyRows },
       ] = await Promise.all([
         getPendingHomework(child.id),
         getScheduleItems(child.id),
@@ -239,7 +248,15 @@ async function getParentData(profile: Profile): Promise<DashboardData> {
           .select("id", { count: "exact", head: true })
           .eq("student_id", child.id)
           .gte("completed_at", weekStartIso),
+        supabase
+          .from("study_log")
+          .select("log_date")
+          .eq("student_id", child.id)
+          .gte("log_date", currentWeekStart()),
       ]);
+      const studyDays = new Set(
+        ((studyRows as { log_date: string }[] | null) ?? []).map((r) => r.log_date),
+      ).size;
       const weeklySummary: WeeklySummaryChild = {
         studentId: child.id,
         studentName: firstName(child.full_name),
@@ -250,6 +267,7 @@ async function getParentData(profile: Profile): Promise<DashboardData> {
           exams.length >= 2
             ? Math.round((exams[0].totalNet - exams[1].totalNet) * 100) / 100
             : null,
+        studyDays,
       };
       return { child, name, homework, schedule, calendarItems, exams, shelf, weeklySummary };
     }),

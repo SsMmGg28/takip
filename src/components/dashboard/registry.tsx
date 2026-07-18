@@ -8,6 +8,7 @@ import {
   CalendarRange,
   ClipboardList,
   Clock3,
+  Flame,
   Hourglass,
   LineChart,
   Quote,
@@ -37,6 +38,7 @@ import {
   PendingBooksWidget,
   PeopleWidget,
   StatsWidget,
+  StreakWidget,
   TodayScheduleWidget,
   WeeklyScheduleWidget,
   WeeklySummaryWidget,
@@ -89,6 +91,16 @@ export const WIDGETS: WidgetDef[] = [
     roles: ["student", "parent"],
     defaultW: 2, defaultH: 2, minW: 1, maxW: 4, minH: 1, maxH: 3,
     component: TodayScheduleWidget,
+  },
+  {
+    id: "streak",
+    title: "Çalışma Serisi",
+    description: "Kaç gündür üst üste çalıştığını gösteren seri",
+    href: () => "/student/gunluk",
+    icon: Flame,
+    roles: ["student"],
+    defaultW: 2, defaultH: 1, minW: 1, maxW: 4, minH: 1, maxH: 2,
+    component: StreakWidget,
   },
   {
     id: "weekly-schedule",
@@ -239,6 +251,7 @@ export function widgetsForRole(role: Role): WidgetDef[] {
 const DEFAULT_IDS: Record<Role, string[]> = {
   student: [
     "stats",
+    "streak",
     "homework",
     "today-schedule",
     "clock",

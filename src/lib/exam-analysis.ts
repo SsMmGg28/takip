@@ -1,13 +1,14 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Exam, ExamKazanimResult, ExamSubject } from "@/lib/types";
 import {
+  aggregateKazanim,
   calculateNet,
   type ExamChartRow,
   type ExamOverview,
   type ExamWithSubjects,
   type KazanimAnalysis,
   type KazanimPriority,
-  type KazanimStat,
+  type KazanimRowWithContext,
   type KazanimTrendRow,
 } from "@/lib/exam-shared";
 
@@ -69,48 +70,6 @@ export async function getExamOverview(studentId: string): Promise<ExamOverview> 
 
 // ─── Kazanım analizi ─────────────────────────────────────────────────────────
 
-interface KazanimRowWithContext extends ExamKazanimResult {
-  subjectName: string;
-  examId: string;
-}
-
-function aggregate(rows: KazanimRowWithContext[]): KazanimStat[] {
-  const totals = new Map<string, KazanimStat>();
-  const examIdsByKey = new Map<string, Set<string>>();
-  for (const row of rows) {
-    const key = `${row.subjectName}::${row.kazanim_code}`;
-    const entry =
-      totals.get(key) ??
-      ({
-        subject: row.subjectName,
-        code: row.kazanim_code,
-        name: row.kazanim_name,
-        correct: 0,
-        incorrect: 0,
-        blank: 0,
-        asked: 0,
-        examCount: 0,
-        accuracy: 0,
-        wrongRate: 0,
-      } satisfies KazanimStat);
-    entry.correct += row.correct_count;
-    entry.incorrect += row.incorrect_count;
-    entry.blank += row.blank_count;
-    entry.asked += row.correct_count + row.incorrect_count + row.blank_count;
-    totals.set(key, entry);
-
-    const examIds = examIdsByKey.get(key) ?? new Set<string>();
-    examIds.add(row.examId);
-    examIdsByKey.set(key, examIds);
-  }
-  for (const [key, entry] of totals) {
-    entry.examCount = examIdsByKey.get(key)?.size ?? 0;
-    entry.accuracy = entry.asked === 0 ? 0 : Math.round((entry.correct / entry.asked) * 100);
-    entry.wrongRate = entry.asked === 0 ? 0 : Math.round((entry.incorrect / entry.asked) * 100);
-  }
-  return Array.from(totals.values());
-}
-
 /**
  * Kazanım analizi: tüm denemelerdeki toplamlar + son 10 denemeden hesaplanan
  * çalışma önceliği listesi.
@@ -157,14 +116,14 @@ export async function getKazanimAnalysis(studentId: string): Promise<KazanimAnal
   );
 
   // Tüm denemeler üzerinden toplam istatistikler.
-  const stats = aggregate(rows).sort(
+  const stats = aggregateKazanim(rows).sort(
     (a, b) => b.wrongRate - a.wrongRate || b.asked - a.asked,
   );
 
   // Son 10 deneme üzerinden öncelik listesi.
   const lastTenIds = new Set(examIds.slice(0, 10));
   const recentRows = rows.filter((r) => lastTenIds.has(r.examId));
-  const priorities: KazanimPriority[] = aggregate(recentRows)
+  const priorities: KazanimPriority[] = aggregateKazanim(recentRows)
     .map((stat) => {
       const errorRate = stat.asked === 0 ? 0 : (stat.incorrect + stat.blank * 0.5) / stat.asked;
       const frequencyWeight = Math.log2(1 + stat.asked);

@@ -423,3 +423,37 @@ body {
     transform: none;
   }
 }
+
+/* ─── Yazdırma (dönem raporu) ─── */
+@page {
+  margin: 1.4cm;
+}
+@media print {
+  /* Tema ne olursa olsun rapor açık/beyaz zeminde, okunur renklerle basılır. */
+  :root,
+  .dark {
+    --background: #ffffff;
+    --card: #ffffff;
+    --foreground: #111111;
+    --muted: #f4f4f4;
+    --muted-foreground: #555555;
+    --border: #d4d4d4;
+    --accent: #f4f4f4;
+    --secondary: #f0f0f0;
+    --primary: #1e40af;
+  }
+  .no-print {
+    display: none !important;
+  }
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    box-shadow: none !important;
+  }
+  html,
+  body {
+    background: #ffffff !important;
+  }
+}

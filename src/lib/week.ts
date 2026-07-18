@@ -16,6 +16,12 @@ export function currentWeekStart(): string {
   return toYMD(new Date(utc.getTime() - dow * DAY_MS));
 }
 
+/** Bugünün tarihi (Europe/Istanbul, YYYY-MM-DD) — çalışma günlüğü/streak için. */
+export function todayInIstanbul(): string {
+  const tr = new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Istanbul" }));
+  return toYMD(new Date(Date.UTC(tr.getFullYear(), tr.getMonth(), tr.getDate())));
+}
+
 /** Verilen hafta başına n hafta ekler/çıkarır. */
 export function addWeeks(weekStart: string, n: number): string {
   const d = new Date(`${weekStart}T00:00:00Z`);

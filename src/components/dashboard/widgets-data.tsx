@@ -10,6 +10,7 @@ import {
   BookX,
   CalendarDays,
   ClipboardList,
+  Flame,
   GraduationCap,
   MailQuestion,
   PencilLine,
@@ -646,10 +647,40 @@ export function WeeklySummaryWidget({ data }: WidgetProps) {
                 <p className="text-[10px] text-muted-foreground">Çözülen test</p>
               </div>
             </div>
+            <p className="mt-1 text-[10px] text-muted-foreground">
+              🔥 Bu hafta <strong className="text-foreground tabular-nums">{s.studyDays}</strong>{" "}
+              gün çalıştı
+            </p>
           </li>
         ))}
       </ul>
       <FooterLink href="/parent/homework" label="Ödevler" />
+    </div>
+  );
+}
+
+// ─── Çalışma Serisi (streak) ─────────────────────────────────────────────────
+
+export function StreakWidget({ data }: WidgetProps) {
+  const s = data.studyStreak;
+  return (
+    <div className="flex h-full flex-col">
+      <div className="flex flex-1 items-center gap-3">
+        <span className="gradient-surface flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-white shadow-md shadow-primary/25">
+          <Flame className="h-6 w-6" />
+        </span>
+        <div className="min-w-0">
+          <p className="text-2xl font-bold leading-none tabular-nums">
+            {s?.current ?? 0}{" "}
+            <span className="text-sm font-normal text-muted-foreground">gün seri</span>
+          </p>
+          <p className="mt-1.5 text-xs text-muted-foreground">
+            Bugün {s?.todayMinutes ?? 0} dk · Bu hafta {s?.weekDays ?? 0}/7 gün
+          </p>
+          <p className="text-[11px] text-muted-foreground">En iyi: {s?.best ?? 0} gün</p>
+        </div>
+      </div>
+      <FooterLink href="/student/gunluk" label="Çalışma Günlüğü" />
     </div>
   );
 }

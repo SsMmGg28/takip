@@ -1,0 +1,39 @@
+name: CI
+
+# PR'larda ve main'e push'ta kod kalitesini doğrular: lint + typecheck + testler.
+# Bu üç adım gizli anahtar/veritabanı gerektirmez. `next build` bilinçli olarak
+# dahil edilmedi: sunucu bileşenleri build sırasında Supabase env değişkenlerini
+# ister; build doğrulaması yerelde/deploy'da yapılır.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Aynı dal için eski koşuları iptal et.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Bağımlılıkları kur
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Tip kontrolü
+        run: npm run typecheck
+
+      - name: Testler
+        run: npm run test
