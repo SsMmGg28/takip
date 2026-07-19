@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { getAccessibleStudents, withGrades } from "@/lib/students";
+import { getAccessibleStudentsWithGrades } from "@/lib/students";
 import { getStudentShelf, getPendingBooks } from "@/lib/books";
 import { getStudentCalendarItems } from "@/lib/calendar";
 import { calculateNet } from "@/lib/exam-shared";
@@ -47,28 +47,20 @@ async function getOwnNotifications(): Promise<AppNotification[]> {
 /** Bir öğrencinin son denemelerini net hesabıyla getirir. */
 async function getRecentExams(studentId: string, limit = 5): Promise<ExamItem[]> {
   const supabase = await createClient();
+  // Dersler embedded select ile aynı sorguda gelir; ikinci gidiş-dönüş yok.
   const { data: exams } = await supabase
     .from("exams")
-    .select("*")
+    .select("*, exam_subjects(*)")
     .eq("student_id", studentId)
     .order("exam_date", { ascending: false })
     .limit(limit);
-  const list = (exams as Exam[]) ?? [];
-  if (!list.length) return [];
-
-  const { data: subjects } = await supabase
-    .from("exam_subjects")
-    .select("*")
-    .in(
-      "exam_id",
-      list.map((e) => e.id),
-    );
-  const subjectRows = (subjects as ExamSubject[]) ?? [];
+  const list = ((exams as (Exam & { exam_subjects: ExamSubject[] })[] | null) ?? []);
 
   return list.map((exam) => {
-    const net = subjectRows
-      .filter((s) => s.exam_id === exam.id)
-      .reduce((sum, s) => sum + calculateNet(s.correct_count, s.incorrect_count), 0);
+    const net = exam.exam_subjects.reduce(
+      (sum, s) => sum + calculateNet(s.correct_count, s.incorrect_count),
+      0,
+    );
     return {
       id: exam.id,
       name: exam.exam_name,
@@ -195,16 +187,8 @@ async function getStudentData(profile: Profile): Promise<DashboardData> {
 
 async function getParentData(profile: Profile): Promise<DashboardData> {
   const supabase = await createClient();
-  const children = await getAccessibleStudents(profile);
-  const childrenWithGrades = await withGrades(children);
-
-  const { count: pendingCount } = children.length
-    ? await supabase
-        .from("homework")
-        .select("id", { count: "exact", head: true })
-        .in("student_id", children.map((c) => c.id))
-        .in("status", ["assigned", "incomplete", "overdue"])
-    : { count: 0 };
+  const children = await getAccessibleStudentsWithGrades(profile);
+  const childIds = children.map((c) => c.id);
 
   // Haftanın başı (Pazartesi 00:00) — haftalık özet sayaçları için.
   const weekStart = new Date();
@@ -212,66 +196,93 @@ async function getParentData(profile: Profile): Promise<DashboardData> {
   weekStart.setDate(weekStart.getDate() - ((weekStart.getDay() + 6) % 7));
   const weekStartIso = weekStart.toISOString();
 
-  const perChild = await Promise.all(
-    children.map(async (child) => {
-      const name = firstName(child.full_name);
-      const [
-        homework,
-        schedule,
-        calendarItems,
-        exams,
-        shelf,
-        { count: weeklyCompleted },
-        { count: weeklyIncomplete },
-        { count: weeklyTests },
-        { data: studyRows },
-      ] = await Promise.all([
-        getPendingHomework(child.id),
-        getScheduleItems(child.id),
-        getStudentCalendarItems(child.id),
-        getRecentExams(child.id, 3),
-        getStudentShelf(child.id),
-        supabase
+  // Haftalık sayaçlar çocuk başına ayrı ayrı değil, tüm çocuklar için tek
+  // sorguda çekilip bellekte gruplanır (çocuk sayısıyla sorgu sayısı büyümez).
+  const empty = Promise.resolve({ data: [], count: 0 });
+  const [
+    { count: pendingCount },
+    { data: weeklyHomeworkRows },
+    { data: weeklyTestRows },
+    { data: studyRows },
+    notifications,
+    perChild,
+  ] = await Promise.all([
+    childIds.length
+      ? supabase
           .from("homework")
           .select("id", { count: "exact", head: true })
-          .eq("student_id", child.id)
-          .eq("status", "completed")
-          .gte("checked_at", weekStartIso),
-        supabase
+          .in("student_id", childIds)
+          .in("status", ["assigned", "incomplete", "overdue"])
+      : empty,
+    childIds.length
+      ? supabase
           .from("homework")
-          .select("id", { count: "exact", head: true })
-          .eq("student_id", child.id)
-          .eq("status", "incomplete")
-          .gte("checked_at", weekStartIso),
-        supabase
+          .select("student_id, status")
+          .in("student_id", childIds)
+          .in("status", ["completed", "incomplete"])
+          .gte("checked_at", weekStartIso)
+      : empty,
+    childIds.length
+      ? supabase
           .from("student_test_progress")
-          .select("id", { count: "exact", head: true })
-          .eq("student_id", child.id)
-          .gte("completed_at", weekStartIso),
-        supabase
+          .select("student_id")
+          .in("student_id", childIds)
+          .gte("completed_at", weekStartIso)
+      : empty,
+    childIds.length
+      ? supabase
           .from("study_log")
-          .select("log_date")
-          .eq("student_id", child.id)
-          .gte("log_date", currentWeekStart()),
-      ]);
-      const studyDays = new Set(
-        ((studyRows as { log_date: string }[] | null) ?? []).map((r) => r.log_date),
-      ).size;
-      const weeklySummary: WeeklySummaryChild = {
-        studentId: child.id,
-        studentName: firstName(child.full_name),
-        completedHomework: weeklyCompleted ?? 0,
-        incompleteHomework: weeklyIncomplete ?? 0,
-        testsSolved: weeklyTests ?? 0,
-        netChange:
-          exams.length >= 2
-            ? Math.round((exams[0].totalNet - exams[1].totalNet) * 100) / 100
-            : null,
-        studyDays,
-      };
-      return { child, name, homework, schedule, calendarItems, exams, shelf, weeklySummary };
-    }),
-  );
+          .select("student_id, log_date")
+          .in("student_id", childIds)
+          .gte("log_date", currentWeekStart())
+      : empty,
+    getOwnNotifications(),
+    Promise.all(
+      children.map(async (child) => {
+        const name = firstName(child.full_name);
+        const [homework, schedule, calendarItems, exams, shelf] = await Promise.all([
+          getPendingHomework(child.id),
+          getScheduleItems(child.id),
+          getStudentCalendarItems(child.id),
+          getRecentExams(child.id, 3),
+          getStudentShelf(child.id),
+        ]);
+        return { child, name, homework, schedule, calendarItems, exams, shelf };
+      }),
+    ),
+  ]);
+
+  const weeklyCompletedById = new Map<string, number>();
+  const weeklyIncompleteById = new Map<string, number>();
+  for (const row of (weeklyHomeworkRows as { student_id: string; status: string }[]) ?? []) {
+    const map = row.status === "completed" ? weeklyCompletedById : weeklyIncompleteById;
+    map.set(row.student_id, (map.get(row.student_id) ?? 0) + 1);
+  }
+  const weeklyTestsById = new Map<string, number>();
+  for (const row of (weeklyTestRows as { student_id: string }[]) ?? []) {
+    weeklyTestsById.set(row.student_id, (weeklyTestsById.get(row.student_id) ?? 0) + 1);
+  }
+  const studyDaysById = new Map<string, Set<string>>();
+  for (const row of (studyRows as { student_id: string; log_date: string }[]) ?? []) {
+    if (!studyDaysById.has(row.student_id)) studyDaysById.set(row.student_id, new Set());
+    studyDaysById.get(row.student_id)!.add(row.log_date);
+  }
+
+  const perChildWithSummary = perChild.map((c) => {
+    const weeklySummary: WeeklySummaryChild = {
+      studentId: c.child.id,
+      studentName: c.name,
+      completedHomework: weeklyCompletedById.get(c.child.id) ?? 0,
+      incompleteHomework: weeklyIncompleteById.get(c.child.id) ?? 0,
+      testsSolved: weeklyTestsById.get(c.child.id) ?? 0,
+      netChange:
+        c.exams.length >= 2
+          ? Math.round((c.exams[0].totalNet - c.exams[1].totalNet) * 100) / 100
+          : null,
+      studyDays: studyDaysById.get(c.child.id)?.size ?? 0,
+    };
+    return { ...c, weeklySummary };
+  });
 
   const withName = children.length > 1;
   const homework = perChild
@@ -326,13 +337,13 @@ async function getParentData(profile: Profile): Promise<DashboardData> {
     exams,
     books,
     pendingBooks: [],
-    people: childrenWithGrades.map((s) => ({
+    people: children.map((s) => ({
       id: s.id,
       name: s.full_name,
       grade: s.grade_level,
     })),
-    notifications: await getOwnNotifications(),
-    weeklySummary: perChild.map((c) => c.weeklySummary),
+    notifications,
+    weeklySummary: perChildWithSummary.map((c) => c.weeklySummary),
   };
 }
 
@@ -368,21 +379,13 @@ async function getTeacherData(profile: Profile): Promise<DashboardData> {
       .order("start_at")
       .limit(8),
     getPendingBooks(),
-    getAccessibleStudents(profile),
+    getAccessibleStudentsWithGrades(profile),
     getOwnNotifications(),
   ]);
 
-  const studentIds = Array.from(new Set((recentHomework ?? []).map((h) => h.student_id)));
-  const nameById = new Map<string, string>();
-  if (studentIds.length) {
-    const { data: profiles } = await supabase
-      .from("profiles")
-      .select("id, full_name")
-      .in("id", studentIds);
-    for (const p of profiles ?? []) nameById.set(p.id, firstName(p.full_name));
-  }
-
-  const studentsWithGrades = await withGrades(students);
+  // Öğretmen tüm öğrencileri görür; ödevlerdeki isimler ayrı sorgu yerine
+  // zaten çekilen öğrenci listesinden bulunur.
+  const nameById = new Map(students.map((s) => [s.id, firstName(s.full_name)]));
 
   return {
     role: "teacher",
@@ -425,7 +428,7 @@ async function getTeacherData(profile: Profile): Promise<DashboardData> {
       name: b.name,
       subject: b.subject,
     })),
-    people: studentsWithGrades.map((s) => ({
+    people: students.map((s) => ({
       id: s.id,
       name: s.full_name,
       grade: s.grade_level,

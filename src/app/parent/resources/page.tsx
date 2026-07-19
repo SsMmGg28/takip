@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { BookOpen, Clock3, Library } from "lucide-react";
 import { requireRole } from "@/lib/auth";
-import { getAccessibleStudents, withGrades } from "@/lib/students";
+import { getAccessibleStudentsWithGrades } from "@/lib/students";
 import { getApprovedBooks, getPendingBooks, getStudentShelf } from "@/lib/books";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/page-header";
@@ -22,7 +22,7 @@ export default async function ParentResourcesPage({
   searchParams: Promise<{ student?: string }>;
 }) {
   const profile = await requireRole(["parent"]);
-  const students = await withGrades(await getAccessibleStudents(profile));
+  const students = await getAccessibleStudentsWithGrades(profile);
   const { student: selectedStudentId } = await searchParams;
 
   if (students.length === 0) {

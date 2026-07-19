@@ -43,35 +43,41 @@ export async function getStudentReport(
 ): Promise<StudentReport | null> {
   const supabase = await createClient();
 
-  const { data: studentRow } = await supabase
-    .from("profiles")
-    .select("id, full_name")
-    .eq("id", studentId)
-    .single();
+  // Birbirinden bağımsız beş sorgu tek dalgada; deneme → ders → kazanım
+  // zinciri de iç içe embedded select ile aynı sorguda gelir (önceden ~7
+  // ardışık gidiş-dönüştü).
+  type ExamRow = Exam & {
+    exam_subjects: (ExamSubject & { exam_kazanim_results: ExamKazanimResult[] })[];
+  };
+  const [{ data: studentRow }, { grade, targetScore }, shelf, { data: hwData }, { data: examsData }] =
+    await Promise.all([
+      supabase.from("profiles").select("id, full_name").eq("id", studentId).single(),
+      getStudentExamInfo(studentId),
+      getStudentShelf(studentId),
+      supabase
+        .from("homework")
+        .select("*")
+        .eq("student_id", studentId)
+        .gte("due_date", range.from)
+        .lte("due_date", range.to),
+      supabase
+        .from("exams")
+        .select("*, exam_subjects(*, exam_kazanim_results(*))")
+        .eq("student_id", studentId)
+        .gte("exam_date", range.from)
+        .lte("exam_date", range.to)
+        .order("exam_date", { ascending: false })
+        .order("created_at", { ascending: false }),
+    ]);
   if (!studentRow) return null;
 
-  const { grade, targetScore } = await getStudentExamInfo(studentId);
-
-  const { data: examsData } = await supabase
-    .from("exams")
-    .select("*")
-    .eq("student_id", studentId)
-    .gte("exam_date", range.from)
-    .lte("exam_date", range.to)
-    .order("exam_date", { ascending: false })
-    .order("created_at", { ascending: false });
-  const examsRaw = (examsData as Exam[]) ?? [];
-  const examIds = examsRaw.map((e) => e.id);
-
-  const { data: subjectsData } = examIds.length
-    ? await supabase.from("exam_subjects").select("*").in("exam_id", examIds)
-    : { data: [] as ExamSubject[] };
-  const subjects = (subjectsData as ExamSubject[]) ?? [];
+  const examsRaw = ((examsData as unknown as ExamRow[] | null) ?? []);
 
   const exams = examsRaw.map((e) => {
-    const net = subjects
-      .filter((s) => s.exam_id === e.id)
-      .reduce((sum, s) => sum + calculateNet(s.correct_count, s.incorrect_count), 0);
+    const net = e.exam_subjects.reduce(
+      (sum, s) => sum + calculateNet(s.correct_count, s.incorrect_count),
+      0,
+    );
     return {
       id: e.id,
       name: e.exam_name,
@@ -99,15 +105,15 @@ export async function getStudentReport(
   }));
 
   // Kazanım toplamları (aralık içi) → en zayıf ilk 8.
-  const subjectIds = subjects.map((s) => s.id);
-  const { data: kazanimData } = subjectIds.length
-    ? await supabase.from("exam_kazanim_results").select("*").in("exam_subject_id", subjectIds)
-    : { data: [] as ExamKazanimResult[] };
-  const subjectById = new Map(subjects.map((s) => [s.id, s]));
-  const rows = ((kazanimData as ExamKazanimResult[]) ?? []).flatMap((r) => {
-    const sub = subjectById.get(r.exam_subject_id);
-    return sub ? [{ ...r, subjectName: sub.subject_name, examId: sub.exam_id }] : [];
-  });
+  const rows = examsRaw.flatMap((e) =>
+    e.exam_subjects.flatMap((sub) =>
+      sub.exam_kazanim_results.map((r) => ({
+        ...r,
+        subjectName: sub.subject_name,
+        examId: e.id,
+      })),
+    ),
+  );
   // Yalnızca gerçek zayıflıklar (yanlış veya boş > 0); en yüksek yanlış oranı önce.
   const weakest = aggregateKazanim(rows)
     .filter((k) => k.asked > 0 && (k.incorrect > 0 || k.blank > 0))
@@ -128,16 +134,9 @@ export async function getStudentReport(
       : null;
 
   // Kitaplık (güncel snapshot).
-  const shelf = await getStudentShelf(studentId);
   const books = shelf.map((b) => ({ name: b.name, done: b.completedCount, total: b.totalTests }));
 
   // Ödevler (due_date aralığına göre).
-  const { data: hwData } = await supabase
-    .from("homework")
-    .select("*")
-    .eq("student_id", studentId)
-    .gte("due_date", range.from)
-    .lte("due_date", range.to);
   const hw = (hwData as Homework[]) ?? [];
   const byStatus: Record<HomeworkStatus, number> = {
     assigned: 0,

@@ -6,19 +6,19 @@ import { EmptyState } from "@/components/empty-state";
 import { AnnouncementCard } from "@/components/announcements/announcement-card";
 import { CreateAnnouncementDialog } from "@/components/announcements/create-announcement-dialog";
 import { DeleteAnnouncementButton } from "@/components/announcements/delete-announcement-button";
-import { withGrades } from "@/lib/students";
-import type { Announcement, Profile } from "@/lib/types";
+import { getAccessibleStudentsWithGrades } from "@/lib/students";
+import type { Announcement } from "@/lib/types";
 
 export default async function TeacherAnnouncementsPage() {
-  await requireRole(["teacher"]);
+  const profile = await requireRole(["teacher"]);
   const supabase = await createClient();
 
-  const [{ data: announcements }, { data: students }] = await Promise.all([
+  const [{ data: announcements }, students] = await Promise.all([
     supabase.from("announcements").select("*").order("created_at", { ascending: false }),
-    supabase.from("profiles").select("*").eq("role", "student").order("full_name"),
+    getAccessibleStudentsWithGrades(profile),
   ]);
 
-  const studentOptions = (await withGrades((students as Profile[]) ?? [])).map((s) => ({
+  const studentOptions = students.map((s) => ({
     id: s.id,
     fullName: s.full_name,
     gradeLevel: s.grade_level,

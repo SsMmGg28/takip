@@ -16,27 +16,25 @@ export interface ShelfBook extends BookWithSections {
   studentBookId: string;
 }
 
-async function attachSections(books: ResourceBook[]): Promise<BookWithSections[]> {
-  if (!books.length) return [];
-  const supabase = await createClient();
-  const { data: sections } = await supabase
-    .from("resource_book_sections")
-    .select("*")
-    .in(
-      "book_id",
-      books.map((b) => b.id),
-    )
-    .order("order_index", { ascending: true });
+/** PostgREST embedded satır şekli: resource_books + bölümleri. */
+type BookWithSectionsRow = ResourceBook & {
+  resource_book_sections: ResourceBookSection[];
+};
 
-  return books.map((b) => {
-    const ss = ((sections as ResourceBookSection[]) ?? []).filter((s) => s.book_id === b.id);
+/** Embedded gelen bölümleri sıralayıp BookWithSections'a düzler (sorgu yok). */
+function flattenSections(rows: BookWithSectionsRow[]): BookWithSections[] {
+  return rows.map(({ resource_book_sections, ...b }) => {
+    const ss = [...resource_book_sections].sort((a, x) => a.order_index - x.order_index);
     return {
-      ...b,
+      ...(b as ResourceBook),
       sections: ss,
       totalTests: ss.reduce((acc, s) => acc + s.test_count, 0),
     };
   });
 }
+
+/** Kitap sorgularında bölümleri aynı sorguda getiren ortak select ifadesi. */
+const BOOK_WITH_SECTIONS = "*, resource_book_sections(*)";
 
 /**
  * Onaylı katalog (kütüphane). `grade` verilirse yalnızca o sınıfın kitapları
@@ -46,10 +44,10 @@ export async function getApprovedBooks(options?: {
   grade?: number | null;
 }): Promise<BookWithSections[]> {
   const supabase = await createClient();
-  let query = supabase.from("resource_books").select("*").eq("approved", true);
+  let query = supabase.from("resource_books").select(BOOK_WITH_SECTIONS).eq("approved", true);
   if (options?.grade != null) query = query.eq("grade_level", options.grade);
   const { data: books } = await query.order("name");
-  return attachSections((books as ResourceBook[]) ?? []);
+  return flattenSections((books as BookWithSectionsRow[] | null) ?? []);
 }
 
 /** Onay bekleyen kitaplar (öğretmen hepsini, veli kendininkini görür — RLS halleder). */
@@ -57,10 +55,10 @@ export async function getPendingBooks(): Promise<BookWithSections[]> {
   const supabase = await createClient();
   const { data: books } = await supabase
     .from("resource_books")
-    .select("*")
+    .select(BOOK_WITH_SECTIONS)
     .eq("approved", false)
     .order("created_at", { ascending: false });
-  return attachSections((books as ResourceBook[]) ?? []);
+  return flattenSections((books as BookWithSectionsRow[] | null) ?? []);
 }
 
 /** Bir öğrencinin kitaplığı: veli tarafından atanan kitaplar + ilerleme sayıları. */
@@ -75,29 +73,31 @@ export async function getStudentShelf(studentId: string): Promise<ShelfBook[]> {
 
   if (!links?.length) return [];
 
-  const { data: books } = await supabase
-    .from("resource_books")
-    .select("*")
-    .in(
-      "id",
-      links.map((l) => l.book_id),
-    )
-    .eq("approved", true)
-    .order("name");
-
-  const withSections = await attachSections((books as ResourceBook[]) ?? []);
-  const allSectionIds = withSections.flatMap((b) => b.sections.map((s) => s.id));
-
-  const countBySection = new Map<string, number>();
-  if (allSectionIds.length) {
-    const { data: progress } = await supabase
+  // Kitaplar (bölümleriyle embedded) ve öğrencinin tüm test ilerlemesi
+  // paralel çekilir; ilerleme bölüm kümesine bellekte daraltılır.
+  const [{ data: books }, { data: progress }] = await Promise.all([
+    supabase
+      .from("resource_books")
+      .select(BOOK_WITH_SECTIONS)
+      .in(
+        "id",
+        links.map((l) => l.book_id),
+      )
+      .eq("approved", true)
+      .order("name"),
+    supabase
       .from("student_test_progress")
       .select("section_id")
-      .eq("student_id", studentId)
-      .in("section_id", allSectionIds);
-    for (const p of progress ?? []) {
-      countBySection.set(p.section_id, (countBySection.get(p.section_id) ?? 0) + 1);
-    }
+      .eq("student_id", studentId),
+  ]);
+
+  const withSections = flattenSections((books as BookWithSectionsRow[] | null) ?? []);
+  const allSectionIds = new Set(withSections.flatMap((b) => b.sections.map((s) => s.id)));
+
+  const countBySection = new Map<string, number>();
+  for (const p of progress ?? []) {
+    if (!allSectionIds.has(p.section_id)) continue;
+    countBySection.set(p.section_id, (countBySection.get(p.section_id) ?? 0) + 1);
   }
 
   const linkByBook = new Map(links.map((l) => [l.book_id, l.id]));
@@ -125,42 +125,35 @@ export async function isBookOnShelf(studentId: string, bookId: string): Promise<
 export async function getStudentProgressForBook(studentId: string, bookId: string) {
   const supabase = await createClient();
 
-  const { data: book } = await supabase
-    .from("resource_books")
-    .select("*")
-    .eq("id", bookId)
-    .single();
-  if (!book) return null;
+  // Kitap + bölümleri tek embedded sorguda; öğrencinin ilerlemesi paralel
+  // çekilip kitabın bölümlerine bellekte daraltılır.
+  const [{ data: bookRow }, { data: progressAll }] = await Promise.all([
+    supabase.from("resource_books").select(BOOK_WITH_SECTIONS).eq("id", bookId).single(),
+    supabase.from("student_test_progress").select("*").eq("student_id", studentId),
+  ]);
+  if (!bookRow) return null;
 
-  const { data: sections } = await supabase
-    .from("resource_book_sections")
-    .select("*")
-    .eq("book_id", bookId)
-    .order("order_index", { ascending: true });
-
-  const { data: progress } = await supabase
-    .from("student_test_progress")
-    .select("*")
-    .eq("student_id", studentId)
-    .in(
-      "section_id",
-      (sections ?? []).map((s) => s.id),
-    );
+  const { resource_book_sections, ...book } = bookRow as BookWithSectionsRow;
+  const sections = [...resource_book_sections].sort((a, b) => a.order_index - b.order_index);
+  const sectionIds = new Set(sections.map((s) => s.id));
+  const progress = ((progressAll as StudentTestProgress[] | null) ?? []).filter((p) =>
+    sectionIds.has(p.section_id),
+  );
 
   const completedBySection = new Map<string, Set<number>>();
-  for (const p of (progress as StudentTestProgress[]) ?? []) {
+  for (const p of progress) {
     if (!completedBySection.has(p.section_id)) {
       completedBySection.set(p.section_id, new Set());
     }
     completedBySection.get(p.section_id)!.add(p.test_number);
   }
 
-  const totalTests = (sections ?? []).reduce((acc, s) => acc + s.test_count, 0);
-  const completedCount = (progress ?? []).length;
+  const totalTests = sections.reduce((acc, s) => acc + s.test_count, 0);
+  const completedCount = progress.length;
 
   return {
     book: book as ResourceBook,
-    sections: (sections as ResourceBookSection[]) ?? [],
+    sections,
     completedBySection,
     totalTests,
     completedCount,

@@ -21,31 +21,29 @@ export * from "@/lib/exam-shared";
 export async function getExamOverview(studentId: string): Promise<ExamOverview> {
   const supabase = await createClient();
 
+  // Dersler embedded select ile aynı sorguda gelir; ikinci gidiş-dönüş yok.
   const { data: examsData } = await supabase
     .from("exams")
-    .select("*")
+    .select("*, exam_subjects(*)")
     .eq("student_id", studentId)
     .order("exam_date", { ascending: true })
     .order("created_at", { ascending: true });
 
-  const exams = (examsData as Exam[]) ?? [];
-  const examIds = exams.map((e) => e.id);
-
-  const { data: subjectsData } = examIds.length
-    ? await supabase.from("exam_subjects").select("*").in("exam_id", examIds)
-    : { data: [] as ExamSubject[] };
-  const allSubjects = (subjectsData as ExamSubject[]) ?? [];
+  const exams = ((examsData as (Exam & { exam_subjects: ExamSubject[] })[] | null) ?? []);
 
   const subjectsSet = new Set<string>();
 
-  const withSubjects: ExamWithSubjects[] = exams.map((exam) => {
-    const subjects = allSubjects.filter((s) => s.exam_id === exam.id);
-    const totalNet = subjects.reduce(
+  const withSubjects: ExamWithSubjects[] = exams.map(({ exam_subjects, ...exam }) => {
+    const totalNet = exam_subjects.reduce(
       (sum, s) => sum + calculateNet(s.correct_count, s.incorrect_count),
       0,
     );
-    for (const s of subjects) subjectsSet.add(s.subject_name);
-    return { ...exam, subjects, totalNet: Math.round(totalNet * 100) / 100 };
+    for (const s of exam_subjects) subjectsSet.add(s.subject_name);
+    return {
+      ...(exam as Exam),
+      subjects: exam_subjects,
+      totalNet: Math.round(totalNet * 100) / 100,
+    };
   });
 
   const chartRows: ExamChartRow[] = withSubjects.map((exam) => {
@@ -83,36 +81,41 @@ export async function getExamOverview(studentId: string): Promise<ExamOverview> 
 export async function getKazanimAnalysis(studentId: string): Promise<KazanimAnalysis> {
   const supabase = await createClient();
 
+  // Deneme → ders → kazanım zinciri iç içe embedded select ile tek sorguda
+  // gelir (önceden 3 ardışık gidiş-dönüştü).
   const { data: examsData } = await supabase
     .from("exams")
-    .select("id, exam_name, exam_date, created_at")
+    .select(
+      "id, exam_name, exam_date, created_at, exam_subjects(id, subject_name, exam_kazanim_results(*))",
+    )
     .eq("student_id", studentId)
     .order("exam_date", { ascending: false })
     .order("created_at", { ascending: false });
 
-  const exams = examsData ?? [];
+  type ExamRow = {
+    id: string;
+    exam_name: string;
+    exam_date: string;
+    created_at: string;
+    exam_subjects: {
+      id: string;
+      subject_name: string;
+      exam_kazanim_results: ExamKazanimResult[];
+    }[];
+  };
+  const exams = ((examsData as unknown as ExamRow[] | null) ?? []);
   const examIds = exams.map((e) => e.id);
   if (examIds.length === 0)
     return { stats: [], priorities: [], trend: [], trendSubjects: [], examCount: 0 };
 
-  const { data: subjectsData } = await supabase
-    .from("exam_subjects")
-    .select("id, exam_id, subject_name")
-    .in("exam_id", examIds);
-  const subjects = subjectsData ?? [];
-  const subjectIds = subjects.map((s) => s.id);
-
-  const { data: kazanimData } = subjectIds.length
-    ? await supabase.from("exam_kazanim_results").select("*").in("exam_subject_id", subjectIds)
-    : { data: [] as ExamKazanimResult[] };
-
-  const subjectById = new Map(subjects.map((s) => [s.id, s]));
-  const rows: KazanimRowWithContext[] = ((kazanimData as ExamKazanimResult[]) ?? []).flatMap(
-    (row) => {
-      const subject = subjectById.get(row.exam_subject_id);
-      if (!subject) return [];
-      return [{ ...row, subjectName: subject.subject_name, examId: subject.exam_id }];
-    },
+  const rows: KazanimRowWithContext[] = exams.flatMap((exam) =>
+    exam.exam_subjects.flatMap((subject) =>
+      subject.exam_kazanim_results.map((row) => ({
+        ...row,
+        subjectName: subject.subject_name,
+        examId: exam.id,
+      })),
+    ),
   );
 
   // Tüm denemeler üzerinden toplam istatistikler.
