@@ -97,6 +97,7 @@ export function NotificationsBell({ userId }: { userId: string }) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const supabaseRef = useRef<ReturnType<typeof createClient> | null>(null);
+  const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function getSupabase() {
     if (!supabaseRef.current) supabaseRef.current = createClient();
@@ -134,13 +135,21 @@ export function NotificationsBell({ userId }: { userId: string }) {
           setRinging(true);
           setTimeout(() => setRinging(false), 1200);
           toast(n.title, { description: n.body ?? undefined });
-          router.refresh();
+          // refresh() tüm sayfayı sunucuda yeniden çizer; art arda gelen
+          // bildirimlerde (örn. toplu ödev ataması) her biri için ayrı
+          // yenileme yapmamak adına 2 sn debounce edilir.
+          if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
+          refreshTimerRef.current = setTimeout(() => {
+            refreshTimerRef.current = null;
+            router.refresh();
+          }, 2000);
         },
       )
       .subscribe();
 
     return () => {
       void supabase.removeChannel(channel);
+      if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
     };
   }, [userId, load, router]);
 

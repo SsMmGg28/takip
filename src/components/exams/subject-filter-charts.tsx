@@ -10,7 +10,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ScoreChart, SubjectNetChart } from "@/components/exams/subject-net-chart";
+import dynamic from "next/dynamic";
+
+// recharts (~100 KB+ gzip) sayfanın ana bundle'ına girmesin diye grafikler
+// ayrı chunk olarak, yalnızca istemcide yüklenir.
+const chartLoading = (heightClass: string) =>
+  function ChartSkeleton() {
+    return <div className={`${heightClass} w-full animate-pulse rounded-xl bg-muted/50`} />;
+  };
+const SubjectNetChart = dynamic(
+  () => import("@/components/exams/subject-net-chart").then((m) => m.SubjectNetChart),
+  { ssr: false, loading: chartLoading("h-80") },
+);
+const ScoreChart = dynamic(
+  () => import("@/components/exams/subject-net-chart").then((m) => m.ScoreChart),
+  { ssr: false, loading: chartLoading("h-64") },
+);
 import type { ExamChartRow } from "@/lib/exam-shared";
 
 /**
