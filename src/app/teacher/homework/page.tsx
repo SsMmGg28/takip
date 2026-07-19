@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Users } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/lib/auth";
 import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
@@ -10,21 +9,18 @@ import {
   type CenterGroup,
 } from "@/components/teacher/homework-center";
 import { getApprovedBooks } from "@/lib/books";
-import { withGrades } from "@/lib/students";
+import { getAccessibleStudentsWithGrades } from "@/lib/students";
 import { getAssignmentGroups } from "@/lib/homework-fetch";
-import type { Profile } from "@/lib/types";
 
 export default async function TeacherHomeworkPage() {
-  await requireRole(["teacher"]);
-  const supabase = await createClient();
+  const profile = await requireRole(["teacher"]);
 
-  const [{ data: students }, books, groups] = await Promise.all([
-    supabase.from("profiles").select("*").eq("role", "student").order("full_name"),
+  const [studentList, books, groups] = await Promise.all([
+    getAccessibleStudentsWithGrades(profile),
     getApprovedBooks(),
     getAssignmentGroups(),
   ]);
 
-  const studentList = await withGrades((students as Profile[] | null) ?? []);
   const studentOptions = studentList.map((s) => ({
     id: s.id,
     fullName: s.full_name,

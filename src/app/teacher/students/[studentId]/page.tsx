@@ -38,29 +38,25 @@ export default async function TeacherStudentDetailPage({
   const { studentId } = await params;
   const supabase = await createClient();
 
-  const { data: student } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", studentId)
-    .single();
+  // Beş bağımsız sorgu tek dalgada (öğrenci profili dahil).
+  const [{ data: student }, { data: studentProfile }, shelf, { data: homeworkRows }, studySummary] =
+    await Promise.all([
+      supabase.from("profiles").select("*").eq("id", studentId).single(),
+      supabase
+        .from("student_profiles")
+        .select("grade_level, notes, target_score, schedule_auto_repeat")
+        .eq("id", studentId)
+        .single(),
+      getStudentShelf(studentId),
+      supabase
+        .from("homework")
+        .select("*")
+        .eq("student_id", studentId)
+        .order("created_at", { ascending: false })
+        .limit(20),
+      getStudentStudySummary(studentId),
+    ]);
   if (!student) notFound();
-
-  const [{ data: studentProfile }, shelf, { data: homeworkRows }] = await Promise.all([
-    supabase
-      .from("student_profiles")
-      .select("grade_level, notes, target_score, schedule_auto_repeat")
-      .eq("id", studentId)
-      .single(),
-    getStudentShelf(studentId),
-    supabase
-      .from("homework")
-      .select("*")
-      .eq("student_id", studentId)
-      .order("created_at", { ascending: false })
-      .limit(20),
-  ]);
-
-  const studySummary = await getStudentStudySummary(studentId);
 
   const homework = ((homeworkRows as Homework[]) ?? []).map((h) => ({
     ...h,

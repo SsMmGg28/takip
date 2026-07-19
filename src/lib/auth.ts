@@ -7,13 +7,16 @@ import type { Profile, Role } from "@/lib/types";
 // getUser + profiles sorguları bir kez çalışır.
 export const getCurrentProfile = cache(async (): Promise<Profile | null> => {
   const supabase = await createClient();
-  const { data: userData } = await supabase.auth.getUser();
-  if (!userData.user) return null;
+  // getClaims: asimetrik JWT anahtarında yerel doğrulama (Auth sunucusuna
+  // gidiş-dönüş yok); simetrik anahtarda getUser gibi sunucuya düşer.
+  const { data: claimsData } = await supabase.auth.getClaims();
+  const userId = claimsData?.claims.sub;
+  if (!userId) return null;
 
   const { data: profile } = await supabase
     .from("profiles")
     .select("*")
-    .eq("id", userData.user.id)
+    .eq("id", userId)
     .single();
 
   return profile as Profile | null;

@@ -6,7 +6,7 @@ import { ServiceWorkerRegistrar } from "@/components/push-manager";
 import { SignOutButton } from "@/components/sign-out-button";
 import { Brand } from "@/components/brand";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { getAccessibleStudents, getStudentGrade, withGrades } from "@/lib/students";
+import { getAccessibleStudentsWithGrades, getStudentGrade } from "@/lib/students";
 import { examsEnabledForGrade } from "@/lib/kazanim";
 import type { Profile, Role } from "@/lib/types";
 
@@ -16,7 +16,7 @@ async function shouldShowExams(role: Role, profile: Profile): Promise<boolean> {
   if (role === "student") {
     return examsEnabledForGrade(await getStudentGrade(profile.id));
   }
-  const students = await withGrades(await getAccessibleStudents(profile));
+  const students = await getAccessibleStudentsWithGrades(profile);
   return students.some((s) => examsEnabledForGrade(s.grade_level));
 }
 

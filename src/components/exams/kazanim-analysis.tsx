@@ -22,7 +22,17 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { fetchKazanimAnalysis } from "@/lib/actions/exams";
-import { KazanimTrendChart } from "@/components/exams/subject-net-chart";
+import dynamic from "next/dynamic";
+
+// recharts sayfanın ana bundle'ına girmesin diye grafik ayrı chunk olarak,
+// yalnızca istemcide yüklenir.
+const KazanimTrendChart = dynamic(
+  () => import("@/components/exams/subject-net-chart").then((m) => m.KazanimTrendChart),
+  {
+    ssr: false,
+    loading: () => <div className="h-72 w-full animate-pulse rounded-xl bg-muted/50" />,
+  },
+);
 import { KazanimHeatmap } from "@/components/exams/kazanim-heatmap";
 import { estimateScoreGain, simulateKazanimGain } from "@/lib/exams/projection";
 import type { KazanimAnalysis } from "@/lib/exam-shared";

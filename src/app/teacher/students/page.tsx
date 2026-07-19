@@ -18,27 +18,29 @@ import { DeleteUserButton } from "@/components/teacher/delete-user-button";
 import { EditUserDialog } from "@/components/teacher/edit-user-dialog";
 import { ManageLinksDialog } from "@/components/teacher/manage-links-dialog";
 import { ResetPasswordButton } from "@/components/teacher/reset-password-button";
-import { withGrades } from "@/lib/students";
 import type { Profile } from "@/lib/types";
 
 export default async function TeacherStudentsPage() {
   const supabase = await createClient();
 
-  const { data: students } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("role", "student")
-    .order("full_name");
+  // Üç bağımsız sorgu tek dalgada; öğrenci sınıfı embedded select ile gelir.
+  const [{ data: students }, { data: parents }, { data: links }] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("*, student_profiles(grade_level)")
+      .eq("role", "student")
+      .order("full_name"),
+    supabase.from("profiles").select("*").eq("role", "parent").order("full_name"),
+    supabase.from("parent_student_links").select("*"),
+  ]);
 
-  const { data: parents } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("role", "parent")
-    .order("full_name");
-
-  const { data: links } = await supabase.from("parent_student_links").select("*");
-
-  const studentList = await withGrades((students as Profile[]) ?? []);
+  const studentList = (
+    (students as (Profile & { student_profiles: { grade_level: number | null } | null })[] | null) ??
+    []
+  ).map(({ student_profiles, ...s }) => ({
+    ...(s as Profile),
+    grade_level: student_profiles?.grade_level ?? null,
+  }));
   const studentNameById = new Map(studentList.map((s) => [s.id, s.full_name]));
   const studentOptions = studentList.map((s) => ({ id: s.id, fullName: s.full_name }));
 
@@ -47,7 +49,7 @@ export default async function TeacherStudentsPage() {
       <PageHeader
         title="Öğrenciler ve Veliler"
         description="Hesap oluştur, düzenle, şifre sıfırla; veli-çocuk bağlantılarını yönet."
-        action={<CreateAccountDialog students={(students as Profile[]) ?? []} />}
+        action={<CreateAccountDialog students={studentList} />}
       />
 
       <section className="space-y-3">

@@ -1,27 +1,23 @@
 import { Inbox, Users } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
+import { requireRole } from "@/lib/auth";
 import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
 import { StudentPickerGrid } from "@/components/student-picker-grid";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ReviewRequestButtons } from "@/components/exams/exam-actions";
 import { getPendingEditRequests } from "@/lib/exams";
-import { withGrades } from "@/lib/students";
+import { getAccessibleStudentsWithGrades } from "@/lib/students";
 import { examsEnabledForGrade } from "@/lib/kazanim";
-import type { Profile } from "@/lib/types";
 
 export default async function TeacherExamsOverviewPage() {
-  const supabase = await createClient();
-  const { data: students } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("role", "student")
-    .order("full_name");
-
-  const withGrade = await withGrades((students as Profile[]) ?? []);
+  // requireRole layout'ta da çağrılıyor; React cache ile aynı istekte tekilleşir.
+  const profile = await requireRole(["teacher"]);
+  const [withGrade, pendingRequests] = await Promise.all([
+    getAccessibleStudentsWithGrades(profile),
+    getPendingEditRequests(),
+  ]);
   // Deneme takibi yalnızca 7. ve 8. sınıflar için aktif.
   const eligible = withGrade.filter((s) => examsEnabledForGrade(s.grade_level));
-  const pendingRequests = await getPendingEditRequests();
 
   return (
     <>

@@ -25,7 +25,11 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
-  const { data: userData } = await supabase.auth.getUser();
+  // getClaims: asimetrik JWT anahtarında token yerelde doğrulanır (Auth
+  // sunucusuna gidiş-dönüş yok); simetrik anahtarda getUser gibi sunucuya
+  // düşer. Süresi dolmak üzereyse oturumu da tazeler.
+  const { data: claimsData } = await supabase.auth.getClaims();
+  const userId = claimsData?.claims.sub ?? null;
   const pathname = request.nextUrl.pathname;
   // "/" landing sayfası herkese açık; startsWith ile eşleştirilirse tüm yollar
   // public sayılacağından ayrıca tam eşleşme olarak kontrol ediliyor.
@@ -41,7 +45,7 @@ export async function updateSession(request: NextRequest) {
     return supabaseResponse;
   }
 
-  if (!userData.user && !isPublic) {
+  if (!userId && !isPublic) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
@@ -55,11 +59,11 @@ export async function updateSession(request: NextRequest) {
   const needsProfile =
     pathname === "/" || pathname === "/login" || pathname === "/set-password";
 
-  if (userData.user && needsProfile) {
+  if (userId && needsProfile) {
     const { data: profile } = await supabase
       .from("profiles")
       .select("role, must_change_password")
-      .eq("id", userData.user.id)
+      .eq("id", userId)
       .single();
 
     if (profile?.must_change_password && pathname !== "/set-password") {

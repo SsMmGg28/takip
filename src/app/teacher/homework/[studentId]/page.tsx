@@ -14,31 +14,27 @@ import {
   ReassignMissingButton,
 } from "@/components/teacher/homework-row-actions";
 import { getApprovedBooks } from "@/lib/books";
-import { withGrades } from "@/lib/students";
+import { getAccessibleStudentsWithGrades } from "@/lib/students";
 import { getHomeworkForStudent } from "@/lib/homework-fetch";
-import type { Profile } from "@/lib/types";
 
 export default async function TeacherStudentHomeworkPage({
   params,
 }: {
   params: Promise<{ studentId: string }>;
 }) {
-  await requireRole(["teacher"]);
+  const profile = await requireRole(["teacher"]);
   const { studentId } = await params;
   const supabase = await createClient();
 
-  const { data: student } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", studentId)
-    .single();
-  if (!student) notFound();
-
-  const [{ data: allStudents }, books, { items, sectionById }] = await Promise.all([
-    supabase.from("profiles").select("*").eq("role", "student").order("full_name"),
+  // Dört bağımsız sorgu tek dalgada; öğrenci listesi sınıf bilgisiyle tek
+  // sorguda gelir.
+  const [{ data: student }, allStudents, books, { items, sectionById }] = await Promise.all([
+    supabase.from("profiles").select("*").eq("id", studentId).single(),
+    getAccessibleStudentsWithGrades(profile),
     getApprovedBooks(),
     getHomeworkForStudent(studentId),
   ]);
+  if (!student) notFound();
 
   // Toplu gönderim boyutları (düzenlemede "grubun tamamına uygula" seçeneği için)
   const groupIds = Array.from(
@@ -58,9 +54,11 @@ export default async function TeacherStudentHomeworkPage({
     );
   }
 
-  const studentOptions = (await withGrades((allStudents as Profile[] | null) ?? [])).map(
-    (s) => ({ id: s.id, fullName: s.full_name, grade: s.grade_level }),
-  );
+  const studentOptions = allStudents.map((s) => ({
+    id: s.id,
+    fullName: s.full_name,
+    grade: s.grade_level,
+  }));
   const bookOptions = books.map((b) => ({
     id: b.id,
     name: b.name,

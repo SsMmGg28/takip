@@ -97,13 +97,20 @@ export interface AssignmentGroup {
   sectionById: Map<string, ResourceBookSection>;
 }
 
-/** Tüm ödevleri toplu gönderim gruplarına ayırır (öğretmen merkezi). */
+/** Ödev merkezinin gösterdiği geçmiş penceresi (ay). Sorgu sınırsız büyümesin. */
+const ASSIGNMENT_WINDOW_MONTHS = 6;
+
+/** Son 6 ayın ödevlerini toplu gönderim gruplarına ayırır (öğretmen merkezi). */
 export async function getAssignmentGroups(): Promise<AssignmentGroup[]> {
   const supabase = await createClient();
+
+  const windowStart = new Date();
+  windowStart.setMonth(windowStart.getMonth() - ASSIGNMENT_WINDOW_MONTHS);
 
   const { data: homework } = await supabase
     .from("homework")
     .select("*")
+    .gte("created_at", windowStart.toISOString())
     .order("created_at", { ascending: false });
 
   const list = (homework as Homework[] | null) ?? [];
