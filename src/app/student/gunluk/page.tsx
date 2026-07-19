@@ -1,4 +1,5 @@
-import { Flame, CalendarCheck, Clock } from "lucide-react";
+import Link from "next/link";
+import { BarChart3, Flame, CalendarCheck, Clock } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,7 +9,7 @@ import { getStudentStudySummary } from "@/lib/study-log-fetch";
 import { addDays } from "@/lib/study-log";
 import { todayInIstanbul } from "@/lib/week";
 import { getStudentGrade } from "@/lib/students";
-import { getBookSubjects } from "@/lib/book-catalog";
+import { getBookSubjects, getBookUnits } from "@/lib/book-catalog";
 import { LGS_SUBJECTS } from "@/lib/kazanim";
 
 export default async function StudentJournalPage() {
@@ -21,6 +22,9 @@ export default async function StudentJournalPage() {
   const catalogSubjects = getBookSubjects(grade ?? 0);
   const base = catalogSubjects.length > 0 ? catalogSubjects : LGS_SUBJECTS.map((s) => s.name);
   const subjects = [...base, "Diğer"];
+  const topicsBySubject = Object.fromEntries(
+    catalogSubjects.map((s) => [s, getBookUnits(grade ?? 0, s)]),
+  );
 
   const today = todayInIstanbul();
   const yesterday = addDays(today, -1);
@@ -31,6 +35,15 @@ export default async function StudentJournalPage() {
       <PageHeader
         title="Çalışma Günlüğü"
         description="Her gün ne çalıştığını kaydet; serini büyüt. Düzenli çalışan kazanır! 🔥"
+        action={
+          <Link
+            href="/student/gunluk/dokum"
+            className="inline-flex items-center gap-1.5 rounded-lg border bg-card px-3 py-1.5 text-sm shadow-sm transition-colors hover:bg-accent"
+          >
+            <BarChart3 className="h-4 w-4" />
+            Ders & Konu Dökümü
+          </Link>
+        }
       />
 
       {/* Seri + bu hafta özeti */}
@@ -96,7 +109,7 @@ export default async function StudentJournalPage() {
         <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
           Bugün ne çalıştın?
         </h2>
-        <StudyLogForm subjects={subjects} />
+        <StudyLogForm subjects={subjects} topicsBySubject={topicsBySubject} />
       </section>
 
       {/* Son kayıtlar */}
