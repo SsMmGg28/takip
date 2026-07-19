@@ -1,12 +1,12 @@
-import { requireRole } from "@/lib/auth";
-import { DashboardShell } from "@/components/dashboard-shell";
+import { Suspense } from "react";
+import { DashboardShellGate, ShellSkeleton } from "@/components/dashboard-shell";
 
-export default async function ParentLayout({ children }: { children: React.ReactNode }) {
-  const profile = await requireRole(["parent"]);
-
+// Cache Components: requireRole (runtime API) Suspense içinde akar; layout'un
+// kendisi statik kabukta kalır.
+export default function ParentLayout({ children }: { children: React.ReactNode }) {
   return (
-    <DashboardShell role="parent" profile={profile}>
-      {children}
-    </DashboardShell>
+    <Suspense fallback={<ShellSkeleton />}>
+      <DashboardShellGate role="parent">{children}</DashboardShellGate>
+    </Suspense>
   );
 }

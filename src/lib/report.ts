@@ -56,7 +56,7 @@ export async function getStudentReport(
       getStudentShelf(studentId),
       supabase
         .from("homework")
-        .select("*")
+        .select("status, due_date")
         .eq("student_id", studentId)
         .gte("due_date", range.from)
         .lte("due_date", range.to),
@@ -137,7 +137,7 @@ export async function getStudentReport(
   const books = shelf.map((b) => ({ name: b.name, done: b.completedCount, total: b.totalTests }));
 
   // Ödevler (due_date aralığına göre).
-  const hw = (hwData as Homework[]) ?? [];
+  const hw = ((hwData as Pick<Homework, "status" | "due_date">[] | null) ?? []);
   const byStatus: Record<HomeworkStatus, number> = {
     assigned: 0,
     completed: 0,

@@ -8,9 +8,19 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
 function Dialog({
+  onOpenChange,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Root>) {
-  return <DialogPrimitive.Root data-slot="dialog" {...props} />
+  // Cache Components'ta rotalar Activity ile "hidden" moda alınır, unmount
+  // edilmez; state korunduğundan başka sayfaya gidip dönünce diyalog açık
+  // kalırdı. Rota gizlenirken (effect cleanup) diyaloğu kapatıyoruz. Callback
+  // ref'te tutulur ki inline onOpenChange her render'da cleanup tetiklemesin.
+  const onOpenChangeRef = React.useRef(onOpenChange)
+  React.useEffect(() => {
+    onOpenChangeRef.current = onOpenChange
+  })
+  React.useEffect(() => () => onOpenChangeRef.current?.(false), [])
+  return <DialogPrimitive.Root data-slot="dialog" onOpenChange={onOpenChange} {...props} />
 }
 
 function DialogTrigger({

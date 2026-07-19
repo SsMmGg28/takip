@@ -51,19 +51,31 @@ export async function getStudentCalendarItems(
 ): Promise<CalendarItem[]> {
   const supabase = await createClient();
 
+  // Ödev teslimleri tek seferlik öğeler: 6 aydan eski olanlar takvimde
+  // gösterilmez ki sorgu ödev geçmişiyle sınırsız büyümesin. Etkinlikler
+  // SINIRSIZ kalır — haftalık tekrarlı bir etkinliğin başlangıcı eski olabilir,
+  // filtrelenirse güncel tekrarları da kaybolur.
+  const dueWindowStart = new Date();
+  dueWindowStart.setMonth(dueWindowStart.getMonth() - 6);
+
   const [{ data: events }, { data: homework }] = await Promise.all([
     supabase
       .from("calendar_events")
-      .select("*")
+      .select("id, title, description, type, start_at, recurrence")
       .or(`student_id.eq.${studentId},student_id.is.null`),
     supabase
       .from("homework")
       .select("id, title, due_date")
       .eq("student_id", studentId)
-      .not("due_date", "is", null),
+      .not("due_date", "is", null)
+      .gte("due_date", dueWindowStart.toISOString().slice(0, 10)),
   ]);
 
-  const items: CalendarItem[] = ((events as CalendarEvent[] | null) ?? []).flatMap((e) =>
+  type EventRow = Pick<
+    CalendarEvent,
+    "id" | "title" | "description" | "type" | "start_at" | "recurrence"
+  >;
+  const items: CalendarItem[] = ((events as EventRow[] | null) ?? []).flatMap((e) =>
     expandCalendarEvent(e),
   );
 

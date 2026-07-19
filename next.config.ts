@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Cache Components: statik kabuk + Suspense akışı (PPR) ve "use cache".
+  cacheComponents: true,
   async headers() {
     return [
       {
