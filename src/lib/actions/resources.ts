@@ -1,7 +1,8 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { BOOK_CATALOG_TAG } from "@/lib/books";
 import { getTeacherIds, notifyUsers } from "@/lib/notifications";
 import {
   parseDifficulty,
@@ -15,6 +16,8 @@ import {
 type DbClient = Awaited<ReturnType<typeof createClient>>;
 
 function revalidateResourcePaths() {
+  // Onaylı katalog cache'i ("use cache" + BOOK_CATALOG_TAG) anında tazelensin.
+  updateTag(BOOK_CATALOG_TAG);
   revalidatePath("/teacher/resources");
   revalidatePath("/parent/resources");
   revalidatePath("/student/resources");

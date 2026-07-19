@@ -1,10 +1,15 @@
+import { cacheLife, cacheTag } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import type {
   Profile,
   ResourceBook,
   ResourceBookSection,
   StudentTestProgress,
 } from "@/lib/types";
+
+/** Onaylı katalog cache'inin etiketi; kitap/bölüm değiştiren aksiyonlar bunu günceller. */
+export const BOOK_CATALOG_TAG = "book-catalog";
 
 export interface BookWithSections extends ResourceBook {
   sections: ResourceBookSection[];
@@ -39,11 +44,20 @@ const BOOK_WITH_SECTIONS = "*, resource_book_sections(*)";
 /**
  * Onaylı katalog (kütüphane). `grade` verilirse yalnızca o sınıfın kitapları
  * döner — veli görünümünde çocuğun sınıfı dışındaki kitapları hiç göstermemek için.
+ *
+ * "use cache": onaylı kitaplar RLS'te TÜM kimlikli kullanıcılara aynı görünür
+ * (0003 books_select_approved; demo izolasyonu bu tabloya uygulanmaz), bu
+ * yüzden çerezsiz service-role istemciyle okunup kullanıcıdan bağımsız
+ * cache'lenebilir. Katalog değiştiren aksiyonlar BOOK_CATALOG_TAG'i günceller.
  */
 export async function getApprovedBooks(options?: {
   grade?: number | null;
 }): Promise<BookWithSections[]> {
-  const supabase = await createClient();
+  "use cache";
+  cacheTag(BOOK_CATALOG_TAG);
+  cacheLife("hours");
+
+  const supabase = createAdminClient();
   let query = supabase.from("resource_books").select(BOOK_WITH_SECTIONS).eq("approved", true);
   if (options?.grade != null) query = query.eq("grade_level", options.grade);
   const { data: books } = await query.order("name");
