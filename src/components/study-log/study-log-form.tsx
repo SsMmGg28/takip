@@ -19,15 +19,31 @@ import { addStudyLog } from "@/lib/actions/study-log";
 
 const PRESETS = [15, 30, 45, 60, 90];
 
-/** Öğrenci: "Bugün ne çalıştın?" — ders + süre (dk) + opsiyonel not. */
-export function StudyLogForm({ subjects }: { subjects: string[] }) {
+/** Öğrenci: "Bugün ne çalıştın?" — ders + opsiyonel konu + süre (dk) + opsiyonel soru sayısı/not. */
+export function StudyLogForm({
+  subjects,
+  topicsBySubject,
+}: {
+  subjects: string[];
+  /** Ders adı → o dersin konu/ünite listesi (kitap kataloğundan; boşsa konu seçimi kapalı). */
+  topicsBySubject: Record<string, { code: string; name: string }[]>;
+}) {
   const router = useRouter();
   const [subject, setSubject] = useState("");
+  const [topic, setTopic] = useState("");
   const [minutes, setMinutes] = useState("");
+  const [questionCount, setQuestionCount] = useState("");
   const [note, setNote] = useState("");
   const [pending, setPending] = useState(false);
 
   const ready = Boolean(subject && Number(minutes) > 0);
+  const topics = topicsBySubject[subject] ?? [];
+
+  function reset() {
+    setMinutes("");
+    setQuestionCount("");
+    setNote("");
+  }
 
   return (
     <form
@@ -37,8 +53,7 @@ export function StudyLogForm({ subjects }: { subjects: string[] }) {
         try {
           await addStudyLog(formData);
           toast.success("Çalışma kaydedildi. 🔥");
-          setMinutes("");
-          setNote("");
+          reset();
           router.refresh();
         } catch (e) {
           toast.error(e instanceof Error ? e.message : "Bir hata oluştu.");
@@ -49,11 +64,18 @@ export function StudyLogForm({ subjects }: { subjects: string[] }) {
       className="flex flex-col gap-4 rounded-2xl border bg-card p-4 shadow-sm"
     >
       <input type="hidden" name="subject" value={subject} />
+      <input type="hidden" name="topic" value={topic} />
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="flex flex-col gap-2">
           <Label>Ders</Label>
-          <Select value={subject} onValueChange={setSubject}>
+          <Select
+            value={subject}
+            onValueChange={(v) => {
+              setSubject(v);
+              setTopic("");
+            }}
+          >
             <SelectTrigger className="w-full bg-background">
               <SelectValue placeholder="Ders seç" />
             </SelectTrigger>
@@ -67,6 +89,28 @@ export function StudyLogForm({ subjects }: { subjects: string[] }) {
           </Select>
         </div>
 
+        <div className="flex flex-col gap-2">
+          <Label>Konu (opsiyonel)</Label>
+          <Select value={topic} onValueChange={setTopic} disabled={!subject || topics.length === 0}>
+            <SelectTrigger className="w-full bg-background">
+              <SelectValue
+                placeholder={
+                  !subject ? "Önce ders seç" : topics.length === 0 ? "Konu yok" : "Konu seç"
+                }
+              />
+            </SelectTrigger>
+            <SelectContent>
+              {topics.map((t) => (
+                <SelectItem key={t.code} value={t.name}>
+                  {t.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2">
         <div className="flex flex-col gap-2">
           <Label htmlFor="minutes">Süre (dakika)</Label>
           <Input
@@ -99,6 +143,22 @@ export function StudyLogForm({ subjects }: { subjects: string[] }) {
               </button>
             ))}
           </div>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="question_count">Soru sayısı (opsiyonel)</Label>
+          <Input
+            id="question_count"
+            name="question_count"
+            type="number"
+            min={0}
+            max={2000}
+            inputMode="numeric"
+            value={questionCount}
+            onChange={(e) => setQuestionCount(e.target.value)}
+            placeholder="Örn: 20"
+            className="bg-background"
+          />
         </div>
       </div>
 

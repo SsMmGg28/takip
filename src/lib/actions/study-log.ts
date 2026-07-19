@@ -5,9 +5,9 @@ import { createClient } from "@/lib/supabase/server";
 import { todayInIstanbul } from "@/lib/week";
 
 /**
- * Öğrenci günlük çalışma kaydı ekler (ders + dakika + opsiyonel not). Kayıt her
- * zaman oturum sahibinin kendisine yazılır; RLS (study_log_write_own) yalnız
- * öğrencinin kendisine izin verir (öğretmen/veli salt-okunur).
+ * Öğrenci günlük çalışma kaydı ekler (ders + dakika, opsiyonel konu/soru sayısı/not).
+ * Kayıt her zaman oturum sahibinin kendisine yazılır; RLS (study_log_write_own)
+ * yalnız öğrencinin kendisine izin verir (öğretmen/veli salt-okunur).
  */
 export async function addStudyLog(formData: FormData) {
   const supabase = await createClient();
@@ -24,7 +24,9 @@ export async function addStudyLog(formData: FormData) {
   }
 
   const subject = String(formData.get("subject") ?? "").trim();
+  const topic = String(formData.get("topic") ?? "").trim() || null;
   const minutes = Number(formData.get("minutes"));
+  const rawQuestionCount = String(formData.get("question_count") ?? "").trim();
   const note = String(formData.get("note") ?? "").trim() || null;
   const rawDate = String(formData.get("log_date") ?? "").trim();
   const logDate = /^\d{4}-\d{2}-\d{2}$/.test(rawDate) ? rawDate : todayInIstanbul();
@@ -34,11 +36,22 @@ export async function addStudyLog(formData: FormData) {
     throw new Error("Süre 1-1440 dakika arasında olmalı.");
   }
 
+  let questionCount: number | null = null;
+  if (rawQuestionCount) {
+    const q = Number(rawQuestionCount);
+    if (!Number.isFinite(q) || q < 0 || q > 2000) {
+      throw new Error("Soru sayısı 0-2000 arasında olmalı.");
+    }
+    questionCount = Math.round(q);
+  }
+
   const { error } = await supabase.from("study_log").insert({
     student_id: userData.user.id,
     log_date: logDate,
     subject,
+    topic,
     minutes: Math.round(minutes),
+    question_count: questionCount,
     note,
     marked_by: userData.user.id,
   });

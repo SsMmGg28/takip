@@ -205,7 +205,11 @@ export interface StudyLog {
   /** Çalışmanın yapıldığı gün (Europe/Istanbul, YYYY-MM-DD). */
   log_date: string;
   subject: string;
+  /** Kitap kataloğu ünitesi/konu adı (opsiyonel). */
+  topic: string | null;
   minutes: number;
+  /** Çözülen soru sayısı (opsiyonel). */
+  question_count: number | null;
   note: string | null;
   created_at: string;
   marked_by: string;

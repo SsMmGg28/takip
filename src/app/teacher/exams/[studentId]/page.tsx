@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { GraduationCap, Plus } from "lucide-react";
+import { FileText, GraduationCap, Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
@@ -72,6 +72,13 @@ export default async function TeacherStudentExamsPage({
         description={`${grade}. sınıf — deneme analizi ve geçmiş denemeler`}
         action={
           <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href={`/rapor/${studentId}`}
+              className="inline-flex items-center gap-1.5 rounded-lg border bg-card px-3 py-1.5 text-sm shadow-sm transition-colors hover:bg-accent"
+            >
+              <FileText className="h-4 w-4" />
+              Rapor
+            </Link>
             <TargetScoreDialog studentId={studentId} currentTarget={targetScore} />
             <Button asChild>
               <Link href={`/teacher/exams/${studentId}/new`}>

@@ -1,5 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
-import { computeStreak, summarizeWeek, type WeekSummary } from "@/lib/study-log";
+import {
+  aggregateByTopic,
+  computeStreak,
+  summarizeWeek,
+  type TopicBreakdownRow,
+  type WeekSummary,
+} from "@/lib/study-log";
 import { currentWeekStart, todayInIstanbul } from "@/lib/week";
 import type { StudyLog } from "@/lib/types";
 
@@ -38,4 +44,23 @@ export async function getStudentStudySummary(studentId: string): Promise<StudySt
     .reduce((sum, l) => sum + l.minutes, 0);
 
   return { current, best, todayMinutes, week, recent: logs.slice(0, 20) };
+}
+
+/**
+ * Bir öğrencinin TÜM zamanlar ders×konu dökümü: her (ders, konu) kombinasyonu için
+ * toplam dakika, toplam soru sayısı ve oturum sayısı. Öğrenci/öğretmen/veli (RLS)
+ * çağırabilir.
+ */
+export async function getStudyBreakdown(studentId: string): Promise<TopicBreakdownRow[]> {
+  const supabase = await createClient();
+
+  const { data } = await supabase
+    .from("study_log")
+    .select("subject, topic, minutes, question_count")
+    .eq("student_id", studentId)
+    .limit(2000);
+
+  return aggregateByTopic(
+    (data as { subject: string; topic: string | null; minutes: number; question_count: number | null }[]) ?? [],
+  );
 }

@@ -79,3 +79,43 @@ export function summarizeWeek(logs: StudyLogLite[], weekStart: string): WeekSumm
   );
   return { days, minutes, bySubject };
 }
+
+export interface TopicBreakdownRow {
+  subject: string;
+  /** null = konu belirtilmemiş ("Genel çalışma"). */
+  topic: string | null;
+  minutes: number;
+  questions: number;
+  sessions: number;
+}
+
+export interface StudyLogTopicLite {
+  subject: string;
+  topic: string | null;
+  minutes: number;
+  question_count: number | null;
+}
+
+/**
+ * Kayıtları ders + konu anahtarına göre toplar (SAF): toplam dakika, toplam soru
+ * sayısı, kayıt (oturum) sayısı. Konu belirtilmemiş kayıtlar `topic: null` altında
+ * tek grupta toplanır ("Genel çalışma"). Dakikaya göre azalan sıralanır.
+ */
+export function aggregateByTopic(logs: StudyLogTopicLite[]): TopicBreakdownRow[] {
+  const map = new Map<string, TopicBreakdownRow>();
+  for (const l of logs) {
+    const key = `${l.subject}::${l.topic ?? ""}`;
+    const row = map.get(key) ?? {
+      subject: l.subject,
+      topic: l.topic,
+      minutes: 0,
+      questions: 0,
+      sessions: 0,
+    };
+    row.minutes += l.minutes;
+    row.questions += l.question_count ?? 0;
+    row.sessions += 1;
+    map.set(key, row);
+  }
+  return Array.from(map.values()).sort((a, b) => b.minutes - a.minutes);
+}

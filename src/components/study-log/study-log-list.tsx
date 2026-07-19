@@ -91,9 +91,19 @@ export function StudyLogList({
                   <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
                     {l.subject}
                   </span>
+                  {l.topic && (
+                    <span className="shrink-0 truncate text-xs text-muted-foreground">
+                      {l.topic}
+                    </span>
+                  )}
                   <span className="shrink-0 text-sm font-semibold tabular-nums">
                     {l.minutes} dk
                   </span>
+                  {typeof l.question_count === "number" && (
+                    <span className="shrink-0 text-xs text-muted-foreground">
+                      · {l.question_count} soru
+                    </span>
+                  )}
                   {l.note && (
                     <span className="min-w-0 flex-1 truncate text-sm text-muted-foreground">
                       {l.note}
