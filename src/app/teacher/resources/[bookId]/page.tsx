@@ -109,7 +109,9 @@ export default async function TeacherBookDetailPage({
                       className="hover-lift block rounded-2xl border bg-card p-4 shadow-sm transition-colors hover:border-primary/40"
                     >
                       <div className="flex items-center justify-between gap-2">
-                        <p className="min-w-0 truncate font-medium">{student.full_name}</p>
+                        <p className="min-w-0 truncate font-medium">
+                          {student.full_name}
+                        </p>
                         <span className="shrink-0 text-sm font-semibold text-primary">
                           %{percent}
                         </span>

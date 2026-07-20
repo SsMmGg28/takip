@@ -153,14 +153,14 @@ yardımcı yaz.
 
 ## Önerilen Uygulama Sırası
 
-| Sıra | Madde | Tahmini Boyut | Not |
-|------|-------|---------------|-----|
-| 1 | Hata sınırları (P1.1) | Küçük | Hızlı kazanım, kullanıcıya görünür etki |
-| 2 | Yükleme doğrulaması + sessiz hata (P1.2 + P1.3) | Küçük | Aynı dosyalarda, birlikte yapılmalı |
-| 3 | RLS derinlemesine savunma (P1.4) | Küçük | Davranış değişmez, güvence artar |
-| 4 | Migration hijyeni (P2.5) | Orta | Prod şema doğrulaması gerektirir |
-| 5 | CI build adımı (P2.6) | Küçük | |
-| 6 | `requireTeacher` + `postAdmin` (P3.8 + P3.9) | Orta | Test eklemeden önce yapılırsa testler sade olur |
-| 7 | Test genişletme (P2.7) | Büyük | Kademeli ilerletilebilir |
-| 8 | P3.10 küçük düzeltmeler | Küçük | Fırsat buldukça |
-| 9 | P4 maddeleri | Küçük | İsteğe bağlı |
+| Sıra | Madde                                           | Tahmini Boyut | Not                                             |
+| ---- | ----------------------------------------------- | ------------- | ----------------------------------------------- |
+| 1    | Hata sınırları (P1.1)                           | Küçük         | Hızlı kazanım, kullanıcıya görünür etki         |
+| 2    | Yükleme doğrulaması + sessiz hata (P1.2 + P1.3) | Küçük         | Aynı dosyalarda, birlikte yapılmalı             |
+| 3    | RLS derinlemesine savunma (P1.4)                | Küçük         | Davranış değişmez, güvence artar                |
+| 4    | Migration hijyeni (P2.5)                        | Orta          | Prod şema doğrulaması gerektirir                |
+| 5    | CI build adımı (P2.6)                           | Küçük         |                                                 |
+| 6    | `requireTeacher` + `postAdmin` (P3.8 + P3.9)    | Orta          | Test eklemeden önce yapılırsa testler sade olur |
+| 7    | Test genişletme (P2.7)                          | Büyük         | Kademeli ilerletilebilir                        |
+| 8    | P3.10 küçük düzeltmeler                         | Küçük         | Fırsat buldukça                                 |
+| 9    | P4 maddeleri                                    | Küçük         | İsteğe bağlı                                    |

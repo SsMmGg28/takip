@@ -61,7 +61,7 @@ async function buildContext(list: Homework[]): Promise<HomeworkListContext> {
   return {
     items: list.map((h) => ({
       homework: h,
-      book: h.book_id ? bookById.get(h.book_id) ?? null : null,
+      book: h.book_id ? (bookById.get(h.book_id) ?? null) : null,
       tests: (testsByHomework.get(h.id) ?? []).sort(
         (a, b) => a.test_number - b.test_number,
       ),
@@ -70,7 +70,9 @@ async function buildContext(list: Homework[]): Promise<HomeworkListContext> {
   };
 }
 
-export async function getHomeworkForStudent(studentId: string): Promise<HomeworkListContext> {
+export async function getHomeworkForStudent(
+  studentId: string,
+): Promise<HomeworkListContext> {
   const supabase = await createClient();
 
   const { data: homework } = await supabase

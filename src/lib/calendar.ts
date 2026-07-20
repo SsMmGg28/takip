@@ -19,7 +19,10 @@ const RECURRENCE_HORIZON_DAYS = 120;
  * haftalık tekrarlı etkinlik başlangıçtan ufka kadar haftada bir öğe üretir.
  */
 export function expandCalendarEvent(
-  e: Pick<CalendarEvent, "id" | "title" | "description" | "type" | "start_at" | "recurrence">,
+  e: Pick<
+    CalendarEvent,
+    "id" | "title" | "description" | "type" | "start_at" | "recurrence"
+  >,
   titleSuffix = "",
 ): CalendarItem[] {
   const title = titleSuffix ? `${e.title} — ${titleSuffix}` : e.title;
@@ -39,7 +42,11 @@ export function expandCalendarEvent(
   for (let i = 0; ; i++) {
     const occurrence = new Date(start.getTime() + i * 7 * 86_400_000);
     if (occurrence.getTime() > horizon) break;
-    items.push({ id: i === 0 ? e.id : `${e.id}@${i}`, date: occurrence.toISOString(), ...base });
+    items.push({
+      id: i === 0 ? e.id : `${e.id}@${i}`,
+      date: occurrence.toISOString(),
+      ...base,
+    });
   }
   return items;
 }

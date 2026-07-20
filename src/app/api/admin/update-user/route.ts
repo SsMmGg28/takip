@@ -36,7 +36,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Kullanıcı bulunamadı." }, { status: 404 });
   }
   // Öğretmen hesaplarını (kendi hesabı hariç) yalnızca yönetici düzenleyebilir.
-  if (target.role === "teacher" && target.id !== gate.profile.id && !gate.profile.is_admin) {
+  if (
+    target.role === "teacher" &&
+    target.id !== gate.profile.id &&
+    !gate.profile.is_admin
+  ) {
     return NextResponse.json(
       { error: "Öğretmen hesaplarını yalnızca yönetici düzenleyebilir." },
       { status: 403 },
@@ -47,7 +51,10 @@ export async function POST(request: Request) {
   if (full_name !== undefined) profileUpdate.full_name = full_name.trim();
   if (phone !== undefined) profileUpdate.phone = phone?.trim() || null;
   if (Object.keys(profileUpdate).length) {
-    const { error } = await admin.from("profiles").update(profileUpdate).eq("id", user_id);
+    const { error } = await admin
+      .from("profiles")
+      .update(profileUpdate)
+      .eq("id", user_id);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   }
 

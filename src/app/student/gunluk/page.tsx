@@ -20,7 +20,8 @@ export default async function StudentJournalPage() {
   ]);
 
   const catalogSubjects = getBookSubjects(grade ?? 0);
-  const base = catalogSubjects.length > 0 ? catalogSubjects : LGS_SUBJECTS.map((s) => s.name);
+  const base =
+    catalogSubjects.length > 0 ? catalogSubjects : LGS_SUBJECTS.map((s) => s.name);
   const subjects = [...base, "Diğer"];
   const topicsBySubject = Object.fromEntries(
     catalogSubjects.map((s) => [s, getBookUnits(grade ?? 0, s)]),
@@ -55,7 +56,9 @@ export default async function StudentJournalPage() {
             </span>
             <p className="mt-2 text-4xl font-bold tabular-nums">{summary.current}</p>
             <p className="text-sm text-muted-foreground">günlük seri</p>
-            <p className="mt-1 text-xs text-muted-foreground">En iyi: {summary.best} gün</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              En iyi: {summary.best} gün
+            </p>
           </CardContent>
         </Card>
 
@@ -76,7 +79,9 @@ export default async function StudentJournalPage() {
                 <Clock className="h-4 w-4 text-muted-foreground" />
                 <strong className="tabular-nums">{summary.week.minutes}</strong> dk toplam
               </span>
-              <span className="text-muted-foreground">Bugün: {summary.todayMinutes} dk</span>
+              <span className="text-muted-foreground">
+                Bugün: {summary.todayMinutes} dk
+              </span>
             </div>
             {summary.week.bySubject.length > 0 ? (
               <div className="flex flex-col gap-1.5">
@@ -88,10 +93,14 @@ export default async function StudentJournalPage() {
                     <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
                       <div
                         className="gradient-surface h-full rounded-full"
-                        style={{ width: `${Math.round((s.minutes / maxSubjectMinutes) * 100)}%` }}
+                        style={{
+                          width: `${Math.round((s.minutes / maxSubjectMinutes) * 100)}%`,
+                        }}
                       />
                     </div>
-                    <span className="w-12 shrink-0 text-right tabular-nums">{s.minutes} dk</span>
+                    <span className="w-12 shrink-0 text-right tabular-nums">
+                      {s.minutes} dk
+                    </span>
                   </div>
                 ))}
               </div>

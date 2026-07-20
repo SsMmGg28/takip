@@ -23,7 +23,9 @@ export interface Kazanim {
   name: string;
 }
 
-export function examsEnabledForGrade(grade: number | null | undefined): grade is ExamGrade {
+export function examsEnabledForGrade(
+  grade: number | null | undefined,
+): grade is ExamGrade {
   return grade === 7 || grade === 8;
 }
 
@@ -36,7 +38,7 @@ export function examsEnabledForGrade(grade: number | null | undefined): grade is
  */
 export const KAZANIM_KATALOG: Record<ExamGrade, Record<SubjectName, Kazanim[]>> = {
   7: {
-    "Türkçe": [
+    Türkçe: [
       { code: "T7-01", name: "Sözcükte ve Söz Gruplarında Anlam" },
       { code: "T7-02", name: "Deyimler ve Atasözleri" },
       { code: "T7-03", name: "Cümlede Anlam" },
@@ -54,7 +56,7 @@ export const KAZANIM_KATALOG: Record<ExamGrade, Record<SubjectName, Kazanim[]>> 
       { code: "T7-15", name: "Yazım Kuralları" },
       { code: "T7-16", name: "Noktalama İşaretleri" },
     ],
-    "Matematik": [
+    Matematik: [
       { code: "M7-01", name: "Tam Sayılarla İşlemler" },
       { code: "M7-02", name: "Rasyonel Sayılar" },
       { code: "M7-03", name: "Rasyonel Sayılarla İşlemler" },
@@ -94,7 +96,7 @@ export const KAZANIM_KATALOG: Record<ExamGrade, Record<SubjectName, Kazanim[]>> 
       { code: "D7-04", name: "Allah'ın Kulu ve Elçisi: Hz. Muhammed" },
       { code: "D7-05", name: "İslam Düşüncesinde Yorumlar" },
     ],
-    "İngilizce": [
+    İngilizce: [
       { code: "E7-01", name: "Appearance and Personality" },
       { code: "E7-02", name: "Sports" },
       { code: "E7-03", name: "Biographies" },
@@ -108,7 +110,7 @@ export const KAZANIM_KATALOG: Record<ExamGrade, Record<SubjectName, Kazanim[]>> 
     ],
   },
   8: {
-    "Türkçe": [
+    Türkçe: [
       { code: "T8-01", name: "Sözcükte ve Söz Gruplarında Anlam" },
       { code: "T8-02", name: "Deyimler ve Atasözleri" },
       { code: "T8-03", name: "Cümlede Anlam" },
@@ -127,7 +129,7 @@ export const KAZANIM_KATALOG: Record<ExamGrade, Record<SubjectName, Kazanim[]>> 
       { code: "T8-16", name: "Noktalama İşaretleri" },
       { code: "T8-17", name: "Anlatım Bozuklukları" },
     ],
-    "Matematik": [
+    Matematik: [
       { code: "M8-01", name: "Çarpanlar ve Katlar" },
       { code: "M8-02", name: "Üslü İfadeler" },
       { code: "M8-03", name: "Kareköklü İfadeler" },
@@ -175,7 +177,7 @@ export const KAZANIM_KATALOG: Record<ExamGrade, Record<SubjectName, Kazanim[]>> 
       { code: "D8-04", name: "Hz. Muhammed'in Örnekliği" },
       { code: "D8-05", name: "Kur'an-ı Kerim ve Özellikleri" },
     ],
-    "İngilizce": [
+    İngilizce: [
       { code: "E8-01", name: "Friendship" },
       { code: "E8-02", name: "Teen Life" },
       { code: "E8-03", name: "In the Kitchen" },

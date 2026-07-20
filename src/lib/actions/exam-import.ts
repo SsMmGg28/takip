@@ -2,7 +2,12 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { getStudentGrade } from "@/lib/students";
-import { examsEnabledForGrade, getKazanimlar, LGS_SUBJECTS, type ExamGrade } from "@/lib/kazanim";
+import {
+  examsEnabledForGrade,
+  getKazanimlar,
+  LGS_SUBJECTS,
+  type ExamGrade,
+} from "@/lib/kazanim";
 import { callGeminiJson, isGeminiConfigured } from "@/lib/ai/gemini";
 import { normalizeImportedExam, type RawParsedExam } from "@/lib/exams/import-normalize";
 import { PDF_IMAGE_TYPES, resolveMimeType, validateUpload } from "@/lib/uploads";
@@ -14,7 +19,6 @@ export interface ParseExamResult {
   initial?: ExamFormInitial;
   warnings?: string[];
 }
-
 
 // Gemini'nin uyması gereken JSON şeması (OpenAPI alt kümesi). score STRING'dir;
 // Türkçe ondalık ("494,51" / "462,700") normalize katmanında ayrıştırılır.

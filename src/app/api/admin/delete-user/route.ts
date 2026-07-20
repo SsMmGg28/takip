@@ -33,7 +33,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Kullanıcı bulunamadı." }, { status: 404 });
   }
   if (target.role === "teacher") {
-    return NextResponse.json({ error: "Öğretmen hesabı buradan silinemez." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Öğretmen hesabı buradan silinemez." },
+      { status: 400 },
+    );
   }
 
   const teacherId = gate.profile.id;
@@ -43,19 +46,28 @@ export async function POST(request: Request) {
   const reassignments = [
     admin.from("exams").update({ created_by: teacherId }).eq("created_by", user_id),
     admin.from("homework").update({ created_by: teacherId }).eq("created_by", user_id),
-    admin.from("calendar_events").update({ created_by: teacherId }).eq("created_by", user_id),
+    admin
+      .from("calendar_events")
+      .update({ created_by: teacherId })
+      .eq("created_by", user_id),
     admin
       .from("study_schedule_entries")
       .update({ updated_by: teacherId })
       .eq("updated_by", user_id),
-    admin.from("resource_books").update({ created_by: teacherId }).eq("created_by", user_id),
+    admin
+      .from("resource_books")
+      .update({ created_by: teacherId })
+      .eq("created_by", user_id),
     admin.from("resource_books").update({ approved_by: null }).eq("approved_by", user_id),
     admin
       .from("student_test_progress")
       .update({ marked_by: teacherId })
       .eq("marked_by", user_id),
     admin.from("student_books").update({ added_by: teacherId }).eq("added_by", user_id),
-    admin.from("exam_edit_requests").update({ reviewed_by: null }).eq("reviewed_by", user_id),
+    admin
+      .from("exam_edit_requests")
+      .update({ reviewed_by: null })
+      .eq("reviewed_by", user_id),
   ];
   for (const op of reassignments) {
     const { error } = await op;

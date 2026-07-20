@@ -31,7 +31,10 @@ export default async function StudentBookPage({
         title={book.name}
         description={`${book.subject ?? "Genel"} · ${completedCount} / ${totalTests} test tamam (%${percent})`}
         action={
-          <Link href="/student/resources" className="text-sm text-muted-foreground hover:underline">
+          <Link
+            href="/student/resources"
+            className="text-sm text-muted-foreground hover:underline"
+          >
             ← Kitaplığım
           </Link>
         }

@@ -19,9 +19,7 @@ function weak(o: Partial<WeakKazanim>): WeakKazanim {
   };
 }
 
-function cand(
-  o: Partial<CandidateSection> & { sectionId: string },
-): CandidateSection {
+function cand(o: Partial<CandidateSection> & { sectionId: string }): CandidateSection {
   return {
     sectionId: o.sectionId,
     sectionName: o.sectionName ?? `Bölüm ${o.sectionId}`,
@@ -57,7 +55,8 @@ describe("targetDifficulty", () => {
   it("başarı 0.0 → 1★", () => expect(targetDifficulty(0)).toBe(1));
   it("başarı 0.5 → 3★", () => expect(targetDifficulty(0.5)).toBe(3));
   it("başarı 0.9 (1 yanlış/10) → 5★ (zor)", () => expect(targetDifficulty(0.9)).toBe(5));
-  it("başarı 0.2 (8 yanlış/10) → 2★ (kolay)", () => expect(targetDifficulty(0.2)).toBe(2));
+  it("başarı 0.2 (8 yanlış/10) → 2★ (kolay)", () =>
+    expect(targetDifficulty(0.2)).toBe(2));
 });
 
 describe("pickRecommendation", () => {

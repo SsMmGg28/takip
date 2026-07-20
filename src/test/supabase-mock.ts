@@ -38,7 +38,9 @@ export interface SupabaseMockHandle {
   storageCalls: RecordedStorageCall[];
 }
 
-export function createSupabaseMock(options: SupabaseMockOptions = {}): SupabaseMockHandle {
+export function createSupabaseMock(
+  options: SupabaseMockOptions = {},
+): SupabaseMockHandle {
   const queries: RecordedQuery[] = [];
   const storageCalls: RecordedStorageCall[] = [];
   const queues = new Map<string, MockResult[]>();
@@ -58,7 +60,20 @@ export function createSupabaseMock(options: SupabaseMockOptions = {}): SupabaseM
         record.filters.push([name, ...args]);
         return builder;
       };
-    for (const m of ["eq", "neq", "in", "is", "not", "gte", "lte", "gt", "lt", "order", "limit", "range"]) {
+    for (const m of [
+      "eq",
+      "neq",
+      "in",
+      "is",
+      "not",
+      "gte",
+      "lte",
+      "gt",
+      "lt",
+      "order",
+      "limit",
+      "range",
+    ]) {
       builder[m] = chainMethod(m);
     }
     builder.select = (...args: unknown[]) => {
@@ -95,10 +110,10 @@ export function createSupabaseMock(options: SupabaseMockOptions = {}): SupabaseM
     ) => {
       const queue = queues.get(table);
       const result = queue?.length ? queue.shift()! : {};
-      return Promise.resolve({ data: result.data ?? null, error: result.error ?? null }).then(
-        resolve,
-        reject,
-      );
+      return Promise.resolve({
+        data: result.data ?? null,
+        error: result.error ?? null,
+      }).then(resolve, reject);
     };
     return builder;
   }

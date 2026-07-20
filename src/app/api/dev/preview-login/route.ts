@@ -46,7 +46,10 @@ export async function GET(request: Request) {
   });
   if (error) {
     return NextResponse.json(
-      { error: "Önizleme girişi başarısız. 'node --env-file=.env.local scripts/seed-preview.mjs' çalıştırıldı mı?" },
+      {
+        error:
+          "Önizleme girişi başarısız. 'node --env-file=.env.local scripts/seed-preview.mjs' çalıştırıldı mı?",
+      },
       { status: 500 },
     );
   }

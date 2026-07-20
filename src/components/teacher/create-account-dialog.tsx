@@ -31,7 +31,9 @@ export function CreateAccountDialog({ students }: { students: Profile[] }) {
   const [parentOf, setParentOf] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<{ username: string; tempPassword: string } | null>(null);
+  const [result, setResult] = useState<{ username: string; tempPassword: string } | null>(
+    null,
+  );
 
   function resetForm() {
     setFullName("");
@@ -56,12 +58,15 @@ export function CreateAccountDialog({ students }: { students: Profile[] }) {
     }
 
     setLoading(true);
-    const res = await postAdmin<{ username: string; tempPassword: string }>("create-user", {
-      full_name: fullName,
-      role,
-      grade_level: gradeLevel ? Number(gradeLevel) : undefined,
-      parent_of: role === "parent" ? parentOf : undefined,
-    });
+    const res = await postAdmin<{ username: string; tempPassword: string }>(
+      "create-user",
+      {
+        full_name: fullName,
+        role,
+        grade_level: gradeLevel ? Number(gradeLevel) : undefined,
+        parent_of: role === "parent" ? parentOf : undefined,
+      },
+    );
     setLoading(false);
 
     if (!res.ok) {
@@ -109,7 +114,10 @@ export function CreateAccountDialog({ students }: { students: Profile[] }) {
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div className="flex flex-col gap-2">
               <Label>Hesap türü</Label>
-              <Select value={role} onValueChange={(v) => setRole(v as "student" | "parent")}>
+              <Select
+                value={role}
+                onValueChange={(v) => setRole(v as "student" | "parent")}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>

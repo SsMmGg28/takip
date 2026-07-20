@@ -91,11 +91,19 @@ export function StudyLogForm({
 
         <div className="flex flex-col gap-2">
           <Label>Konu (opsiyonel)</Label>
-          <Select value={topic} onValueChange={setTopic} disabled={!subject || topics.length === 0}>
+          <Select
+            value={topic}
+            onValueChange={setTopic}
+            disabled={!subject || topics.length === 0}
+          >
             <SelectTrigger className="w-full bg-background">
               <SelectValue
                 placeholder={
-                  !subject ? "Önce ders seç" : topics.length === 0 ? "Konu yok" : "Konu seç"
+                  !subject
+                    ? "Önce ders seç"
+                    : topics.length === 0
+                      ? "Konu yok"
+                      : "Konu seç"
                 }
               />
             </SelectTrigger>

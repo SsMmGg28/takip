@@ -63,8 +63,8 @@ export function ResetPasswordButton({ profileId }: { profileId: string }) {
         ) : (
           <div className="flex flex-col gap-3">
             <p className="text-sm">
-              Bu kullanıcı için yeni bir geçici şifre oluşturulacak ve bir sonraki girişte şifre
-              değiştirmesi zorunlu olacak. Onaylıyor musun?
+              Bu kullanıcı için yeni bir geçici şifre oluşturulacak ve bir sonraki girişte
+              şifre değiştirmesi zorunlu olacak. Onaylıyor musun?
             </p>
             {error && <p className="text-sm text-destructive">{error}</p>}
             <Button onClick={handleReset} disabled={loading}>

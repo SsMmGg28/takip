@@ -56,7 +56,7 @@ const FEATURES = [
     icon: Calendar,
     title: "Ortak Takvim",
     description:
-      "Takvim menüsünde ders saatleri ve hatırlatmalar görünür. Öğretmen \"Yeni Etkinlik Ekle\" ile ders saati veya genel hatırlatma oluşturur; öğrenciye özel etkinlik yalnızca o öğrenciye ve velisine görünür.",
+      'Takvim menüsünde ders saatleri ve hatırlatmalar görünür. Öğretmen "Yeni Etkinlik Ekle" ile ders saati veya genel hatırlatma oluşturur; öğrenciye özel etkinlik yalnızca o öğrenciye ve velisine görünür.',
   },
   {
     icon: CalendarClock,
@@ -164,24 +164,22 @@ export default function LandingPage() {
       <section className="mx-auto max-w-6xl px-4 pb-16 pt-16 text-center sm:pb-24 sm:pt-24">
         <div className="animate-fade-up mx-auto mb-6 flex w-fit items-center gap-2 rounded-full border bg-card/60 px-4 py-1.5 text-sm shadow-sm">
           <Users className="h-4 w-4 text-primary" />
-          <span className="text-muted-foreground">
-            Öğretmen · Öğrenci · Veli paneli
-          </span>
+          <span className="text-muted-foreground">Öğretmen · Öğrenci · Veli paneli</span>
         </div>
         <h1
           className="animate-fade-up mx-auto max-w-3xl text-4xl font-extrabold leading-tight tracking-tight sm:text-6xl"
           style={{ animationDelay: "80ms" }}
         >
-          <span className="gradient-text animate-gradient">Ders Takip</span>{" "}
-          nasıl kullanılır?
+          <span className="gradient-text animate-gradient">Ders Takip</span> nasıl
+          kullanılır?
         </h1>
         <p
           className="animate-fade-up mx-auto mt-6 max-w-2xl text-base text-muted-foreground sm:text-lg"
           style={{ animationDelay: "160ms" }}
         >
-          Bu sitede ödevlerini, kaynak kitaplarını, ders takvimini, haftalık
-          çalışma programını ve deneme sonuçlarını takip edersin. Aşağıda her
-          bölümün ne işe yaradığını ve adım adım nasıl kullanıldığını bulacaksın.
+          Bu sitede ödevlerini, kaynak kitaplarını, ders takvimini, haftalık çalışma
+          programını ve deneme sonuçlarını takip edersin. Aşağıda her bölümün ne işe
+          yaradığını ve adım adım nasıl kullanıldığını bulacaksın.
         </p>
         <div
           className="animate-fade-up mt-8 flex flex-wrap items-center justify-center gap-3"
@@ -233,8 +231,8 @@ export default function LandingPage() {
             Üç adımda <span className="gradient-text">başla</span>
           </h2>
           <p className="mt-3 text-muted-foreground">
-            Siteye kayıt olma adımı yoktur; hesabını öğretmenin oluşturur ve
-            bilgilerini seninle paylaşır.
+            Siteye kayıt olma adımı yoktur; hesabını öğretmenin oluşturur ve bilgilerini
+            seninle paylaşır.
           </p>
         </Reveal>
         <div className="grid gap-5 sm:grid-cols-3">
@@ -255,15 +253,17 @@ export default function LandingPage() {
       </section>
 
       {/* Bölümler ve kullanımları */}
-      <section id="bolumler" className="mx-auto max-w-6xl scroll-mt-20 px-4 pb-20 sm:pb-28">
+      <section
+        id="bolumler"
+        className="mx-auto max-w-6xl scroll-mt-20 px-4 pb-20 sm:pb-28"
+      >
         <Reveal className="mx-auto mb-12 max-w-2xl text-center">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Sitedeki <span className="gradient-text">bölümler</span> ve
-            kullanımları
+            Sitedeki <span className="gradient-text">bölümler</span> ve kullanımları
           </h2>
           <p className="mt-3 text-muted-foreground">
-            Menüde gördüğün her bölümün ne işe yaradığı ve içinde neler
-            yapabileceğin aşağıda açıklanıyor.
+            Menüde gördüğün her bölümün ne işe yaradığı ve içinde neler yapabileceğin
+            aşağıda açıklanıyor.
           </p>
         </Reveal>
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -293,8 +293,8 @@ export default function LandingPage() {
             Rolüne göre <span className="gradient-text">adım adım</span> kullanım
           </h2>
           <p className="mt-3 text-muted-foreground">
-            Giriş yaptığında sistem seni rolüne uygun panele yönlendirir.
-            Aşağıdaki adımlar kendi panelinde izleyeceğin sırayı gösterir.
+            Giriş yaptığında sistem seni rolüne uygun panele yönlendirir. Aşağıdaki
+            adımlar kendi panelinde izleyeceğin sırayı gösterir.
           </p>
         </Reveal>
         <div className="grid gap-5 lg:grid-cols-3">
@@ -335,8 +335,8 @@ export default function LandingPage() {
               Kullanmaya başlamak için giriş yap
             </h2>
             <p className="mx-auto mt-3 max-w-xl text-white/85">
-              Öğretmeninden aldığın kullanıcı adı ve şifreyle oturum aç. Şifreni
-              unutursan yeni şifreni yine öğretmenin oluşturur.
+              Öğretmeninden aldığın kullanıcı adı ve şifreyle oturum aç. Şifreni unutursan
+              yeni şifreni yine öğretmenin oluşturur.
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
               <Button
@@ -363,8 +363,8 @@ export default function LandingPage() {
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 py-8 text-center sm:flex-row sm:text-left">
           <Brand size="sm" />
           <p className="text-xs text-muted-foreground">
-            Ders Takip — ödev, kaynak, takvim, çalışma programı ve deneme
-            analizi tek panelde.
+            Ders Takip — ödev, kaynak, takvim, çalışma programı ve deneme analizi tek
+            panelde.
           </p>
         </div>
       </footer>

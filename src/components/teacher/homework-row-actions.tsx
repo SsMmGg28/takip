@@ -51,9 +51,7 @@ export function ReassignMissingButton({
             setPending(true);
             try {
               await reassignMissingTests(formData);
-              toast.success(
-                `${missingCount} eksik test yeni ödev olarak gönderildi.`,
-              );
+              toast.success(`${missingCount} eksik test yeni ödev olarak gönderildi.`);
               setOpen(false);
             } catch (e) {
               toast.error(e instanceof Error ? e.message : "Bir hata oluştu.");
@@ -65,8 +63,8 @@ export function ReassignMissingButton({
         >
           <p className="text-sm text-muted-foreground">
             Yapılmayan <strong>{missingCount} test</strong>, aynı öğrenciye
-            &quot;Eksikler&quot; başlıklı yeni bir ödev olarak gönderilecek ve
-            bildirim düşecek.
+            &quot;Eksikler&quot; başlıklı yeni bir ödev olarak gönderilecek ve bildirim
+            düşecek.
           </p>
           <div className="flex flex-col gap-2">
             <Label htmlFor="reassign-due">Yeni teslim tarihi (opsiyonel)</Label>

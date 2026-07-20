@@ -10,11 +10,7 @@ export default async function TeacherCalendarPage() {
   const supabase = await createClient();
 
   const [{ data: students }, { data: events }, { data: homework }] = await Promise.all([
-    supabase
-      .from("profiles")
-      .select("*")
-      .eq("role", "student")
-      .order("full_name"),
+    supabase.from("profiles").select("*").eq("role", "student").order("full_name"),
     supabase.from("calendar_events").select("*").order("start_at", { ascending: true }),
     supabase
       .from("homework")
@@ -29,9 +25,7 @@ export default async function TeacherCalendarPage() {
   const eventList = (events as CalendarEvent[] | null) ?? [];
   const items: CalendarItem[] = [];
   for (const e of eventList) {
-    const studentLabel = e.student_id
-      ? studentNameById.get(e.student_id) ?? ""
-      : "";
+    const studentLabel = e.student_id ? (studentNameById.get(e.student_id) ?? "") : "";
     items.push(...expandCalendarEvent(e, studentLabel));
   }
   for (const h of homework ?? []) {

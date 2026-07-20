@@ -42,7 +42,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: updateError.message }, { status: 500 });
   }
 
-  await admin.from("profiles").update({ must_change_password: true }).eq("id", profile_id);
+  await admin
+    .from("profiles")
+    .update({ must_change_password: true })
+    .eq("id", profile_id);
 
   return NextResponse.json({ tempPassword });
 }

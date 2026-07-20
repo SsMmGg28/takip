@@ -57,8 +57,8 @@ export function BugReportDialog() {
         </DialogHeader>
         <form onSubmit={submit} className="flex flex-col gap-4">
           <p className="text-sm text-muted-foreground">
-            Karşılaştığın sorunu kısaca anlat; bildirimin öğretmene ve sistem
-            yöneticisine anında iletilir.
+            Karşılaştığın sorunu kısaca anlat; bildirimin öğretmene ve sistem yöneticisine
+            anında iletilir.
           </p>
           <div className="flex flex-col gap-2">
             <Label htmlFor="bug-description">Sorunun açıklaması</Label>

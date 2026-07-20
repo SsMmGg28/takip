@@ -35,7 +35,8 @@ export default async function TeacherStudentsPage() {
   ]);
 
   const studentList = (
-    (students as (Profile & { student_profiles: { grade_level: number | null } | null })[] | null) ??
+    (students as
+      (Profile & { student_profiles: { grade_level: number | null } | null })[] | null) ??
     []
   ).map(({ student_profiles, ...s }) => ({
     ...(s as Profile),
@@ -73,11 +74,16 @@ export default async function TeacherStudentsPage() {
                   {studentList.map((s) => (
                     <TableRow key={s.id}>
                       <TableCell className="font-medium">
-                        <Link href={`/teacher/students/${s.id}`} className="hover:underline">
+                        <Link
+                          href={`/teacher/students/${s.id}`}
+                          className="hover:underline"
+                        >
                           {s.full_name}
                         </Link>
                       </TableCell>
-                      <TableCell className="text-muted-foreground">{s.username}</TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {s.username}
+                      </TableCell>
                       <TableCell className="text-muted-foreground">
                         {s.grade_level ? `${s.grade_level}. sınıf` : "—"}
                       </TableCell>
@@ -148,7 +154,9 @@ export default async function TeacherStudentsPage() {
                     return (
                       <TableRow key={p.id}>
                         <TableCell className="font-medium">{p.full_name}</TableCell>
-                        <TableCell className="text-muted-foreground">{p.username}</TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {p.username}
+                        </TableCell>
                         <TableCell>
                           {linkedStudents.map((s) => s.fullName).join(", ") || "—"}
                         </TableCell>

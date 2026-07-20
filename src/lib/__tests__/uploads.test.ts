@@ -33,7 +33,9 @@ describe("sanitizeFileName", () => {
 
 describe("resolveMimeType", () => {
   it("file.type doluysa onu döner", () => {
-    expect(resolveMimeType({ name: "x.bin", type: "application/pdf" })).toBe("application/pdf");
+    expect(resolveMimeType({ name: "x.bin", type: "application/pdf" })).toBe(
+      "application/pdf",
+    );
   });
   it("boş type'ta uzantıdan çözer", () => {
     expect(resolveMimeType({ name: "x.docx", type: "" })).toBe(
@@ -67,16 +69,28 @@ describe("validateUpload", () => {
     expect(err).toContain("Desteklenmeyen dosya türü");
   });
   it("boş type + docx uzantısı ATTACHMENT_TYPES ile geçer", () => {
-    expect(validateUpload({ name: "a.docx", size: 10, type: "" }, { accepted: ATTACHMENT_TYPES })).toBeNull();
+    expect(
+      validateUpload(
+        { name: "a.docx", size: 10, type: "" },
+        { accepted: ATTACHMENT_TYPES },
+      ),
+    ).toBeNull();
   });
   it("boş type + bilinmeyen uzantı reddedilir", () => {
     expect(
-      validateUpload({ name: "a.xyz", size: 10, type: "" }, { accepted: ATTACHMENT_TYPES }),
+      validateUpload(
+        { name: "a.xyz", size: 10, type: "" },
+        { accepted: ATTACHMENT_TYPES },
+      ),
     ).toContain("Desteklenmeyen dosya türü");
   });
   it("Word türü yalnızca görsel kabul eden kümede reddedilir", () => {
     const err = validateUpload(
-      { name: "a.docx", size: 10, type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" },
+      {
+        name: "a.docx",
+        size: 10,
+        type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      },
       { accepted: PDF_IMAGE_TYPES, typesLabel: "PDF veya görsel" },
     );
     expect(err).toContain("PDF veya görsel");

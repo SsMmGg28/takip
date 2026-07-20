@@ -79,7 +79,13 @@ describe("aggregateByTopic", () => {
       { subject: "Matematik", topic: "Üslü İfadeler", minutes: 20, question_count: 15 },
     ]);
     expect(rows).toEqual([
-      { subject: "Matematik", topic: "Üslü İfadeler", minutes: 50, questions: 25, sessions: 2 },
+      {
+        subject: "Matematik",
+        topic: "Üslü İfadeler",
+        minutes: 50,
+        questions: 25,
+        sessions: 2,
+      },
     ]);
   });
 
@@ -107,7 +113,11 @@ describe("aggregateByTopic", () => {
       { subject: "Matematik", topic: null, minutes: 20, question_count: null },
     ]);
     expect(rows).toHaveLength(3);
-    expect(rows[0]).toMatchObject({ subject: "Matematik", topic: "Üçgenler", minutes: 40 });
+    expect(rows[0]).toMatchObject({
+      subject: "Matematik",
+      topic: "Üçgenler",
+      minutes: 40,
+    });
     expect(rows[1]).toMatchObject({ subject: "Matematik", topic: null, minutes: 20 });
     expect(rows[2]).toMatchObject({ subject: "Türkçe", topic: "Paragraf", minutes: 10 });
   });

@@ -18,7 +18,11 @@ function revalidateHomeworkPaths(studentIds: string[]) {
 
 async function notifyHomeworkAudience(
   studentIds: string[],
-  payload: { type: "homework_assigned" | "homework_updated"; title: string; body?: string },
+  payload: {
+    type: "homework_assigned" | "homework_updated";
+    title: string;
+    body?: string;
+  },
 ) {
   const parentsByStudent = await getParentIdsByStudent(studentIds);
   const parentIds = studentIds.flatMap((id) => parentsByStudent.get(id) ?? []);
@@ -77,11 +81,11 @@ export async function createHomework(formData: FormData) {
   if (error || !rows?.length) throw new Error(error?.message ?? "Ödev oluşturulamadı.");
 
   if (testEntries.length) {
-    const { error: testError } = await supabase.from("homework_tests").insert(
-      rows.flatMap((hw) =>
-        testEntries.map((t) => ({ homework_id: hw.id, ...t })),
-      ),
-    );
+    const { error: testError } = await supabase
+      .from("homework_tests")
+      .insert(
+        rows.flatMap((hw) => testEntries.map((t) => ({ homework_id: hw.id, ...t }))),
+      );
     if (testError) throw new Error(testError.message);
   }
 
@@ -385,7 +389,10 @@ export async function reassignMissingTests(formData: FormData) {
   revalidateHomeworkPaths([hw.student_id]);
 }
 
-async function removeAttachmentIfOrphan(attachmentPath: string | null, excludeIds: string[]) {
+async function removeAttachmentIfOrphan(
+  attachmentPath: string | null,
+  excludeIds: string[],
+) {
   if (!attachmentPath) return;
   const supabase = await createClient();
   const { data: others } = await supabase

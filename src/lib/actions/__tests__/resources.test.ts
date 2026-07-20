@@ -70,7 +70,9 @@ describe("withdrawPendingBook", () => {
 
   it("oturum yoksa hiç sorgu atmadan fırlatır", async () => {
     mocks.handle = createSupabaseMock({ user: null });
-    await expect(withdrawPendingBook(form({ id: "book-1" }))).rejects.toThrow("Yetkisiz.");
+    await expect(withdrawPendingBook(form({ id: "book-1" }))).rejects.toThrow(
+      "Yetkisiz.",
+    );
     expect(mocks.handle.queries).toHaveLength(0);
   });
 });
@@ -91,7 +93,9 @@ describe("rejectBook", () => {
     mocks.handle = createSupabaseMock({
       user: { id: "teacher-1" },
       results: {
-        resource_books: [{ data: { id: "book-1", name: "Kitap", created_by: "p1", approved: true } }],
+        resource_books: [
+          { data: { id: "book-1", name: "Kitap", created_by: "p1", approved: true } },
+        ],
       },
     });
     await expect(rejectBook(form({ id: "book-1" }))).rejects.toThrow(
@@ -104,7 +108,14 @@ describe("rejectBook", () => {
       user: { id: "teacher-1" },
       results: {
         resource_books: [
-          { data: { id: "book-1", name: "Deneme Bankası", created_by: "parent-9", approved: false } },
+          {
+            data: {
+              id: "book-1",
+              name: "Deneme Bankası",
+              created_by: "parent-9",
+              approved: false,
+            },
+          },
           { data: null },
         ],
       },
@@ -154,8 +165,8 @@ describe("addBookToShelf", () => {
         student_books: [{ error: { message: "check ihlali", code: "23514" } }],
       },
     });
-    await expect(addBookToShelf(form({ student_id: "s1", book_id: "b1" }))).rejects.toThrow(
-      "check ihlali",
-    );
+    await expect(
+      addBookToShelf(form({ student_id: "s1", book_id: "b1" })),
+    ).rejects.toThrow("check ihlali");
   });
 });

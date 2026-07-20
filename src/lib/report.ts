@@ -21,13 +21,23 @@ export interface StudentReport {
   student: { id: string; fullName: string; grade: number | null };
   targetScore: number | null;
   range: { from: string; to: string };
-  exams: { id: string; name: string; date: string; totalNet: number; score: number | null }[];
+  exams: {
+    id: string;
+    name: string;
+    date: string;
+    totalNet: number;
+    score: number | null;
+  }[];
   examCount: number;
   avgScore: number | null;
   avgNet: number | null;
   chartRows: ExamChartRow[];
   weakest: KazanimStat[];
-  projection: { puanPerNet: number | null; gapToTarget: number | null; netNeeded: number | null };
+  projection: {
+    puanPerNet: number | null;
+    gapToTarget: number | null;
+    netNeeded: number | null;
+  };
   books: { name: string; done: number; total: number }[];
   homework: { total: number; byStatus: Record<HomeworkStatus, number> };
 }
@@ -49,29 +59,34 @@ export async function getStudentReport(
   type ExamRow = Exam & {
     exam_subjects: (ExamSubject & { exam_kazanim_results: ExamKazanimResult[] })[];
   };
-  const [{ data: studentRow }, { grade, targetScore }, shelf, { data: hwData }, { data: examsData }] =
-    await Promise.all([
-      supabase.from("profiles").select("id, full_name").eq("id", studentId).single(),
-      getStudentExamInfo(studentId),
-      getStudentShelf(studentId),
-      supabase
-        .from("homework")
-        .select("status, due_date")
-        .eq("student_id", studentId)
-        .gte("due_date", range.from)
-        .lte("due_date", range.to),
-      supabase
-        .from("exams")
-        .select("*, exam_subjects(*, exam_kazanim_results(*))")
-        .eq("student_id", studentId)
-        .gte("exam_date", range.from)
-        .lte("exam_date", range.to)
-        .order("exam_date", { ascending: false })
-        .order("created_at", { ascending: false }),
-    ]);
+  const [
+    { data: studentRow },
+    { grade, targetScore },
+    shelf,
+    { data: hwData },
+    { data: examsData },
+  ] = await Promise.all([
+    supabase.from("profiles").select("id, full_name").eq("id", studentId).single(),
+    getStudentExamInfo(studentId),
+    getStudentShelf(studentId),
+    supabase
+      .from("homework")
+      .select("status, due_date")
+      .eq("student_id", studentId)
+      .gte("due_date", range.from)
+      .lte("due_date", range.to),
+    supabase
+      .from("exams")
+      .select("*, exam_subjects(*, exam_kazanim_results(*))")
+      .eq("student_id", studentId)
+      .gte("exam_date", range.from)
+      .lte("exam_date", range.to)
+      .order("exam_date", { ascending: false })
+      .order("created_at", { ascending: false }),
+  ]);
   if (!studentRow) return null;
 
-  const examsRaw = ((examsData as unknown as ExamRow[] | null) ?? []);
+  const examsRaw = (examsData as unknown as ExamRow[] | null) ?? [];
 
   const exams = examsRaw.map((e) => {
     const net = e.exam_subjects.reduce(
@@ -121,7 +136,9 @@ export async function getStudentReport(
     .slice(0, 8);
 
   // Projeksiyon (kişiye özel net→puan).
-  const fit = fitScorePerNet(exams.map((e) => ({ totalNet: e.totalNet, score: e.score })));
+  const fit = fitScorePerNet(
+    exams.map((e) => ({ totalNet: e.totalNet, score: e.score })),
+  );
   const puanPerNet = fit?.a ?? null;
   const latestScore = exams[0]?.score ?? null;
   const gapToTarget =
@@ -134,10 +151,14 @@ export async function getStudentReport(
       : null;
 
   // Kitaplık (güncel snapshot).
-  const books = shelf.map((b) => ({ name: b.name, done: b.completedCount, total: b.totalTests }));
+  const books = shelf.map((b) => ({
+    name: b.name,
+    done: b.completedCount,
+    total: b.totalTests,
+  }));
 
   // Ödevler (due_date aralığına göre).
-  const hw = ((hwData as Pick<Homework, "status" | "due_date">[] | null) ?? []);
+  const hw = (hwData as Pick<Homework, "status" | "due_date">[] | null) ?? [];
   const byStatus: Record<HomeworkStatus, number> = {
     assigned: 0,
     completed: 0,

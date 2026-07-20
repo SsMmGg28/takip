@@ -53,10 +53,7 @@ export function DashboardSidebar({
         collapsed ? "w-16" : "w-56",
       )}
     >
-      <nav
-        className="sticky top-24 flex flex-col gap-1"
-        aria-label="Ana menü"
-      >
+      <nav className="sticky top-24 flex flex-col gap-1" aria-label="Ana menü">
         {links.map((link) => {
           const Icon = link.icon;
           const active = isActive(link.href);

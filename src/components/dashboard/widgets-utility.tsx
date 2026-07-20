@@ -2,14 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import {
-  Coffee,
-  Pause,
-  Pencil,
-  Play,
-  RefreshCw,
-  RotateCcw,
-} from "lucide-react";
+import { Coffee, Pause, Pencil, Play, RefreshCw, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LINKS_BY_ROLE } from "@/components/dashboard-nav";
 import { useLocalStorageValue, useNow } from "@/components/dashboard/hooks";
@@ -51,13 +44,25 @@ export function ClockWidget({ h }: WidgetProps) {
 // ─── Günün Sözü ──────────────────────────────────────────────────────────────
 
 const QUOTES: { text: string; author: string }[] = [
-  { text: "Başarı, her gün tekrarlanan küçük çabaların toplamıdır.", author: "R. Collier" },
-  { text: "Bir şeyi gerçekten öğrenmek istiyorsan, onu başkasına anlat.", author: "R. Feynman" },
+  {
+    text: "Başarı, her gün tekrarlanan küçük çabaların toplamıdır.",
+    author: "R. Collier",
+  },
+  {
+    text: "Bir şeyi gerçekten öğrenmek istiyorsan, onu başkasına anlat.",
+    author: "R. Feynman",
+  },
   { text: "Zor olan başlamaktır; gerisi kendiliğinden gelir.", author: "Sallust" },
-  { text: "Eğitim, dünyayı değiştirmek için kullanabileceğin en güçlü silahtır.", author: "N. Mandela" },
+  {
+    text: "Eğitim, dünyayı değiştirmek için kullanabileceğin en güçlü silahtır.",
+    author: "N. Mandela",
+  },
   { text: "Şimdi yeni şeyler söylemek lazım.", author: "Mevlânâ" },
   { text: "Deha; yüzde bir ilham, yüzde doksan dokuz terdir.", author: "T. Edison" },
-  { text: "Hata yapmayan insan, genellikle hiçbir şey yapmayan insandır.", author: "T. Roosevelt" },
+  {
+    text: "Hata yapmayan insan, genellikle hiçbir şey yapmayan insandır.",
+    author: "T. Roosevelt",
+  },
   { text: "Bugün yapabileceklerini yarına bırakma.", author: "B. Franklin" },
   { text: "Küçük adımlar da ileri gidildiği sürece büyüktür.", author: "Anonim" },
   { text: "Disiplin, hedefler ile başarı arasındaki köprüdür.", author: "J. Rohn" },
@@ -136,7 +141,11 @@ export function PomodoroWidget({ h }: WidgetProps) {
 
   function reset(minutes = workMinutes) {
     setRunning(false);
-    setState((prev) => ({ phase: "work", secondsLeft: minutes * 60, cycles: prev.cycles }));
+    setState((prev) => ({
+      phase: "work",
+      secondsLeft: minutes * 60,
+      cycles: prev.cycles,
+    }));
   }
 
   const total = (state.phase === "work" ? workMinutes : BREAK_MINUTES) * 60;
@@ -150,7 +159,14 @@ export function PomodoroWidget({ h }: WidgetProps) {
     <div className="flex h-full flex-col items-center justify-center gap-2">
       <div className="relative flex items-center justify-center">
         <svg width="92" height="92" viewBox="0 0 92 92" className="-rotate-90">
-          <circle cx="46" cy="46" r={R} fill="none" strokeWidth="6" className="stroke-muted" />
+          <circle
+            cx="46"
+            cy="46"
+            r={R}
+            fill="none"
+            strokeWidth="6"
+            className="stroke-muted"
+          />
           <circle
             cx="46"
             cy="46"
@@ -243,9 +259,7 @@ export function NotesWidget({ data }: WidgetProps) {
         placeholder="Aklındakileri buraya yaz…"
         className="min-h-0 w-full flex-1 resize-none rounded-xl border bg-muted/30 p-3 text-sm leading-relaxed outline-none placeholder:text-muted-foreground/70 focus:border-ring"
       />
-      <p className="self-end text-[10px] text-muted-foreground/70">
-        Bu cihazda saklanır
-      </p>
+      <p className="self-end text-[10px] text-muted-foreground/70">Bu cihazda saklanır</p>
     </div>
   );
 }
@@ -345,7 +359,11 @@ export function CountdownWidget({ data }: WidgetProps) {
         </p>
       )}
       <p className="text-xs text-muted-foreground">
-        {target.toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" })}
+        {target.toLocaleDateString("tr-TR", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        })}
       </p>
     </div>
   );

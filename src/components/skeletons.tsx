@@ -14,7 +14,13 @@ export function PageHeaderSkeleton({ withAction = false }: { withAction?: boolea
   );
 }
 
-export function CardListSkeleton({ count = 3, height = "h-32" }: { count?: number; height?: string }) {
+export function CardListSkeleton({
+  count = 3,
+  height = "h-32",
+}: {
+  count?: number;
+  height?: string;
+}) {
   return (
     <div className="flex flex-col gap-3">
       {Array.from({ length: count }).map((_, i) => (

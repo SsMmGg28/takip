@@ -107,10 +107,7 @@ export function PushNotificationToggle() {
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY!),
       });
-      await savePushSubscription(
-        JSON.parse(JSON.stringify(sub)),
-        navigator.userAgent,
-      );
+      await savePushSubscription(JSON.parse(JSON.stringify(sub)), navigator.userAgent);
       setState("on");
       toast.success("Telefon bildirimleri açıldı 🎉");
     } catch (err) {
@@ -145,9 +142,7 @@ export function PushNotificationToggle() {
         <Smartphone className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
         <p className="text-xs leading-snug text-muted-foreground">
           Kilit ekranı bildirimleri için siteyi önce{" "}
-          <span className="font-medium text-foreground">
-            Paylaş → Ana Ekrana Ekle
-          </span>{" "}
+          <span className="font-medium text-foreground">Paylaş → Ana Ekrana Ekle</span>{" "}
           ile yükle, sonra uygulamadan bu düğmeyi aç.
         </p>
       </div>
@@ -159,8 +154,8 @@ export function PushNotificationToggle() {
       <div className="flex items-start gap-2.5 border-t bg-muted/40 px-4 py-3">
         <BellRing className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
         <p className="text-xs leading-snug text-muted-foreground">
-          Bildirim izni engellenmiş. Telefon bildirimleri için tarayıcı
-          ayarlarından bu siteye izin ver.
+          Bildirim izni engellenmiş. Telefon bildirimleri için tarayıcı ayarlarından bu
+          siteye izin ver.
         </p>
       </div>
     );

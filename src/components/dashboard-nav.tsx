@@ -41,29 +41,84 @@ export const LINKS_BY_ROLE: Record<Role, NavLinkDef[]> = {
     { href: "/teacher/homework", label: "Ödevler", icon: ClipboardList },
     { href: "/teacher/resources", label: "Kütüphane", icon: BookOpen },
     { href: "/teacher/calendar", label: "Takvim", icon: Calendar },
-    { href: "/teacher/exams", label: "Deneme Analizi", shortLabel: "Deneme", icon: LineChart },
-    { href: "/teacher/announcements", label: "Duyurular", shortLabel: "Duyuru", icon: Megaphone },
-    { href: "/teacher/profile", label: "Profilim", shortLabel: "Profil", icon: UserRound },
+    {
+      href: "/teacher/exams",
+      label: "Deneme Analizi",
+      shortLabel: "Deneme",
+      icon: LineChart,
+    },
+    {
+      href: "/teacher/announcements",
+      label: "Duyurular",
+      shortLabel: "Duyuru",
+      icon: Megaphone,
+    },
+    {
+      href: "/teacher/profile",
+      label: "Profilim",
+      shortLabel: "Profil",
+      icon: UserRound,
+    },
   ],
   student: [
     { href: "/student", label: "Anasayfa", icon: LayoutDashboard },
     { href: "/student/homework", label: "Ödevlerim", icon: ClipboardList },
     { href: "/student/resources", label: "Kaynaklarım", icon: BookOpen },
     { href: "/student/calendar", label: "Takvim", icon: Calendar },
-    { href: "/student/schedule", label: "Çalışma Programım", shortLabel: "Program", icon: CalendarClock },
-    { href: "/student/gunluk", label: "Çalışma Günlüğü", shortLabel: "Günlük", icon: Flame },
-    { href: "/student/exams", label: "Deneme Analizim", shortLabel: "Deneme", icon: LineChart },
-    { href: "/student/announcements", label: "Duyurular", shortLabel: "Duyuru", icon: Megaphone },
-    { href: "/student/profile", label: "Profilim", shortLabel: "Profil", icon: UserRound },
+    {
+      href: "/student/schedule",
+      label: "Çalışma Programım",
+      shortLabel: "Program",
+      icon: CalendarClock,
+    },
+    {
+      href: "/student/gunluk",
+      label: "Çalışma Günlüğü",
+      shortLabel: "Günlük",
+      icon: Flame,
+    },
+    {
+      href: "/student/exams",
+      label: "Deneme Analizim",
+      shortLabel: "Deneme",
+      icon: LineChart,
+    },
+    {
+      href: "/student/announcements",
+      label: "Duyurular",
+      shortLabel: "Duyuru",
+      icon: Megaphone,
+    },
+    {
+      href: "/student/profile",
+      label: "Profilim",
+      shortLabel: "Profil",
+      icon: UserRound,
+    },
   ],
   parent: [
     { href: "/parent", label: "Anasayfa", icon: LayoutDashboard },
     { href: "/parent/homework", label: "Ödevler", icon: ClipboardList },
     { href: "/parent/resources", label: "Kaynaklar", icon: BookOpen },
     { href: "/parent/calendar", label: "Takvim", icon: Calendar },
-    { href: "/parent/schedule", label: "Çalışma Programı", shortLabel: "Program", icon: CalendarClock },
-    { href: "/parent/exams", label: "Deneme Analizi", shortLabel: "Deneme", icon: LineChart },
-    { href: "/parent/announcements", label: "Duyurular", shortLabel: "Duyuru", icon: Megaphone },
+    {
+      href: "/parent/schedule",
+      label: "Çalışma Programı",
+      shortLabel: "Program",
+      icon: CalendarClock,
+    },
+    {
+      href: "/parent/exams",
+      label: "Deneme Analizi",
+      shortLabel: "Deneme",
+      icon: LineChart,
+    },
+    {
+      href: "/parent/announcements",
+      label: "Duyurular",
+      shortLabel: "Duyuru",
+      icon: Megaphone,
+    },
     { href: "/parent/profile", label: "Profilim", shortLabel: "Profil", icon: UserRound },
   ],
 };
@@ -71,9 +126,7 @@ export const LINKS_BY_ROLE: Record<Role, NavLinkDef[]> = {
 const MAX_PINNED = 4;
 
 export function getLinks(role: Role, showExams: boolean) {
-  return LINKS_BY_ROLE[role].filter(
-    (link) => showExams || !link.href.endsWith("/exams"),
-  );
+  return LINKS_BY_ROLE[role].filter((link) => showExams || !link.href.endsWith("/exams"));
 }
 
 export function useActiveCheck(role: Role) {
@@ -106,7 +159,10 @@ function subscribePins(callback: () => void) {
   };
 }
 
-function usePinnedHrefs(role: Role, links: NavLinkDef[]): [string[], (next: string[]) => void] {
+function usePinnedHrefs(
+  role: Role,
+  links: NavLinkDef[],
+): [string[], (next: string[]) => void] {
   const raw = useSyncExternalStore(
     subscribePins,
     () => window.localStorage.getItem(pinsKey(role)) ?? "",
@@ -132,7 +188,10 @@ function usePinnedHrefs(role: Role, links: NavLinkDef[]): [string[], (next: stri
 
   const setPinned = useCallback(
     (next: string[]) => {
-      window.localStorage.setItem(pinsKey(role), JSON.stringify(next.slice(0, MAX_PINNED)));
+      window.localStorage.setItem(
+        pinsKey(role),
+        JSON.stringify(next.slice(0, MAX_PINNED)),
+      );
       window.dispatchEvent(new Event(PINS_EVENT));
     },
     [role],
@@ -264,15 +323,19 @@ export function MobileNav({
                     : "bg-secondary text-secondary-foreground",
                 )}
               >
-                {editing ? <Check className="h-3.5 w-3.5" /> : <Settings2 className="h-3.5 w-3.5" />}
+                {editing ? (
+                  <Check className="h-3.5 w-3.5" />
+                ) : (
+                  <Settings2 className="h-3.5 w-3.5" />
+                )}
                 {editing ? "Bitti" : "Özelleştir"}
               </button>
             </div>
 
             {editing && (
               <p className="mb-3 text-xs text-muted-foreground">
-                Alt bardaki butona dokunarak çıkar, buradakine dokunarak sabitle
-                (en fazla {MAX_PINNED}).
+                Alt bardaki butona dokunarak çıkar, buradakine dokunarak sabitle (en fazla{" "}
+                {MAX_PINNED}).
               </p>
             )}
 

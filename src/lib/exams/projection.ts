@@ -47,7 +47,10 @@ export function simulateKazanimGain(k: { incorrect: number; blank: number }): nu
 }
 
 /** Δnet'i tahmini puana çevirir (net başına puan biliniyorsa). */
-export function estimateScoreGain(deltaNet: number, puanPerNet: number | null): number | null {
+export function estimateScoreGain(
+  deltaNet: number,
+  puanPerNet: number | null,
+): number | null {
   if (puanPerNet == null || puanPerNet <= 0) return null;
   return deltaNet * puanPerNet;
 }

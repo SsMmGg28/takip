@@ -1,17 +1,11 @@
 // İstemci bileşenlerinin /api/admin uçlarına ortak erişimi. fetch + JSON +
 // hata ayrıştırma kalıbını tek yerde toplar.
 
-export type AdminApiResult<T> =
-  | { ok: true; data: T }
-  | { ok: false; error: string };
+export type AdminApiResult<T> = { ok: true; data: T } | { ok: false; error: string };
 
 export async function postAdmin<T = Record<string, unknown>>(
   endpoint:
-    | "create-user"
-    | "delete-user"
-    | "update-user"
-    | "reset-password"
-    | "manage-links",
+    "create-user" | "delete-user" | "update-user" | "reset-password" | "manage-links",
   body: unknown,
 ): Promise<AdminApiResult<T>> {
   try {

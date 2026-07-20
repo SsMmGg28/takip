@@ -28,12 +28,13 @@ export default async function TeacherStudentHomeworkPage({
 
   // Dört bağımsız sorgu tek dalgada; öğrenci listesi sınıf bilgisiyle tek
   // sorguda gelir.
-  const [{ data: student }, allStudents, books, { items, sectionById }] = await Promise.all([
-    supabase.from("profiles").select("*").eq("id", studentId).single(),
-    getAccessibleStudentsWithGrades(profile),
-    getApprovedBooks(),
-    getHomeworkForStudent(studentId),
-  ]);
+  const [{ data: student }, allStudents, books, { items, sectionById }] =
+    await Promise.all([
+      supabase.from("profiles").select("*").eq("id", studentId).single(),
+      getAccessibleStudentsWithGrades(profile),
+      getApprovedBooks(),
+      getHomeworkForStudent(studentId),
+    ]);
   if (!student) notFound();
 
   // Toplu gönderim boyutları (düzenlemede "grubun tamamına uygula" seçeneği için)
@@ -48,10 +49,7 @@ export default async function TeacherStudentHomeworkPage({
     : { data: [] };
   const groupSize = new Map<string, number>();
   for (const r of groupRows ?? []) {
-    groupSize.set(
-      r.assignment_group_id,
-      (groupSize.get(r.assignment_group_id) ?? 0) + 1,
-    );
+    groupSize.set(r.assignment_group_id, (groupSize.get(r.assignment_group_id) ?? 0) + 1);
   }
 
   const studentOptions = allStudents.map((s) => ({
@@ -139,7 +137,7 @@ export default async function TeacherStudentHomeworkPage({
                       initialTitle={hw.title}
                       initialDescription={hw.description}
                       initialDueDate={hw.due_date}
-                      book={hw.book_id ? bookOptionById.get(hw.book_id) ?? null : null}
+                      book={hw.book_id ? (bookOptionById.get(hw.book_id) ?? null) : null}
                       initialTests={it.tests.map(
                         (t) => `${t.section_id}:${t.test_number}`,
                       )}

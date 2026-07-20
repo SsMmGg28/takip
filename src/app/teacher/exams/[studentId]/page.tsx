@@ -50,9 +50,7 @@ export default async function TeacherStudentExamsPage({
     getApprovedBooks({ grade }),
   ]);
 
-  const studentOptions = [
-    { id: studentId, fullName: student.full_name, grade },
-  ];
+  const studentOptions = [{ id: studentId, fullName: student.full_name, grade }];
   const bookOptions = books.map((b) => ({
     id: b.id,
     name: b.name,

@@ -132,7 +132,12 @@ export function CalendarView({ items }: { items: CalendarItem[] }) {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-1">
-          <Button variant="outline" size="icon" onClick={() => nav(-1)} aria-label="Önceki">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => nav(-1)}
+            aria-label="Önceki"
+          >
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <Button
@@ -142,7 +147,12 @@ export function CalendarView({ items }: { items: CalendarItem[] }) {
           >
             Bugün
           </Button>
-          <Button variant="outline" size="icon" onClick={() => nav(1)} aria-label="Sonraki">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => nav(1)}
+            aria-label="Sonraki"
+          >
             <ChevronRight className="h-4 w-4" />
           </Button>
           <p className="ml-3 font-medium">{title}</p>
@@ -210,7 +220,13 @@ function ItemRow({ item, compact }: { item: CalendarItem; compact?: boolean }) {
           </Badge>
         )}
       </div>
-      <p className={cn("font-medium", compact && "truncate", !compact && item.href && "underline-offset-2 hover:underline")}>
+      <p
+        className={cn(
+          "font-medium",
+          compact && "truncate",
+          !compact && item.href && "underline-offset-2 hover:underline",
+        )}
+      >
         {item.title}
       </p>
       {!compact && item.description && (
@@ -280,12 +296,7 @@ function WeekView({
               <span className="text-xs uppercase text-muted-foreground">
                 {DAY_NAMES[i]}
               </span>
-              <span
-                className={cn(
-                  "text-lg font-semibold",
-                  isToday && "text-primary",
-                )}
-              >
+              <span className={cn("text-lg font-semibold", isToday && "text-primary")}>
                 {d.getDate()}
               </span>
             </div>
@@ -348,12 +359,7 @@ function MonthView({
                 isToday && "border-primary",
               )}
             >
-              <span
-                className={cn(
-                  "text-xs font-medium",
-                  isToday && "text-primary",
-                )}
-              >
+              <span className={cn("text-xs font-medium", isToday && "text-primary")}>
                 {d.getDate()}
               </span>
               {list.length > 0 && (
@@ -370,7 +376,9 @@ function MonthView({
                     />
                   ))}
                   {list.length > 3 && (
-                    <span className="text-[10px] text-muted-foreground">+{list.length - 3}</span>
+                    <span className="text-[10px] text-muted-foreground">
+                      +{list.length - 3}
+                    </span>
                   )}
                 </div>
               )}

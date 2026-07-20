@@ -110,7 +110,11 @@ export function CheckHomeworkDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" variant={checkedBefore ? "outline" : "default"} className="gap-1.5">
+        <Button
+          size="sm"
+          variant={checkedBefore ? "outline" : "default"}
+          className="gap-1.5"
+        >
           <ClipboardCheck className="h-3.5 w-3.5" />
           {checkedBefore ? "Kontrolü Güncelle" : "Kontrol Et"}
         </Button>
@@ -176,7 +180,11 @@ export function CheckHomeworkDialog({
                           )}
                           aria-pressed={on}
                           aria-label={`Test ${t.testNumber}${on ? " (yapıldı)" : ""}${t.studentMarked ? " — öğrenci işaretledi" : ""}`}
-                          title={t.studentMarked ? "Öğrenci yaptım olarak işaretledi" : undefined}
+                          title={
+                            t.studentMarked
+                              ? "Öğrenci yaptım olarak işaretledi"
+                              : undefined
+                          }
                         >
                           {on ? <Check className="h-4 w-4" /> : t.testNumber}
                           {t.studentMarked && (
@@ -202,12 +210,17 @@ export function CheckHomeworkDialog({
                 {done.size} / {tests.length} test yapıldı
               </span>
               <span className="text-xs">
-                {allDone ? "Tamamlandı olarak kaydedilecek" : "Eksik kaydedilir, veliye bildirim gider"}
+                {allDone
+                  ? "Tamamlandı olarak kaydedilecek"
+                  : "Eksik kaydedilir, veliye bildirim gider"}
               </span>
             </div>
 
             <div className="space-y-1.5">
-              <label htmlFor="check-feedback" className="text-xs font-medium text-muted-foreground">
+              <label
+                htmlFor="check-feedback"
+                className="text-xs font-medium text-muted-foreground"
+              >
                 Geri bildirim notu (isteğe bağlı — öğrenci ve veli görür)
               </label>
               <textarea
@@ -237,7 +250,10 @@ export function CheckHomeworkDialog({
               </p>
             )}
             <div className="space-y-1.5">
-              <label htmlFor="check-feedback-manual" className="text-xs font-medium text-muted-foreground">
+              <label
+                htmlFor="check-feedback-manual"
+                className="text-xs font-medium text-muted-foreground"
+              >
                 Geri bildirim notu (isteğe bağlı — öğrenci ve veli görür)
               </label>
               <textarea

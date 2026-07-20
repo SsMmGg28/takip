@@ -47,7 +47,9 @@ export function ReportControls({
     <div className="no-print mb-6 flex flex-col gap-3 rounded-2xl border bg-card p-4 shadow-sm">
       <div className="flex flex-wrap items-end gap-3">
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="from" className="text-xs">Başlangıç</Label>
+          <Label htmlFor="from" className="text-xs">
+            Başlangıç
+          </Label>
           <Input
             id="from"
             type="date"
@@ -57,7 +59,9 @@ export function ReportControls({
           />
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="to" className="text-xs">Bitiş</Label>
+          <Label htmlFor="to" className="text-xs">
+            Bitiş
+          </Label>
           <Input
             id="to"
             type="date"
@@ -76,7 +80,9 @@ export function ReportControls({
       </div>
 
       <div className="flex flex-wrap items-center gap-1.5">
-        <span className="mr-1 text-xs font-medium text-muted-foreground">Hazır aralık:</span>
+        <span className="mr-1 text-xs font-medium text-muted-foreground">
+          Hazır aralık:
+        </span>
         {presets.map((p) => (
           <button
             key={p.label}

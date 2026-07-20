@@ -15,7 +15,9 @@ export interface PasswordSetupResult {
  * ardından oturum sahibinin şifresi güncellenir ve must_change_password
  * kapatılır. Yalnızca oturumdaki kullanıcının kendi hesabına etki eder.
  */
-export async function completePasswordSetup(password: string): Promise<PasswordSetupResult> {
+export async function completePasswordSetup(
+  password: string,
+): Promise<PasswordSetupResult> {
   if (typeof password !== "string" || password.length < MIN_PASSWORD_LENGTH) {
     return { ok: false, error: `Şifre en az ${MIN_PASSWORD_LENGTH} karakter olmalı.` };
   }
@@ -25,7 +27,8 @@ export async function completePasswordSetup(password: string): Promise<PasswordS
   if (!userData.user) return { ok: false, error: "Yetkisiz." };
 
   const { error: updateError } = await supabase.auth.updateUser({ password });
-  if (updateError) return { ok: false, error: "Şifre güncellenemedi, lütfen tekrar deneyin." };
+  if (updateError)
+    return { ok: false, error: "Şifre güncellenemedi, lütfen tekrar deneyin." };
 
   const { data: profile } = await supabase
     .from("profiles")

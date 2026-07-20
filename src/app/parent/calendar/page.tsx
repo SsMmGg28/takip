@@ -27,7 +27,10 @@ export default async function ParentCalendarPage() {
 
   return (
     <>
-      <PageHeader title="Takvim" description="Tüm dersler, ödev teslim tarihleri ve hatırlatmalar." />
+      <PageHeader
+        title="Takvim"
+        description="Tüm dersler, ödev teslim tarihleri ve hatırlatmalar."
+      />
       <CalendarView items={allItems} />
     </>
   );

@@ -124,10 +124,15 @@ export async function createAnnouncement(formData: FormData) {
   const parentsByStudent = await getParentIdsByStudent(targetStudents);
   const parentIds = targetStudents.flatMap((id) => parentsByStudent.get(id) ?? []);
 
-  const payload = { type: "announcement_created" as const, title: `Yeni duyuru: ${title}` };
+  const payload = {
+    type: "announcement_created" as const,
+    title: `Yeni duyuru: ${title}`,
+  };
   const jobs: Promise<void>[] = [];
   if (audience !== "parents") {
-    jobs.push(notifyUsers(targetStudents, { ...payload, link: "/student/announcements" }));
+    jobs.push(
+      notifyUsers(targetStudents, { ...payload, link: "/student/announcements" }),
+    );
   }
   if (audience !== "students") {
     jobs.push(notifyUsers(parentIds, { ...payload, link: "/parent/announcements" }));

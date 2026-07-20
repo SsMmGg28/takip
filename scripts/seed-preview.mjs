@@ -20,7 +20,9 @@ const password = process.env.DEV_PREVIEW_PASSWORD;
 const emailDomain = process.env.NEXT_PUBLIC_AUTH_EMAIL_DOMAIN ?? "takip.internal";
 
 if (process.env.NODE_ENV === "production") {
-  console.error("Reddedildi: NODE_ENV=production. Önizleme seed'i yalnız dev/staging içindir.");
+  console.error(
+    "Reddedildi: NODE_ENV=production. Önizleme seed'i yalnız dev/staging içindir.",
+  );
   process.exit(1);
 }
 if (!url || !serviceKey || !password) {
@@ -91,12 +93,12 @@ const DEMO_EXAMS = [
     exam_date: "2026-06-11",
     score: 494.51,
     subjects: {
-      "Türkçe": [20, 0, 0],
-      "Matematik": [20, 0, 0],
+      Türkçe: [20, 0, 0],
+      Matematik: [20, 0, 0],
       "Fen Bilimleri": [19, 1, 0],
       "T.C. İnkılap Tarihi": [10, 0, 0],
       "Din Kültürü": [10, 0, 0],
-      "İngilizce": [10, 0, 0],
+      İngilizce: [10, 0, 0],
     },
   },
   {
@@ -104,12 +106,12 @@ const DEMO_EXAMS = [
     exam_date: "2026-06-08",
     score: 476.76,
     subjects: {
-      "Türkçe": [19, 1, 0],
-      "Matematik": [19, 1, 0],
+      Türkçe: [19, 1, 0],
+      Matematik: [19, 1, 0],
       "Fen Bilimleri": [18, 2, 0],
       "T.C. İnkılap Tarihi": [10, 0, 0],
       "Din Kültürü": [10, 0, 0],
-      "İngilizce": [10, 0, 0],
+      İngilizce: [10, 0, 0],
     },
   },
   {
@@ -117,12 +119,12 @@ const DEMO_EXAMS = [
     exam_date: "2026-06-03",
     score: 467.62,
     subjects: {
-      "Türkçe": [17, 3, 0],
-      "Matematik": [19, 1, 0],
+      Türkçe: [17, 3, 0],
+      Matematik: [19, 1, 0],
       "Fen Bilimleri": [19, 1, 0],
       "T.C. İnkılap Tarihi": [9, 1, 0],
       "Din Kültürü": [10, 0, 0],
-      "İngilizce": [10, 0, 0],
+      İngilizce: [10, 0, 0],
     },
   },
   {
@@ -130,12 +132,12 @@ const DEMO_EXAMS = [
     exam_date: "2025-12-07",
     score: 462.7,
     subjects: {
-      "Türkçe": [19, 1, 0],
-      "Matematik": [18, 2, 0],
+      Türkçe: [19, 1, 0],
+      Matematik: [18, 2, 0],
       "Fen Bilimleri": [18, 2, 0],
       "T.C. İnkılap Tarihi": [9, 1, 0],
       "Din Kültürü": [8, 2, 0],
-      "İngilizce": [10, 0, 0],
+      İngilizce: [10, 0, 0],
     },
   },
 ];
@@ -163,7 +165,8 @@ async function seedExams(studentId, teacherId) {
       })
       .select("id")
       .single();
-    if (examError || !examRow) throw new Error(`Deneme eklenemedi: ${examError?.message}`);
+    if (examError || !examRow)
+      throw new Error(`Deneme eklenemedi: ${examError?.message}`);
 
     const rows = Object.entries(exam.subjects).map(([subject_name, [c, i, b]]) => ({
       exam_id: examRow.id,
@@ -243,8 +246,18 @@ async function seedBookAndHomework(studentId, teacherId, parentId) {
   const uslu = (sections ?? []).find((s) => s.kazanim_code === "M8-02");
   if (uslu) {
     await admin.from("student_test_progress").insert([
-      { student_id: studentId, section_id: uslu.id, test_number: 1, marked_by: teacherId },
-      { student_id: studentId, section_id: uslu.id, test_number: 2, marked_by: teacherId },
+      {
+        student_id: studentId,
+        section_id: uslu.id,
+        test_number: 1,
+        marked_by: teacherId,
+      },
+      {
+        student_id: studentId,
+        section_id: uslu.id,
+        test_number: 2,
+        marked_by: teacherId,
+      },
     ]);
   }
 
@@ -264,7 +277,11 @@ async function seedBookAndHomework(studentId, teacherId, parentId) {
   if (hwErr || !hw) throw new Error(`Demo ödev: ${hwErr?.message}`);
   if (uslu) {
     const { error: hwtErr } = await admin.from("homework_tests").insert(
-      [1, 2, 3].map((n) => ({ homework_id: hw.id, section_id: uslu.id, test_number: n })),
+      [1, 2, 3].map((n) => ({
+        homework_id: hw.id,
+        section_id: uslu.id,
+        test_number: n,
+      })),
     );
     if (hwtErr) throw new Error(`Demo ödev testleri: ${hwtErr.message}`);
   }

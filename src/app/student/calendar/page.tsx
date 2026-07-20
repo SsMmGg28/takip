@@ -9,7 +9,10 @@ export default async function StudentCalendarPage() {
 
   return (
     <>
-      <PageHeader title="Takvim" description="Dersler, ödev teslim tarihleri ve hatırlatmalar." />
+      <PageHeader
+        title="Takvim"
+        description="Dersler, ödev teslim tarihleri ve hatırlatmalar."
+      />
       <CalendarView items={items} />
     </>
   );

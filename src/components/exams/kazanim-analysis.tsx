@@ -87,8 +87,8 @@ export function KazanimAnalysisPanel({
         <div className="space-y-1">
           <p className="font-semibold">Kazanım analizi</p>
           <p className="mx-auto max-w-sm text-sm text-muted-foreground">
-            Girilen kazanım verilerinden doğru/yanlış dökümü, gelişim grafiği ve
-            çalışma önceliği listesi hesaplanır.
+            Girilen kazanım verilerinden doğru/yanlış dökümü, gelişim grafiği ve çalışma
+            önceliği listesi hesaplanır.
           </p>
         </div>
         <Button onClick={generate}>
@@ -161,8 +161,8 @@ export function KazanimAnalysisPanel({
         <CardContent>
           {topPriorities.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              Önceliklendirme için yeterli kazanım verisi yok. Deneme girerken
-              kazanım işaretlersen bu liste dolar.
+              Önceliklendirme için yeterli kazanım verisi yok. Deneme girerken kazanım
+              işaretlersen bu liste dolar.
             </p>
           ) : (
             <ol className="stagger flex flex-col gap-2">
@@ -306,11 +306,21 @@ export function KazanimAnalysisPanel({
                         {s.subject}
                       </TableCell>
                       <TableCell className="min-w-48 font-medium">{s.name}</TableCell>
-                      <TableCell className="text-center tabular-nums">{s.correct}</TableCell>
-                      <TableCell className="text-center tabular-nums">{s.incorrect}</TableCell>
-                      <TableCell className="text-center tabular-nums">{s.blank}</TableCell>
-                      <TableCell className="text-center tabular-nums">{s.asked}</TableCell>
-                      <TableCell className="text-center tabular-nums">%{s.wrongRate}</TableCell>
+                      <TableCell className="text-center tabular-nums">
+                        {s.correct}
+                      </TableCell>
+                      <TableCell className="text-center tabular-nums">
+                        {s.incorrect}
+                      </TableCell>
+                      <TableCell className="text-center tabular-nums">
+                        {s.blank}
+                      </TableCell>
+                      <TableCell className="text-center tabular-nums">
+                        {s.asked}
+                      </TableCell>
+                      <TableCell className="text-center tabular-nums">
+                        %{s.wrongRate}
+                      </TableCell>
                       <TableCell className="text-center">
                         <Badge variant={s.accuracy < 50 ? "destructive" : "secondary"}>
                           %{s.accuracy}

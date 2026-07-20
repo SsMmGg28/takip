@@ -12,7 +12,11 @@ export interface ExamDetails {
 export async function getExamDetails(examId: string): Promise<ExamDetails | null> {
   const supabase = await createClient();
 
-  const { data: examData } = await supabase.from("exams").select("*").eq("id", examId).single();
+  const { data: examData } = await supabase
+    .from("exams")
+    .select("*")
+    .eq("id", examId)
+    .single();
   if (!examData) return null;
   const exam = examData as Exam;
 
@@ -24,7 +28,10 @@ export async function getExamDetails(examId: string): Promise<ExamDetails | null
 
   const subjectIds = subjects.map((s) => s.id);
   const { data: kazanimData } = subjectIds.length
-    ? await supabase.from("exam_kazanim_results").select("*").in("exam_subject_id", subjectIds)
+    ? await supabase
+        .from("exam_kazanim_results")
+        .select("*")
+        .in("exam_subject_id", subjectIds)
     : { data: [] as ExamKazanimResult[] };
 
   const totalNet = subjects.reduce(
@@ -62,9 +69,14 @@ export function toFormInitial(details: ExamDetails): ExamFormInitial {
 }
 
 /** Bir öğrencinin denemelerine ait düzenleme talepleri (RLS: veli kendininkini görür). */
-export async function getEditRequestsForStudent(studentId: string): Promise<ExamEditRequest[]> {
+export async function getEditRequestsForStudent(
+  studentId: string,
+): Promise<ExamEditRequest[]> {
   const supabase = await createClient();
-  const { data: exams } = await supabase.from("exams").select("id").eq("student_id", studentId);
+  const { data: exams } = await supabase
+    .from("exams")
+    .select("id")
+    .eq("student_id", studentId);
   const examIds = (exams ?? []).map((e) => e.id);
   if (!examIds.length) return [];
   const { data } = await supabase

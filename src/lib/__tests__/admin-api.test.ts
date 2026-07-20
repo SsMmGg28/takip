@@ -14,8 +14,13 @@ afterEach(() => {
 
 describe("postAdmin", () => {
   it("başarılı yanıtta ok ve veri döner", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => jsonResponse({ username: "ali" })));
-    const result = await postAdmin<{ username: string }>("create-user", { full_name: "Ali" });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => jsonResponse({ username: "ali" })),
+    );
+    const result = await postAdmin<{ username: string }>("create-user", {
+      full_name: "Ali",
+    });
     expect(result).toEqual({ ok: true, data: { username: "ali" } });
   });
 
@@ -38,7 +43,10 @@ describe("postAdmin", () => {
   });
 
   it("ağ hatasında Türkçe bağlantı mesajı döner", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => Promise.reject(new TypeError("failed"))));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => Promise.reject(new TypeError("failed"))),
+    );
     const result = await postAdmin("manage-links", {});
     expect(result).toEqual({
       ok: false,

@@ -7,7 +7,13 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { deleteBook } from "@/lib/actions/resources";
 
-export function DeleteBookButton({ bookId, bookName }: { bookId: string; bookName: string }) {
+export function DeleteBookButton({
+  bookId,
+  bookName,
+}: {
+  bookId: string;
+  bookName: string;
+}) {
   const [pending, startTransition] = useTransition();
   const router = useRouter();
 

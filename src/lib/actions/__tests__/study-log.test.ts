@@ -32,9 +32,9 @@ beforeEach(() => {
 describe("addStudyLog", () => {
   it("oturum yoksa hiç sorgu atmadan fırlatır", async () => {
     mocks.handle = createSupabaseMock({ user: null });
-    await expect(addStudyLog(form({ subject: "Matematik", minutes: "30" }))).rejects.toThrow(
-      "Yetkisiz.",
-    );
+    await expect(
+      addStudyLog(form({ subject: "Matematik", minutes: "30" })),
+    ).rejects.toThrow("Yetkisiz.");
     expect(mocks.handle.queries).toHaveLength(0);
   });
 
@@ -43,9 +43,9 @@ describe("addStudyLog", () => {
       user: student,
       results: { profiles: [{ data: { role: "parent" } }] },
     });
-    await expect(addStudyLog(form({ subject: "Matematik", minutes: "30" }))).rejects.toThrow(
-      "Çalışma kaydını yalnızca öğrenci ekleyebilir.",
-    );
+    await expect(
+      addStudyLog(form({ subject: "Matematik", minutes: "30" })),
+    ).rejects.toThrow("Çalışma kaydını yalnızca öğrenci ekleyebilir.");
   });
 
   it("ders seçilmediyse fırlatır", async () => {
@@ -113,7 +113,9 @@ describe("addStudyLog", () => {
     });
     await addStudyLog(form({ subject: "Fen", minutes: "30", log_date: "15/07/2026" }));
     const insert = mocks.handle.queries.find((q) => q.table === "study_log");
-    expect((insert?.values as { log_date: string }).log_date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect((insert?.values as { log_date: string }).log_date).toMatch(
+      /^\d{4}-\d{2}-\d{2}$/,
+    );
   });
 
   it("veritabanı hatası mesajıyla iletilir", async () => {

@@ -48,7 +48,9 @@ describe("createHomework", () => {
 
   it("başlık yoksa fırlatır", async () => {
     mocks.handle = createSupabaseMock({ user: { id: "teacher-1" } });
-    await expect(createHomework(baseForm({ title: "" }))).rejects.toThrow("Başlık gerekli.");
+    await expect(createHomework(baseForm({ title: "" }))).rejects.toThrow(
+      "Başlık gerekli.",
+    );
   });
 
   it("öğrenci seçilmediyse fırlatır", async () => {
@@ -61,7 +63,10 @@ describe("createHomework", () => {
   it("geçersiz dosya türü insert'ten ÖNCE gerçek doğrulama mesajıyla reddedilir", async () => {
     mocks.handle = createSupabaseMock({ user: { id: "teacher-1" } });
     const fd = baseForm();
-    fd.set("attachment", new File(["x"], "virus.exe", { type: "application/x-msdownload" }));
+    fd.set(
+      "attachment",
+      new File(["x"], "virus.exe", { type: "application/x-msdownload" }),
+    );
     await expect(createHomework(fd)).rejects.toThrow(/Desteklenmeyen dosya türü/);
     expect(mocks.handle.queries).toHaveLength(0);
   });
@@ -90,7 +95,10 @@ describe("createHomework", () => {
       storageUploadError: { message: "bucket dolu" },
     });
     const fd = baseForm();
-    fd.set("attachment", new File(["içerik"], "Ödev Föyü.pdf", { type: "application/pdf" }));
+    fd.set(
+      "attachment",
+      new File(["içerik"], "Ödev Föyü.pdf", { type: "application/pdf" }),
+    );
 
     await expect(createHomework(fd)).rejects.toThrow(
       "Dosya eki yüklenemedi, ödev oluşturulamadı. Lütfen tekrar dene.",
@@ -100,9 +108,9 @@ describe("createHomework", () => {
       (q) => q.table === "homework" && q.op === "delete",
     );
     expect(rollback).toHaveLength(1);
-    expect(rollback[0].filters.some(([m, col]) => m === "eq" && col === "assignment_group_id")).toBe(
-      true,
-    );
+    expect(
+      rollback[0].filters.some(([m, col]) => m === "eq" && col === "assignment_group_id"),
+    ).toBe(true);
     expect(mocks.notifyUsers).not.toHaveBeenCalled();
   });
 
@@ -112,7 +120,10 @@ describe("createHomework", () => {
       results: { homework: [insertedRows] },
     });
     const fd = baseForm();
-    fd.set("attachment", new File(["içerik"], "Ödev Föyü (1).pdf", { type: "application/pdf" }));
+    fd.set(
+      "attachment",
+      new File(["içerik"], "Ödev Föyü (1).pdf", { type: "application/pdf" }),
+    );
     await createHomework(fd);
 
     const upload = mocks.handle.storageCalls.find((c) => c.method === "upload");

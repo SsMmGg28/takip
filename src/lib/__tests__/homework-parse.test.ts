@@ -16,9 +16,9 @@ describe("parseTestEntries", () => {
   });
 
   it("test numarası 0/negatif, bölüm kimliği boş veya sayı olmayan girdileri eler", () => {
-    expect(
-      parseTestEntries(testsForm(["sec1:0", ":5", "sec2:abc", "sec3:2"])),
-    ).toEqual([{ section_id: "sec3", test_number: 2 }]);
+    expect(parseTestEntries(testsForm(["sec1:0", ":5", "sec2:abc", "sec3:2"]))).toEqual([
+      { section_id: "sec3", test_number: 2 },
+    ]);
   });
 
   it("hiç girdi yoksa boş dizi", () => {

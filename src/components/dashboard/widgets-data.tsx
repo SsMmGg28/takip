@@ -99,7 +99,10 @@ export function StatsWidget({ data, w }: WidgetProps) {
           <Link
             key={s.label}
             href={s.href}
-            className={cn(tileClass, "transition-colors hover:border-primary/40 hover:bg-accent/50")}
+            className={cn(
+              tileClass,
+              "transition-colors hover:border-primary/40 hover:bg-accent/50",
+            )}
           >
             {inner}
           </Link>
@@ -145,7 +148,9 @@ export function HomeworkWidget({ data, h }: WidgetProps) {
                     <ClipboardList className="h-3.5 w-3.5" />
                   )}
                 </span>
-                <span className="min-w-0 flex-1 truncate text-xs font-medium">{hw.title}</span>
+                <span className="min-w-0 flex-1 truncate text-xs font-medium">
+                  {hw.title}
+                </span>
                 <NameTag name={hw.studentName} />
                 {due && (
                   <span
@@ -182,7 +187,9 @@ export function TodayScheduleWidget({ data, h }: WidgetProps) {
     .slice(0, h >= 3 ? 8 : h === 2 ? 4 : 2);
 
   if (!items.length) {
-    return <EmptyState text={`Bugün (${DAY_LABELS[todayIdx]}) programda etkinlik yok.`} />;
+    return (
+      <EmptyState text={`Bugün (${DAY_LABELS[todayIdx]}) programda etkinlik yok.`} />
+    );
   }
 
   return (
@@ -202,7 +209,9 @@ export function TodayScheduleWidget({ data, h }: WidgetProps) {
                 <span className="shrink-0 text-[11px] font-semibold tabular-nums text-muted-foreground">
                   {s.start}–{s.end}
                 </span>
-                <span className="min-w-0 flex-1 truncate text-xs font-medium">{s.label}</span>
+                <span className="min-w-0 flex-1 truncate text-xs font-medium">
+                  {s.label}
+                </span>
                 <NameTag name={s.studentName} />
                 {active && (
                   <span className="relative flex h-2 w-2 shrink-0">
@@ -224,8 +233,9 @@ export function TodayScheduleWidget({ data, h }: WidgetProps) {
 
 export function WeeklyScheduleWidget({ data }: WidgetProps) {
   const todayIdx = (new Date().getDay() + 6) % 7;
-  const counts = Array.from({ length: 7 }, (_, day) =>
-    data.schedule.filter((s) => s.day === day).length,
+  const counts = Array.from(
+    { length: 7 },
+    (_, day) => data.schedule.filter((s) => s.day === day).length,
   );
   const max = Math.max(1, ...counts);
 
@@ -310,7 +320,9 @@ export function EventsWidget({ data, h }: WidgetProps) {
                 >
                   <Icon className="h-3.5 w-3.5" />
                 </span>
-                <span className="min-w-0 flex-1 truncate text-xs font-medium">{e.title}</span>
+                <span className="min-w-0 flex-1 truncate text-xs font-medium">
+                  {e.title}
+                </span>
                 <span
                   className={cn(
                     "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold",
@@ -352,32 +364,35 @@ export function ExamsWidget({ data, h }: WidgetProps) {
             data.role === "student" ? `/student/exams/${exam.id}` : `/${data.role}/exams`;
           return (
             <li key={exam.id}>
-              <Link href={examHref} className="block space-y-1 rounded-lg p-0.5 transition-colors hover:bg-accent/50">
-              <div className="flex items-center gap-2">
-                <span className="min-w-0 flex-1 truncate text-xs font-medium">
-                  {exam.name}
-                </span>
-                <NameTag name={exam.studentName} />
-                {delta !== null && delta !== 0 && (
-                  <span
-                    className={cn(
-                      "shrink-0 text-[10px] font-bold",
-                      delta > 0 ? "text-success" : "text-destructive",
-                    )}
-                  >
-                    {delta > 0 ? "▲" : "▼"} {Math.abs(Math.round(delta * 10) / 10)}
+              <Link
+                href={examHref}
+                className="block space-y-1 rounded-lg p-0.5 transition-colors hover:bg-accent/50"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="min-w-0 flex-1 truncate text-xs font-medium">
+                    {exam.name}
                   </span>
-                )}
-                <span className="shrink-0 text-xs font-bold tabular-nums">
-                  {exam.totalNet} net
-                </span>
-              </div>
-              <div className="h-1.5 overflow-hidden rounded-full bg-muted">
-                <div
-                  className="gradient-surface h-full rounded-full"
-                  style={{ width: `${(exam.totalNet / maxNet) * 100}%` }}
-                />
-              </div>
+                  <NameTag name={exam.studentName} />
+                  {delta !== null && delta !== 0 && (
+                    <span
+                      className={cn(
+                        "shrink-0 text-[10px] font-bold",
+                        delta > 0 ? "text-success" : "text-destructive",
+                      )}
+                    >
+                      {delta > 0 ? "▲" : "▼"} {Math.abs(Math.round(delta * 10) / 10)}
+                    </span>
+                  )}
+                  <span className="shrink-0 text-xs font-bold tabular-nums">
+                    {exam.totalNet} net
+                  </span>
+                </div>
+                <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+                  <div
+                    className="gradient-surface h-full rounded-full"
+                    style={{ width: `${(exam.totalNet / maxNet) * 100}%` }}
+                  />
+                </div>
               </Link>
             </li>
           );
@@ -408,7 +423,9 @@ export function BooksWidget({ data, h }: WidgetProps) {
               >
                 <div className="flex items-center gap-2">
                   <BookOpen className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                  <span className="min-w-0 flex-1 truncate text-xs font-medium">{b.name}</span>
+                  <span className="min-w-0 flex-1 truncate text-xs font-medium">
+                    {b.name}
+                  </span>
                   <NameTag name={b.studentName} />
                   <span className="shrink-0 text-[11px] font-semibold tabular-nums text-muted-foreground">
                     {b.done}/{b.total} · %{pct}
@@ -568,7 +585,9 @@ export function PeopleWidget({ data, h }: WidgetProps) {
               <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-accent text-accent-foreground">
                 <GraduationCap className="h-3.5 w-3.5" />
               </span>
-              <span className="min-w-0 flex-1 truncate text-xs font-medium">{p.name}</span>
+              <span className="min-w-0 flex-1 truncate text-xs font-medium">
+                {p.name}
+              </span>
               {p.grade !== null && (
                 <span className="shrink-0 rounded-full bg-primary/12 px-2 py-0.5 text-[10px] font-semibold text-primary">
                   {p.grade}. sınıf
@@ -648,8 +667,9 @@ export function WeeklySummaryWidget({ data }: WidgetProps) {
               </div>
             </div>
             <p className="mt-1 text-[10px] text-muted-foreground">
-              🔥 Bu hafta <strong className="text-foreground tabular-nums">{s.studyDays}</strong>{" "}
-              gün çalıştı
+              🔥 Bu hafta{" "}
+              <strong className="text-foreground tabular-nums">{s.studyDays}</strong> gün
+              çalıştı
             </p>
           </li>
         ))}

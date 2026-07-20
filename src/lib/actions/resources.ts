@@ -29,11 +29,7 @@ function revalidateResourcePaths() {
  * saf `planSectionSync`'te (test edilebilir); burada yalnız plan uygulanır:
  * eşleşen bölüm GÜNCELLENİR (test ilerlemesi korunur), yeni EKLENİR, düşen SİLİNİR.
  */
-async function syncSections(
-  supabase: DbClient,
-  bookId: string,
-  desired: SectionInput[],
-) {
+async function syncSections(supabase: DbClient, bookId: string, desired: SectionInput[]) {
   const { data: existing } = await supabase
     .from("resource_book_sections")
     .select("id, name, kazanim_code")

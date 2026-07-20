@@ -54,7 +54,7 @@ async function getRecentExams(studentId: string, limit = 5): Promise<ExamItem[]>
     .eq("student_id", studentId)
     .order("exam_date", { ascending: false })
     .limit(limit);
-  const list = ((exams as (Exam & { exam_subjects: ExamSubject[] })[] | null) ?? []);
+  const list = (exams as (Exam & { exam_subjects: ExamSubject[] })[] | null) ?? [];
 
   return list.map((exam) => {
     const net = exam.exam_subjects.reduce(
@@ -118,17 +118,25 @@ function upcomingOnly(events: EventItem[], limit = 8): EventItem[] {
 async function getStudentData(profile: Profile): Promise<DashboardData> {
   const supabase = await createClient();
 
-  const [homework, schedule, calendarItems, exams, shelf, notifications, statusRows, study] =
-    await Promise.all([
-      getPendingHomework(profile.id),
-      getScheduleItems(profile.id),
-      getStudentCalendarItems(profile.id),
-      getRecentExams(profile.id),
-      getStudentShelf(profile.id),
-      getOwnNotifications(),
-      supabase.from("homework").select("status").eq("student_id", profile.id),
-      getStudentStudySummary(profile.id),
-    ]);
+  const [
+    homework,
+    schedule,
+    calendarItems,
+    exams,
+    shelf,
+    notifications,
+    statusRows,
+    study,
+  ] = await Promise.all([
+    getPendingHomework(profile.id),
+    getScheduleItems(profile.id),
+    getStudentCalendarItems(profile.id),
+    getRecentExams(profile.id),
+    getStudentShelf(profile.id),
+    getOwnNotifications(),
+    supabase.from("homework").select("status").eq("student_id", profile.id),
+    getStudentStudySummary(profile.id),
+  ]);
 
   const statuses = (statusRows.data ?? []).map((r) => r.status as string);
   const completedCount = statuses.filter((s) => s === "completed").length;
@@ -254,7 +262,8 @@ async function getParentData(profile: Profile): Promise<DashboardData> {
 
   const weeklyCompletedById = new Map<string, number>();
   const weeklyIncompleteById = new Map<string, number>();
-  for (const row of (weeklyHomeworkRows as { student_id: string; status: string }[]) ?? []) {
+  for (const row of (weeklyHomeworkRows as { student_id: string; status: string }[]) ??
+    []) {
     const map = row.status === "completed" ? weeklyCompletedById : weeklyIncompleteById;
     map.set(row.student_id, (map.get(row.student_id) ?? 0) + 1);
   }
@@ -286,13 +295,17 @@ async function getParentData(profile: Profile): Promise<DashboardData> {
 
   const withName = children.length > 1;
   const homework = perChild
-    .flatMap((c) => c.homework.map((h) => ({ ...h, studentName: withName ? c.name : undefined })))
+    .flatMap((c) =>
+      c.homework.map((h) => ({ ...h, studentName: withName ? c.name : undefined })),
+    )
     .slice(0, 10);
   const schedule = perChild.flatMap((c) =>
     c.schedule.map((s) => ({ ...s, studentName: withName ? c.name : undefined })),
   );
   const exams = perChild
-    .flatMap((c) => c.exams.map((e) => ({ ...e, studentName: withName ? c.name : undefined })))
+    .flatMap((c) =>
+      c.exams.map((e) => ({ ...e, studentName: withName ? c.name : undefined })),
+    )
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 6);
   const books = perChild.flatMap((c) =>
@@ -360,8 +373,14 @@ async function getTeacherData(profile: Profile): Promise<DashboardData> {
     students,
     notifications,
   ] = await Promise.all([
-    supabase.from("profiles").select("id", { count: "exact", head: true }).eq("role", "student"),
-    supabase.from("profiles").select("id", { count: "exact", head: true }).eq("role", "parent"),
+    supabase
+      .from("profiles")
+      .select("id", { count: "exact", head: true })
+      .eq("role", "student"),
+    supabase
+      .from("profiles")
+      .select("id", { count: "exact", head: true })
+      .eq("role", "parent"),
     supabase
       .from("homework")
       .select("id", { count: "exact", head: true })

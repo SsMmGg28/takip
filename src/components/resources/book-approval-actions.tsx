@@ -7,7 +7,13 @@ import { Button } from "@/components/ui/button";
 import { approveBook, rejectBook } from "@/lib/actions/resources";
 
 /** Öğretmen: bekleyen kitap için onayla / reddet butonları. */
-export function BookApprovalActions({ bookId, bookName }: { bookId: string; bookName: string }) {
+export function BookApprovalActions({
+  bookId,
+  bookName,
+}: {
+  bookId: string;
+  bookName: string;
+}) {
   const [pending, startTransition] = useTransition();
 
   function run(action: (fd: FormData) => Promise<void>, successMessage: string) {

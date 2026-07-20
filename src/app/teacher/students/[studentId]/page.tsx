@@ -39,23 +39,28 @@ export default async function TeacherStudentDetailPage({
   const supabase = await createClient();
 
   // Beş bağımsız sorgu tek dalgada (öğrenci profili dahil).
-  const [{ data: student }, { data: studentProfile }, shelf, { data: homeworkRows }, studySummary] =
-    await Promise.all([
-      supabase.from("profiles").select("*").eq("id", studentId).single(),
-      supabase
-        .from("student_profiles")
-        .select("grade_level, notes, target_score, schedule_auto_repeat")
-        .eq("id", studentId)
-        .single(),
-      getStudentShelf(studentId),
-      supabase
-        .from("homework")
-        .select("*")
-        .eq("student_id", studentId)
-        .order("created_at", { ascending: false })
-        .limit(20),
-      getStudentStudySummary(studentId),
-    ]);
+  const [
+    { data: student },
+    { data: studentProfile },
+    shelf,
+    { data: homeworkRows },
+    studySummary,
+  ] = await Promise.all([
+    supabase.from("profiles").select("*").eq("id", studentId).single(),
+    supabase
+      .from("student_profiles")
+      .select("grade_level, notes, target_score, schedule_auto_repeat")
+      .eq("id", studentId)
+      .single(),
+    getStudentShelf(studentId),
+    supabase
+      .from("homework")
+      .select("*")
+      .eq("student_id", studentId)
+      .order("created_at", { ascending: false })
+      .limit(20),
+    getStudentStudySummary(studentId),
+  ]);
   if (!student) notFound();
 
   const homework = ((homeworkRows as Homework[]) ?? []).map((h) => ({
@@ -82,8 +87,9 @@ export default async function TeacherStudentDetailPage({
       : null;
   const avgNet =
     overview && examCount > 0
-      ? Math.round((overview.exams.reduce((sum, e) => sum + e.totalNet, 0) / examCount) * 10) /
-        10
+      ? Math.round(
+          (overview.exams.reduce((sum, e) => sum + e.totalNet, 0) / examCount) * 10,
+        ) / 10
       : null;
   const weakTopics = analysis?.priorities.slice(0, 5) ?? [];
 
@@ -151,7 +157,11 @@ export default async function TeacherStudentDetailPage({
               label="Ortalama Puan"
               value={avgScore ?? "—"}
               icon={Trophy}
-              hint={studentProfile?.target_score ? `hedef: ${studentProfile.target_score}` : undefined}
+              hint={
+                studentProfile?.target_score
+                  ? `hedef: ${studentProfile.target_score}`
+                  : undefined
+              }
               href={`/teacher/exams/${studentId}`}
             />
             <StatCard
@@ -191,7 +201,8 @@ export default async function TeacherStudentDetailPage({
             <CardContent>
               {weakTopics.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
-                  Kazanım verisi yok; deneme girerken kazanım işaretlenirse bu liste dolar.
+                  Kazanım verisi yok; deneme girerken kazanım işaretlenirse bu liste
+                  dolar.
                 </p>
               ) : (
                 <ol className="stagger flex flex-col gap-2">
@@ -257,7 +268,9 @@ export default async function TeacherStudentDetailPage({
           </CardHeader>
           <CardContent>
             {problemHomework.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Eksik veya geciken ödev yok. 🎉</p>
+              <p className="text-sm text-muted-foreground">
+                Eksik veya geciken ödev yok. 🎉
+              </p>
             ) : (
               <ul className="flex flex-col gap-2">
                 {problemHomework.slice(0, 5).map((hw) => (
@@ -278,7 +291,10 @@ export default async function TeacherStudentDetailPage({
 
       <StudyLogSummaryCard summary={studySummary} />
 
-      <StudentNotesCard studentId={studentId} initialNotes={studentProfile?.notes ?? null} />
+      <StudentNotesCard
+        studentId={studentId}
+        initialNotes={studentProfile?.notes ?? null}
+      />
 
       {/* Kitaplık */}
       <section className="space-y-3">

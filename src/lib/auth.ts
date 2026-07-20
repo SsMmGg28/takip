@@ -38,6 +38,7 @@ export async function requireRole(allowed: Role[]): Promise<Profile> {
 export async function assertTeacherAction(): Promise<Profile> {
   const profile = await getCurrentProfile();
   if (!profile) throw new Error("Yetkisiz.");
-  if (profile.role !== "teacher") throw new Error("Bu işlemi yalnızca öğretmen yapabilir.");
+  if (profile.role !== "teacher")
+    throw new Error("Bu işlemi yalnızca öğretmen yapabilir.");
   return profile;
 }

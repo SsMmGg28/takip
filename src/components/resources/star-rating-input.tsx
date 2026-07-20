@@ -50,7 +50,9 @@ export function StarRatingInput({
         <button
           type="button"
           onClick={() => onChange(0)}
-          className={cn("ml-1 text-xs text-muted-foreground hover:text-foreground hover:underline")}
+          className={cn(
+            "ml-1 text-xs text-muted-foreground hover:text-foreground hover:underline",
+          )}
         >
           Temizle
         </button>

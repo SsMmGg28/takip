@@ -10,7 +10,9 @@ function toYMD(d: Date): string {
 
 /** İçinde bulunulan haftanın Pazartesi tarihi (Europe/Istanbul). */
 export function currentWeekStart(): string {
-  const tr = new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Istanbul" }));
+  const tr = new Date(
+    new Date().toLocaleString("en-US", { timeZone: "Europe/Istanbul" }),
+  );
   const utc = new Date(Date.UTC(tr.getFullYear(), tr.getMonth(), tr.getDate()));
   const dow = (utc.getUTCDay() + 6) % 7; // Pzt=0
   return toYMD(new Date(utc.getTime() - dow * DAY_MS));
@@ -18,7 +20,9 @@ export function currentWeekStart(): string {
 
 /** Bugünün tarihi (Europe/Istanbul, YYYY-MM-DD) — çalışma günlüğü/streak için. */
 export function todayInIstanbul(): string {
-  const tr = new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Istanbul" }));
+  const tr = new Date(
+    new Date().toLocaleString("en-US", { timeZone: "Europe/Istanbul" }),
+  );
   return toYMD(new Date(Date.UTC(tr.getFullYear(), tr.getMonth(), tr.getDate())));
 }
 
@@ -42,7 +46,11 @@ export function parseWeekParam(raw: string | string[] | undefined): string {
 export function formatWeekRange(weekStart: string): string {
   const start = new Date(`${weekStart}T00:00:00Z`);
   const end = new Date(start.getTime() + 6 * DAY_MS);
-  const opts: Intl.DateTimeFormatOptions = { day: "numeric", month: "long", timeZone: "UTC" };
+  const opts: Intl.DateTimeFormatOptions = {
+    day: "numeric",
+    month: "long",
+    timeZone: "UTC",
+  };
   const endLabel = end.toLocaleDateString("tr-TR", { ...opts, year: "numeric" });
   if (start.getUTCMonth() === end.getUTCMonth()) {
     return `${start.getUTCDate()} – ${endLabel}`;

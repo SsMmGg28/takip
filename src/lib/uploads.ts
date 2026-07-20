@@ -60,8 +60,18 @@ export function validateUpload(
 }
 
 const TURKISH_MAP: Record<string, string> = {
-  ç: "c", Ç: "C", ğ: "g", Ğ: "G", ı: "i", İ: "I",
-  ö: "o", Ö: "O", ş: "s", Ş: "S", ü: "u", Ü: "U",
+  ç: "c",
+  Ç: "C",
+  ğ: "g",
+  Ğ: "G",
+  ı: "i",
+  İ: "I",
+  ö: "o",
+  Ö: "O",
+  ş: "s",
+  Ş: "S",
+  ü: "u",
+  Ü: "U",
 };
 
 /**

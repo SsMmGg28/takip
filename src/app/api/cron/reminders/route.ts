@@ -38,7 +38,7 @@ async function runScheduleAutoRepeat(admin: ReturnType<typeof createAdminClient>
 
   const alreadyFilled = new Set((currentRows ?? []).map((r) => r.student_id));
   const prevByStudent = new Map<string, StudyScheduleEntry[]>();
-  for (const e of ((prevRows as StudyScheduleEntry[] | null) ?? [])) {
+  for (const e of (prevRows as StudyScheduleEntry[] | null) ?? []) {
     if (alreadyFilled.has(e.student_id)) continue;
     if (!prevByStudent.has(e.student_id)) prevByStudent.set(e.student_id, []);
     prevByStudent.get(e.student_id)!.push(e);
@@ -97,8 +97,7 @@ export async function GET(request: Request) {
   }
 
   const list = homework ?? [];
-  if (!list.length)
-    return NextResponse.json({ ok: true, notified: 0, autoRepeatCopied });
+  if (!list.length) return NextResponse.json({ ok: true, notified: 0, autoRepeatCopied });
 
   // Mükerrer önleme kontrolü ödev başına ayrı sorgu yerine tek sorguda yapılır.
   const [parentsByStudent, { data: existingRows }] = await Promise.all([
@@ -107,7 +106,10 @@ export async function GET(request: Request) {
       .from("notifications")
       .select("link")
       .eq("type", "homework_due_soon")
-      .in("link", list.map((h) => `/student/homework?due=${h.id}`)),
+      .in(
+        "link",
+        list.map((h) => `/student/homework?due=${h.id}`),
+      ),
   ]);
   const alreadyNotified = new Set((existingRows ?? []).map((r) => r.link));
 

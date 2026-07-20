@@ -30,7 +30,9 @@ export function BugReportStatusButton({
         toast.error(result.error ?? "Güncellenemedi.");
         return;
       }
-      toast.success(next === "resolved" ? "Çözüldü olarak işaretlendi." : "Yeniden açıldı.");
+      toast.success(
+        next === "resolved" ? "Çözüldü olarak işaretlendi." : "Yeniden açıldı.",
+      );
       router.refresh();
     } finally {
       setPending(false);

@@ -1,4 +1,9 @@
-import { LGS_SUBJECTS, getKazanimlar, type SubjectName, type ExamGrade } from "@/lib/kazanim";
+import {
+  LGS_SUBJECTS,
+  getKazanimlar,
+  type SubjectName,
+  type ExamGrade,
+} from "@/lib/kazanim";
 import type { ExamFormInitial } from "@/components/exams/exam-entry-form";
 
 // Gemini'den gelen ham JSON'u mevcut deneme formunun beklediği ExamFormInitial
@@ -111,7 +116,10 @@ function cleanExamName(value: unknown): string {
   if (m) {
     const before = m[1].trim();
     const inside = m[2].trim();
-    if (before && (before === inside || inside.startsWith(before) || before.startsWith(inside))) {
+    if (
+      before &&
+      (before === inside || inside.startsWith(before) || before.startsWith(inside))
+    ) {
       name = before;
     }
   }
@@ -192,15 +200,25 @@ function buildKazanimlar(
   return rows;
 }
 
-export function normalizeImportedExam(raw: RawParsedExam, grade: ExamGrade): NormalizedImport {
+export function normalizeImportedExam(
+  raw: RawParsedExam,
+  grade: ExamGrade,
+): NormalizedImport {
   const warnings: string[] = [];
 
   // Ham dersleri kanonik ada göre grupla (aynı derse birden çok satır gelirse topla).
   const byCanonical = new Map<
     SubjectName,
-    { correct: number; incorrect: number; blank: number | null; kazanimlar: RawParsedKazanim[] }
+    {
+      correct: number;
+      incorrect: number;
+      blank: number | null;
+      kazanimlar: RawParsedKazanim[];
+    }
   >();
-  const rawSubjects = Array.isArray(raw.subjects) ? (raw.subjects as RawParsedSubject[]) : [];
+  const rawSubjects = Array.isArray(raw.subjects)
+    ? (raw.subjects as RawParsedSubject[])
+    : [];
   for (const rs of rawSubjects) {
     const canonical = typeof rs.name === "string" ? matchCanonicalSubject(rs.name) : null;
     if (!canonical) {
@@ -211,7 +229,9 @@ export function normalizeImportedExam(raw: RawParsedExam, grade: ExamGrade): Nor
     const correct = toCount(rs.correct) ?? 0;
     const incorrect = toCount(rs.incorrect) ?? 0;
     const blank = toCount(rs.blank);
-    const kazanimlar = Array.isArray(rs.kazanimlar) ? (rs.kazanimlar as RawParsedKazanim[]) : [];
+    const kazanimlar = Array.isArray(rs.kazanimlar)
+      ? (rs.kazanimlar as RawParsedKazanim[])
+      : [];
     const existing = byCanonical.get(canonical);
     if (existing) {
       existing.correct += correct;
@@ -219,7 +239,12 @@ export function normalizeImportedExam(raw: RawParsedExam, grade: ExamGrade): Nor
       existing.blank = (existing.blank ?? 0) + (blank ?? 0);
       existing.kazanimlar.push(...kazanimlar);
     } else {
-      byCanonical.set(canonical, { correct, incorrect, blank, kazanimlar: [...kazanimlar] });
+      byCanonical.set(canonical, {
+        correct,
+        incorrect,
+        blank,
+        kazanimlar: [...kazanimlar],
+      });
     }
   }
 
@@ -247,9 +272,7 @@ export function normalizeImportedExam(raw: RawParsedExam, grade: ExamGrade): Nor
       );
     }
     if (correct + incorrect + blank !== def.questionCount) {
-      warnings.push(
-        `${def.name}: toplam ${def.questionCount} tutmuyor, formda düzelt.`,
-      );
+      warnings.push(`${def.name}: toplam ${def.questionCount} tutmuyor, formda düzelt.`);
     }
     const kazanimlar = buildKazanimlar(
       grade,

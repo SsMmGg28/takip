@@ -22,8 +22,7 @@ export default async function ParentBookProgressPage({
   const students = await getAccessibleStudents(profile);
   if (students.length === 0) redirect("/parent/resources");
 
-  const activeStudent =
-    students.find((s) => s.id === requestedStudentId) ?? students[0];
+  const activeStudent = students.find((s) => s.id === requestedStudentId) ?? students[0];
 
   const data = await getStudentProgressForBook(activeStudent.id, bookId);
   if (!data) notFound();

@@ -61,8 +61,8 @@ export default async function ParentStudentExamsPage({
       <section className="flex flex-col gap-3">
         <h2 className="text-lg font-semibold">Geçmiş Denemeler</h2>
         <p className="text-sm text-muted-foreground">
-          Girilmiş bir denemede değişiklik veya silme için öğretmene düzenleme
-          talebi gönderebilirsin; onaylandığında düzenleme açılır.
+          Girilmiş bir denemede değişiklik veya silme için öğretmene düzenleme talebi
+          gönderebilirsin; onaylandığında düzenleme açılır.
         </p>
         <ExamList
           exams={overview.exams}
