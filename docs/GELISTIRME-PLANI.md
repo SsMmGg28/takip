@@ -67,12 +67,17 @@ Derinlemesine savunma: bir RLS politikası ileride gevşetilirse bu aksiyonlar a
 
 ---
 
-## P2 — Yüksek: Şema Güvenilirliği ve Kalite Kapıları (5 ve 6 ✅, 7 açık)
+## P2 — Yüksek: Şema Güvenilirliği ve Kalite Kapıları (5-6 ✅, 7 kısmen ✅)
 
 > 5: `0007_profiles_privilege_guard` → `0007b` olarak yeniden adlandırıldı, README
 > tüm migration'ların sırayla uygulanmasını anlatıyor, `supabase/config.toml` eklendi
 > (tam `db push` geçişi zaman damgalı ad + baseline gerektirir, not düşüldü).
-> 6: CI'ya sahte env ile build adımı eklendi. 7 (test genişletme) hâlâ açık.
+> 6: CI'ya sahte env ile build + format:check adımları eklendi.
+> 7 (kısmen): `src/test/supabase-mock.ts` + 5 yeni test dosyasıyla server action /
+> API yardımcıları test edildi (guard sıralaması, sahiplik filtreleri, upload
+> rollback; toplam 147 test). **Playwright e2e ve RLS politika testleri bilinçli
+> ertelendi:** CI'da ve geliştirme ortamında Docker/yerel Supabase/gerçek kimlik
+> bilgisi yok; yarım altyapı kurmak yerine bu katman ileriye bırakıldı.
 
 ### 5. Migration hijyeni
 
@@ -137,7 +142,13 @@ yardımcı yaz.
 
 ---
 
-## P4 — Düşük: Cila ve Gelecek
+## P4 — Düşük: Cila ve Gelecek (11-12-14 ✅, 13 bilinçli atlandı)
+
+> 11: Prettier (printWidth 90) + lint-staged + simple-git-hooks; tüm repo tek mekanik
+> commit'te formatlandı; CI'da format:check. 12: kök layout'ta `%s | Ders Takip`
+> şablonu + 45 sayfaya Türkçe başlık + login/set-password mini layout'ları.
+> 14: CLAUDE.md mimari/konvansiyon rehberiyle dolduruldu. 13 (büyük bileşen bölme)
+> düşük değer/yüksek churn nedeniyle yapılmadı.
 
 11. **Prettier + pre-commit hook** (husky/lint-staged) — CI'daki kalite kapısının yerelde de
     çalışması, biçim tartışmalarının bitmesi.
