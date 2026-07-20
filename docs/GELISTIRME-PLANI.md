@@ -21,7 +21,11 @@ Bu yüzden plan performans konularını tekrarlamaz; kalan gerçek açıklara od
 
 ---
 
-## P1 — Kritik: Dayanıklılık ve Güvenlik
+## P1 — Kritik: Dayanıklılık ve Güvenlik ✅ (2026-07-20 tamamlandı)
+
+> Dört madde de uygulandı: `src/lib/uploads.ts` ortak doğrulama yardımcısı (+testler),
+> ödev/duyuru eklerinde doğrulama + rollback'li hata bildirimi, `assertTeacherAction`
+> guard'ları ve kök + rol segmentlerinde Türkçe `error.tsx`/`not-found.tsx`/`global-error.tsx`.
 
 ### 1. Hata sınırları ve 404 sayfaları ekle
 
