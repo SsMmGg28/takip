@@ -1,9 +1,9 @@
 name: CI
 
-# PR'larda ve main'e push'ta kod kalitesini doğrular: lint + typecheck + testler.
-# Bu üç adım gizli anahtar/veritabanı gerektirmez. `next build` bilinçli olarak
-# dahil edilmedi: sunucu bileşenleri build sırasında Supabase env değişkenlerini
-# ister; build doğrulaması yerelde/deploy'da yapılır.
+# PR'larda ve main'e push'ta kod kalitesini doğrular: lint + typecheck + testler
+# + production build. Build, gerçek bir Supabase projesine bağlanmaz; sunucu
+# bileşenlerinin istediği env değişkenleri sahte değerlerle sağlanır (prerender
+# sırasında ağ çağrısı yapılmaz, yalnızca istemci kurulumu doğrulanır).
 
 on:
   pull_request:
@@ -37,3 +37,11 @@ jobs:
 
       - name: Testler
         run: npm run test
+
+      - name: Build (sahte env ile)
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://dummy.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy
+          SUPABASE_SERVICE_ROLE_KEY: dummy
+          NEXT_PUBLIC_AUTH_EMAIL_DOMAIN: takip.internal
