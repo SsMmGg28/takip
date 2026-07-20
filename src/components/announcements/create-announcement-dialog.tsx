@@ -176,7 +176,12 @@ export function CreateAnnouncementDialog({
 
           <div className="flex flex-col gap-2">
             <Label htmlFor="ann-file">Belge (isteğe bağlı)</Label>
-            <Input id="ann-file" name="attachment" type="file" />
+            <Input
+              id="ann-file"
+              name="attachment"
+              type="file"
+              accept=".pdf,.png,.jpg,.jpeg,.webp,.heic,.doc,.docx"
+            />
           </div>
 
           <Button type="submit" disabled={sending}>
