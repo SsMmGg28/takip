@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { ExamDetail } from "@/components/exams/exam-detail";
 import { getExamDetails } from "@/lib/exams";
 
+export const metadata = { title: "Deneme Detayı" };
+
 export default async function StudentExamDetailPage({
   params,
 }: {

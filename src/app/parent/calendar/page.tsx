@@ -5,6 +5,8 @@ import { PageHeader } from "@/components/page-header";
 import { CalendarView } from "@/components/calendar/calendar-view";
 import { EmptyState } from "@/components/empty-state";
 
+export const metadata = { title: "Takvim" };
+
 export default async function ParentCalendarPage() {
   const profile = await requireRole(["parent"]);
   const students = await getAccessibleStudents(profile);
@@ -27,7 +29,10 @@ export default async function ParentCalendarPage() {
 
   return (
     <>
-      <PageHeader title="Takvim" description="Tüm dersler, ödev teslim tarihleri ve hatırlatmalar." />
+      <PageHeader
+        title="Takvim"
+        description="Tüm dersler, ödev teslim tarihleri ve hatırlatmalar."
+      />
       <CalendarView items={allItems} />
     </>
   );

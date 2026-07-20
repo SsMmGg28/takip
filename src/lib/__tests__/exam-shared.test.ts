@@ -77,8 +77,22 @@ describe("aggregateKazanim", () => {
 
   it("farklı kodları ayrı satırlar olarak tutar", () => {
     const stats = aggregateKazanim([
-      row({ subjectName: "Fen Bilimleri", kazanim_code: "F8-05", examId: "e1", correct_count: 2, incorrect_count: 2, blank_count: 0 }),
-      row({ subjectName: "Fen Bilimleri", kazanim_code: "F8-02", examId: "e1", correct_count: 4, incorrect_count: 0, blank_count: 0 }),
+      row({
+        subjectName: "Fen Bilimleri",
+        kazanim_code: "F8-05",
+        examId: "e1",
+        correct_count: 2,
+        incorrect_count: 2,
+        blank_count: 0,
+      }),
+      row({
+        subjectName: "Fen Bilimleri",
+        kazanim_code: "F8-02",
+        examId: "e1",
+        correct_count: 4,
+        incorrect_count: 0,
+        blank_count: 0,
+      }),
     ]);
     expect(stats).toHaveLength(2);
   });

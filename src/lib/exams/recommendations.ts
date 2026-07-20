@@ -54,7 +54,11 @@ export interface KazanimRecommendation {
 }
 
 /** Başarı oranı s = 1 − (yanlış + 0.5·boş)/soru, [0,1] aralığına sıkıştırılır. */
-export function successRate(k: { incorrect: number; blank: number; asked: number }): number {
+export function successRate(k: {
+  incorrect: number;
+  blank: number;
+  asked: number;
+}): number {
   if (k.asked <= 0) return 1;
   const errorRate = (k.incorrect + 0.5 * k.blank) / k.asked;
   return Math.max(0, Math.min(1, 1 - errorRate));
@@ -119,13 +123,16 @@ export function pickRecommendation(
     if (a.onShelf !== b.onShelf) return a.onShelf ? -1 : 1;
 
     return (
-      a.bookName.localeCompare(b.bookName, "tr") ||
-      a.sectionId.localeCompare(b.sectionId)
+      a.bookName.localeCompare(b.bookName, "tr") || a.sectionId.localeCompare(b.sectionId)
     );
   })[0];
 
   const suggestedTests: number[] = [];
-  for (let n = 1; n <= chosen.testCount && suggestedTests.length < MAX_SUGGESTED_TESTS; n++) {
+  for (
+    let n = 1;
+    n <= chosen.testCount && suggestedTests.length < MAX_SUGGESTED_TESTS;
+    n++
+  ) {
     if (!chosen.solvedTests.has(n)) suggestedTests.push(n);
   }
 

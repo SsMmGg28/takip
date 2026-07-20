@@ -29,7 +29,7 @@ export async function getExamOverview(studentId: string): Promise<ExamOverview> 
     .order("exam_date", { ascending: true })
     .order("created_at", { ascending: true });
 
-  const exams = ((examsData as (Exam & { exam_subjects: ExamSubject[] })[] | null) ?? []);
+  const exams = (examsData as (Exam & { exam_subjects: ExamSubject[] })[] | null) ?? [];
 
   const subjectsSet = new Set<string>();
 
@@ -103,7 +103,7 @@ export async function getKazanimAnalysis(studentId: string): Promise<KazanimAnal
       exam_kazanim_results: ExamKazanimResult[];
     }[];
   };
-  const exams = ((examsData as unknown as ExamRow[] | null) ?? []);
+  const exams = (examsData as unknown as ExamRow[] | null) ?? [];
   const examIds = exams.map((e) => e.id);
   if (examIds.length === 0)
     return { stats: [], priorities: [], trend: [], trendSubjects: [], examCount: 0 };
@@ -128,7 +128,8 @@ export async function getKazanimAnalysis(studentId: string): Promise<KazanimAnal
   const recentRows = rows.filter((r) => lastTenIds.has(r.examId));
   const priorities: KazanimPriority[] = aggregateKazanim(recentRows)
     .map((stat) => {
-      const errorRate = stat.asked === 0 ? 0 : (stat.incorrect + stat.blank * 0.5) / stat.asked;
+      const errorRate =
+        stat.asked === 0 ? 0 : (stat.incorrect + stat.blank * 0.5) / stat.asked;
       const frequencyWeight = Math.log2(1 + stat.asked);
       return {
         ...stat,
@@ -145,29 +146,27 @@ export async function getKazanimAnalysis(studentId: string): Promise<KazanimAnal
     rowsByExam.get(r.examId)!.push(r);
   }
   const trendSubjectsSet = new Set<string>();
-  const trend: KazanimTrendRow[] = [...exams]
-    .reverse()
-    .flatMap((exam) => {
-      const examRows = rowsByExam.get(exam.id) ?? [];
-      if (!examRows.length) return [];
-      const row: KazanimTrendRow = {
-        examLabel: exam.exam_name,
-        examDate: exam.exam_date,
-      };
-      const bySubject = new Map<string, { correct: number; asked: number }>();
-      for (const r of examRows) {
-        const agg = bySubject.get(r.subjectName) ?? { correct: 0, asked: 0 };
-        agg.correct += r.correct_count;
-        agg.asked += r.correct_count + r.incorrect_count + r.blank_count;
-        bySubject.set(r.subjectName, agg);
-      }
-      for (const [subject, agg] of bySubject) {
-        if (agg.asked === 0) continue;
-        row[subject] = Math.round((agg.correct / agg.asked) * 100);
-        trendSubjectsSet.add(subject);
-      }
-      return [row];
-    });
+  const trend: KazanimTrendRow[] = [...exams].reverse().flatMap((exam) => {
+    const examRows = rowsByExam.get(exam.id) ?? [];
+    if (!examRows.length) return [];
+    const row: KazanimTrendRow = {
+      examLabel: exam.exam_name,
+      examDate: exam.exam_date,
+    };
+    const bySubject = new Map<string, { correct: number; asked: number }>();
+    for (const r of examRows) {
+      const agg = bySubject.get(r.subjectName) ?? { correct: 0, asked: 0 };
+      agg.correct += r.correct_count;
+      agg.asked += r.correct_count + r.incorrect_count + r.blank_count;
+      bySubject.set(r.subjectName, agg);
+    }
+    for (const [subject, agg] of bySubject) {
+      if (agg.asked === 0) continue;
+      row[subject] = Math.round((agg.correct / agg.asked) * 100);
+      trendSubjectsSet.add(subject);
+    }
+    return [row];
+  });
 
   return {
     stats,

@@ -7,6 +7,8 @@ import { EmptyState } from "@/components/empty-state";
 import { TestGrid } from "@/components/resources/test-grid";
 import { getStudentProgressForBook } from "@/lib/books";
 
+export const metadata = { title: "Kitap İlerlemesi" };
+
 export default async function TeacherStudentBookProgressPage({
   params,
 }: {

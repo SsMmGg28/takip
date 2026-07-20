@@ -119,8 +119,8 @@ export async function ProfileView({
         <CardContent className="flex flex-wrap items-center gap-3">
           <BugReportDialog />
           <p className="text-sm text-muted-foreground">
-            Bir sorunla mı karşılaştın? Bildirimin öğretmene ve sistem
-            yöneticisine anında iletilir.
+            Bir sorunla mı karşılaştın? Bildirimin öğretmene ve sistem yöneticisine anında
+            iletilir.
           </p>
           {profile.role === "teacher" && (
             <Link

@@ -16,7 +16,7 @@ export type BookGrade = (typeof BOOK_GRADES)[number];
 
 // 5. sınıf (MEB müfredatından derlendi, gözden geçirilebilir) ------------------
 const CATALOG_5: Record<string, Kazanim[]> = {
-  "Türkçe": [
+  Türkçe: [
     { code: "T5-01", name: "Sözcükte Anlam" },
     { code: "T5-02", name: "Deyimler ve Atasözleri" },
     { code: "T5-03", name: "Cümlede Anlam" },
@@ -27,7 +27,7 @@ const CATALOG_5: Record<string, Kazanim[]> = {
     { code: "T5-08", name: "Noktalama İşaretleri" },
     { code: "T5-09", name: "Görsel Okuma, Grafik ve Tablo Yorumlama" },
   ],
-  "Matematik": [
+  Matematik: [
     { code: "M5-01", name: "Doğal Sayılar" },
     { code: "M5-02", name: "Doğal Sayılarla İşlemler" },
     { code: "M5-03", name: "Kesirler" },
@@ -66,7 +66,7 @@ const CATALOG_5: Record<string, Kazanim[]> = {
     { code: "D5-04", name: "Hz. Muhammed ve Aile Hayatı" },
     { code: "D5-05", name: "Çevremizde Dinin İzleri" },
   ],
-  "İngilizce": [
+  İngilizce: [
     { code: "E5-01", name: "Hello" },
     { code: "E5-02", name: "My Town" },
     { code: "E5-03", name: "Games and Hobbies" },
@@ -82,7 +82,7 @@ const CATALOG_5: Record<string, Kazanim[]> = {
 
 // 6. sınıf (MEB müfredatından derlendi, gözden geçirilebilir) ------------------
 const CATALOG_6: Record<string, Kazanim[]> = {
-  "Türkçe": [
+  Türkçe: [
     { code: "T6-01", name: "Sözcükte Anlam" },
     { code: "T6-02", name: "Deyimler ve Atasözleri" },
     { code: "T6-03", name: "Cümlede Anlam" },
@@ -94,7 +94,7 @@ const CATALOG_6: Record<string, Kazanim[]> = {
     { code: "T6-09", name: "Noktalama İşaretleri" },
     { code: "T6-10", name: "Görsel Okuma, Grafik ve Tablo Yorumlama" },
   ],
-  "Matematik": [
+  Matematik: [
     { code: "M6-01", name: "Doğal Sayılarla İşlemler" },
     { code: "M6-02", name: "Çarpanlar ve Katlar" },
     { code: "M6-03", name: "Kümeler" },
@@ -135,7 +135,7 @@ const CATALOG_6: Record<string, Kazanim[]> = {
     { code: "D6-04", name: "Hz. Muhammed'in Hayatı" },
     { code: "D6-05", name: "Temel Değerler (Sevgi, Dostluk, Kardeşlik)" },
   ],
-  "İngilizce": [
+  İngilizce: [
     { code: "E6-01", name: "Life" },
     { code: "E6-02", name: "Yummy Breakfast" },
     { code: "E6-03", name: "Downtown" },
@@ -158,20 +158,20 @@ export const BOOK_CATALOG: Record<BookGrade, Record<string, Kazanim[]>> = {
   5: CATALOG_5,
   6: CATALOG_6,
   7: {
-    "Türkçe": KAZANIM_KATALOG[7]["Türkçe"],
-    "Matematik": KAZANIM_KATALOG[7]["Matematik"],
+    Türkçe: KAZANIM_KATALOG[7]["Türkçe"],
+    Matematik: KAZANIM_KATALOG[7]["Matematik"],
     "Fen Bilimleri": KAZANIM_KATALOG[7]["Fen Bilimleri"],
     "Sosyal Bilgiler": KAZANIM_KATALOG[7]["T.C. İnkılap Tarihi"],
     "Din Kültürü": KAZANIM_KATALOG[7]["Din Kültürü"],
-    "İngilizce": KAZANIM_KATALOG[7]["İngilizce"],
+    İngilizce: KAZANIM_KATALOG[7]["İngilizce"],
   },
   8: {
-    "Türkçe": KAZANIM_KATALOG[8]["Türkçe"],
-    "Matematik": KAZANIM_KATALOG[8]["Matematik"],
+    Türkçe: KAZANIM_KATALOG[8]["Türkçe"],
+    Matematik: KAZANIM_KATALOG[8]["Matematik"],
     "Fen Bilimleri": KAZANIM_KATALOG[8]["Fen Bilimleri"],
     "T.C. İnkılap Tarihi": KAZANIM_KATALOG[8]["T.C. İnkılap Tarihi"],
     "Din Kültürü": KAZANIM_KATALOG[8]["Din Kültürü"],
-    "İngilizce": KAZANIM_KATALOG[8]["İngilizce"],
+    İngilizce: KAZANIM_KATALOG[8]["İngilizce"],
   },
 };
 

@@ -159,7 +159,12 @@ describe("normalizeImportedExam - kenar durumlar", () => {
   });
 
   it("puan okunamazsa null döner ve uyarı ekler", () => {
-    const raw: RawParsedExam = { examName: "X", examDate: "2026-01-01", score: "", subjects: [] };
+    const raw: RawParsedExam = {
+      examName: "X",
+      examDate: "2026-01-01",
+      score: "",
+      subjects: [],
+    };
     const { initial, warnings } = normalizeImportedExam(raw, 8);
     expect(initial.score).toBeNull();
     expect(warnings.some((w) => w.toLowerCase().includes("puan"))).toBe(true);
@@ -288,7 +293,9 @@ describe("normalizeImportedExam - Faz 2 kazanım eşleştirme", () => {
       }),
     });
     const g8 = normalizeImportedExam(makeRaw(), 8);
-    expect(subj(g8.initial, "T.C. İnkılap Tarihi").kazanimlar.map((k) => k.code)).toEqual(["I8-01"]);
+    expect(subj(g8.initial, "T.C. İnkılap Tarihi").kazanimlar.map((k) => k.code)).toEqual(
+      ["I8-01"],
+    );
     const g7 = normalizeImportedExam(makeRaw(), 7);
     expect(subj(g7.initial, "T.C. İnkılap Tarihi").kazanimlar).toHaveLength(0);
   });

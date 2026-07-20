@@ -90,9 +90,7 @@ export function EditHomeworkDialog({
             setPending(true);
             try {
               await updateHomework(formData);
-              toast.success(
-                "Ödev güncellendi; öğrenci ve veliye bildirim gönderildi.",
-              );
+              toast.success("Ödev güncellendi; öğrenci ve veliye bildirim gönderildi.");
               setOpen(false);
             } catch (e) {
               toast.error(e instanceof Error ? e.message : "Bir hata oluştu.");

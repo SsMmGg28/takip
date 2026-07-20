@@ -3,8 +3,10 @@
 import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { assertTeacherAction } from "@/lib/auth";
 import { getParentIdsByStudent, notifyUsers } from "@/lib/notifications";
 import { parseTestEntries } from "@/lib/homework-parse";
+import { ATTACHMENT_TYPES, sanitizeFileName, validateUpload } from "@/lib/uploads";
 import type { Homework, HomeworkTest } from "@/lib/types";
 
 function revalidateHomeworkPaths(studentIds: string[]) {
@@ -16,7 +18,11 @@ function revalidateHomeworkPaths(studentIds: string[]) {
 
 async function notifyHomeworkAudience(
   studentIds: string[],
-  payload: { type: "homework_assigned" | "homework_updated"; title: string; body?: string },
+  payload: {
+    type: "homework_assigned" | "homework_updated";
+    title: string;
+    body?: string;
+  },
 ) {
   const parentsByStudent = await getParentIdsByStudent(studentIds);
   const parentIds = studentIds.flatMap((id) => parentsByStudent.get(id) ?? []);
@@ -33,9 +39,8 @@ async function notifyHomeworkAudience(
  * Dosya eki grup başına tek kopya yüklenir.
  */
 export async function createHomework(formData: FormData) {
+  const teacher = await assertTeacherAction();
   const supabase = await createClient();
-  const { data: userData } = await supabase.auth.getUser();
-  if (!userData.user) throw new Error("Yetkisiz.");
 
   const studentIds = formData
     .getAll("student_ids")
@@ -52,6 +57,10 @@ export async function createHomework(formData: FormData) {
 
   if (!title) throw new Error("Başlık gerekli.");
   if (!studentIds.length) throw new Error("En az bir öğrenci seç.");
+  if (hasFile) {
+    const fileError = validateUpload(file, { accepted: ATTACHMENT_TYPES });
+    if (fileError) throw new Error(fileError);
+  }
 
   const groupId = randomUUID();
 
@@ -65,37 +74,45 @@ export async function createHomework(formData: FormData) {
         due_date: dueDate,
         book_id: bookId,
         assignment_group_id: groupId,
-        created_by: userData.user.id,
+        created_by: teacher.id,
       })),
     )
     .select();
   if (error || !rows?.length) throw new Error(error?.message ?? "Ödev oluşturulamadı.");
 
   if (testEntries.length) {
-    const { error: testError } = await supabase.from("homework_tests").insert(
-      rows.flatMap((hw) =>
-        testEntries.map((t) => ({ homework_id: hw.id, ...t })),
-      ),
-    );
+    const { error: testError } = await supabase
+      .from("homework_tests")
+      .insert(
+        rows.flatMap((hw) => testEntries.map((t) => ({ homework_id: hw.id, ...t }))),
+      );
     if (testError) throw new Error(testError.message);
   }
 
   if (hasFile) {
-    const path = `${groupId}/${file.name}`;
+    const path = `${groupId}/${sanitizeFileName(file.name)}`;
     const { error: uploadError } = await supabase.storage
       .from("homework-attachments")
       .upload(path, file, { upsert: true });
     if (uploadError) {
+      // Ek yüklenemezse ödevi yarım bırakma: satırları geri al (testler cascade).
       console.error("[homework attachment upload]", uploadError);
-    } else {
-      await supabase
-        .from("homework")
-        .update({
-          attachment_path: path,
-          attachment_name: file.name,
-          attachment_uploaded_at: new Date().toISOString(),
-        })
-        .eq("assignment_group_id", groupId);
+      await supabase.from("homework").delete().eq("assignment_group_id", groupId);
+      throw new Error("Dosya eki yüklenemedi, ödev oluşturulamadı. Lütfen tekrar dene.");
+    }
+    const { error: attachError } = await supabase
+      .from("homework")
+      .update({
+        attachment_path: path,
+        attachment_name: file.name,
+        attachment_uploaded_at: new Date().toISOString(),
+      })
+      .eq("assignment_group_id", groupId);
+    if (attachError) {
+      console.error("[homework attachment link]", attachError);
+      await supabase.storage.from("homework-attachments").remove([path]);
+      await supabase.from("homework").delete().eq("assignment_group_id", groupId);
+      throw new Error("Dosya eki yüklenemedi, ödev oluşturulamadı. Lütfen tekrar dene.");
     }
   }
 
@@ -116,6 +133,7 @@ export async function createHomework(formData: FormData) {
  * Test listesi değişirse mevcut kontrol işaretleri (tamamlandı) korunur.
  */
 export async function updateHomework(formData: FormData) {
+  await assertTeacherAction();
   const supabase = await createClient();
   const id = String(formData.get("id"));
   const scope = String(formData.get("scope") ?? "one");
@@ -371,7 +389,10 @@ export async function reassignMissingTests(formData: FormData) {
   revalidateHomeworkPaths([hw.student_id]);
 }
 
-async function removeAttachmentIfOrphan(attachmentPath: string | null, excludeIds: string[]) {
+async function removeAttachmentIfOrphan(
+  attachmentPath: string | null,
+  excludeIds: string[],
+) {
   if (!attachmentPath) return;
   const supabase = await createClient();
   const { data: others } = await supabase
@@ -386,6 +407,7 @@ async function removeAttachmentIfOrphan(attachmentPath: string | null, excludeId
 }
 
 export async function deleteHomework(formData: FormData) {
+  await assertTeacherAction();
   const supabase = await createClient();
   const id = String(formData.get("id"));
 
@@ -405,6 +427,7 @@ export async function deleteHomework(formData: FormData) {
 
 /** Toplu gönderimin tamamını (tüm öğrencilerdeki kopyalarıyla) siler. */
 export async function deleteHomeworkGroup(formData: FormData) {
+  await assertTeacherAction();
   const supabase = await createClient();
   const groupId = String(formData.get("group_id"));
 

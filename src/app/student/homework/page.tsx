@@ -6,6 +6,8 @@ import { EmptyState } from "@/components/empty-state";
 import { HomeworkCard } from "@/components/homework/homework-card";
 import { StudentMarkPanel } from "@/components/homework/student-mark-panel";
 
+export const metadata = { title: "Ödevler" };
+
 export default async function StudentHomeworkPage() {
   const profile = await requireRole(["student"]);
   const { items, sectionById } = await getHomeworkForStudent(profile.id);

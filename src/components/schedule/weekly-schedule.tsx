@@ -44,7 +44,12 @@ export function WeeklySchedule({
                   <form action={deleteScheduleEntry}>
                     <input type="hidden" name="id" value={entry.id} />
                     <input type="hidden" name="redirect_path" value={redirectPath} />
-                    <Button type="submit" variant="ghost" size="sm" className="text-destructive">
+                    <Button
+                      type="submit"
+                      variant="ghost"
+                      size="sm"
+                      className="text-destructive"
+                    >
                       Sil
                     </Button>
                   </form>

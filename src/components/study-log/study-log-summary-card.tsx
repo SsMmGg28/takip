@@ -55,14 +55,18 @@ export function StudyLogSummaryCard({ summary }: { summary: StudyStreakSummary }
                     {l.topic}
                   </span>
                 )}
-                <span className="shrink-0 font-semibold tabular-nums">{l.minutes} dk</span>
+                <span className="shrink-0 font-semibold tabular-nums">
+                  {l.minutes} dk
+                </span>
                 {typeof l.question_count === "number" && (
                   <span className="shrink-0 text-xs text-muted-foreground">
                     · {l.question_count} soru
                   </span>
                 )}
                 {l.note && (
-                  <span className="min-w-0 flex-1 truncate text-muted-foreground">{l.note}</span>
+                  <span className="min-w-0 flex-1 truncate text-muted-foreground">
+                    {l.note}
+                  </span>
                 )}
               </li>
             ))}

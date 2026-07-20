@@ -107,7 +107,13 @@ describe("planSectionSync", () => {
     ];
     const plan = planSectionSync(existing, desired);
     expect(plan.toUpdate).toEqual([
-      { id: "s1", name: "Üslü İfadeler", testCount: 12, kazanimCode: "M8-02", orderIndex: 0 },
+      {
+        id: "s1",
+        name: "Üslü İfadeler",
+        testCount: 12,
+        kazanimCode: "M8-02",
+        orderIndex: 0,
+      },
     ]);
     expect(plan.toInsert).toEqual([
       { name: "Üçgenler", testCount: 8, kazanimCode: "M8-09", orderIndex: 1 },

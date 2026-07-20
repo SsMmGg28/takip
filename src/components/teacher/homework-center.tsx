@@ -217,7 +217,8 @@ export function HomeworkCenter({
                       {g.dueDate && (
                         <span className="inline-flex items-center gap-1">
                           <CalendarDays className="h-3.5 w-3.5" />
-                          Teslim: {new Date(g.dueDate + "T00:00:00").toLocaleDateString("tr-TR")}
+                          Teslim:{" "}
+                          {new Date(g.dueDate + "T00:00:00").toLocaleDateString("tr-TR")}
                         </span>
                       )}
                       {g.bookName && (
@@ -308,12 +309,14 @@ export function HomeworkCenter({
                             studentSaysDone={e.studentSaysDone}
                             initialFeedback={e.feedback}
                           />
-                          {status === "incomplete" && missingCount > 0 && e.tests.length > 0 && (
-                            <ReassignMissingButton
-                              homeworkId={e.homeworkId}
-                              missingCount={missingCount}
-                            />
-                          )}
+                          {status === "incomplete" &&
+                            missingCount > 0 &&
+                            e.tests.length > 0 && (
+                              <ReassignMissingButton
+                                homeworkId={e.homeworkId}
+                                missingCount={missingCount}
+                              />
+                            )}
                           <Link
                             href={`/teacher/homework/${e.studentId}`}
                             className="ml-auto inline-flex items-center gap-0.5 rounded-md px-2 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"

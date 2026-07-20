@@ -21,7 +21,9 @@ export interface StudyStreakSummary {
  * Bir öğrencinin çalışma günlüğü özeti: seri (streak), bugünkü dakika, bu haftanın
  * dökümü ve son kayıtlar. Öğrenci/öğretmen/veli (RLS ile) çağırabilir.
  */
-export async function getStudentStudySummary(studentId: string): Promise<StudyStreakSummary> {
+export async function getStudentStudySummary(
+  studentId: string,
+): Promise<StudyStreakSummary> {
   const supabase = await createClient();
 
   const { data } = await supabase
@@ -61,6 +63,11 @@ export async function getStudyBreakdown(studentId: string): Promise<TopicBreakdo
     .limit(2000);
 
   return aggregateByTopic(
-    (data as { subject: string; topic: string | null; minutes: number; question_count: number | null }[]) ?? [],
+    (data as {
+      subject: string;
+      topic: string | null;
+      minutes: number;
+      question_count: number | null;
+    }[]) ?? [],
   );
 }

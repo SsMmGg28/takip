@@ -39,7 +39,12 @@ export function DeleteExamButton({ examId }: { examId: string }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon-sm" className="text-destructive" aria-label="Denemeyi sil">
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          className="text-destructive"
+          aria-label="Denemeyi sil"
+        >
           <Trash2 className="h-4 w-4" />
         </Button>
       </DialogTrigger>
@@ -100,8 +105,7 @@ export function RequestEditButton({ examId }: { examId: string }) {
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <p className="text-sm text-muted-foreground">
-            Öğretmen onayladıktan sonra bu denemeyi düzenleyebilir veya
-            silebilirsin.
+            Öğretmen onayladıktan sonra bu denemeyi düzenleyebilir veya silebilirsin.
           </p>
           <Textarea
             value={reason}
@@ -150,7 +154,12 @@ export function ReviewRequestButtons({ requestId }: { requestId: string }) {
         {loading === "approve" && <Loader2 className="h-4 w-4 animate-spin" />}
         Onayla
       </Button>
-      <Button size="sm" variant="outline" onClick={() => review(false)} disabled={loading !== null}>
+      <Button
+        size="sm"
+        variant="outline"
+        onClick={() => review(false)}
+        disabled={loading !== null}
+      >
         {loading === "reject" && <Loader2 className="h-4 w-4 animate-spin" />}
         Reddet
       </Button>

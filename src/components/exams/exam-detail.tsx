@@ -53,9 +53,7 @@ export function ExamDetail({
 
       {/* Ders kartları */}
       {exam.subjects.map((subject) => {
-        const kazanimlar = kazanimResults.filter(
-          (k) => k.exam_subject_id === subject.id,
-        );
+        const kazanimlar = kazanimResults.filter((k) => k.exam_subject_id === subject.id);
         return (
           <Card key={subject.id}>
             <CardHeader>

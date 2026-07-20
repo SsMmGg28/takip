@@ -128,8 +128,8 @@ export function BookEditor({
         <Label>Zorluk derecesi</Label>
         <StarRatingInput value={difficulty} onChange={setDifficulty} />
         <p className="text-xs text-muted-foreground">
-          Kitabın genel zorluğu. Öğrenciye kazanım önerisi yapılırken kullanılır:
-          başarısı yüksek konularda daha zor, düşük konularda daha kolay kitap önerilir.
+          Kitabın genel zorluğu. Öğrenciye kazanım önerisi yapılırken kullanılır: başarısı
+          yüksek konularda daha zor, düşük konularda daha kolay kitap önerilir.
         </p>
       </div>
 
@@ -146,7 +146,11 @@ export function BookEditor({
         </p>
       )}
 
-      <Button type="submit" disabled={pending || !name.trim() || !ready} className="self-start">
+      <Button
+        type="submit"
+        disabled={pending || !name.trim() || !ready}
+        className="self-start"
+      >
         {pending ? "Kaydediliyor..." : "Kaydet"}
       </Button>
     </form>

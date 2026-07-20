@@ -16,7 +16,9 @@ import dynamic from "next/dynamic";
 // ayrı chunk olarak, yalnızca istemcide yüklenir.
 const chartLoading = (heightClass: string) =>
   function ChartSkeleton() {
-    return <div className={`${heightClass} w-full animate-pulse rounded-xl bg-muted/50`} />;
+    return (
+      <div className={`${heightClass} w-full animate-pulse rounded-xl bg-muted/50`} />
+    );
   };
 const SubjectNetChart = dynamic(
   () => import("@/components/exams/subject-net-chart").then((m) => m.SubjectNetChart),

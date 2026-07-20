@@ -9,6 +9,8 @@ import { DeleteAnnouncementButton } from "@/components/announcements/delete-anno
 import { getAccessibleStudentsWithGrades } from "@/lib/students";
 import type { Announcement } from "@/lib/types";
 
+export const metadata = { title: "Duyurular" };
+
 export default async function TeacherAnnouncementsPage() {
   const profile = await requireRole(["teacher"]);
   const supabase = await createClient();

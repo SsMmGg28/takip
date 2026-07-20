@@ -35,7 +35,8 @@ export function KazanimRecommendations({
       </div>
       <p className="text-sm text-muted-foreground">
         En çok yanlış/boş yapılan kazanımlar için, öğrencinin başarısına uygun zorlukta ve
-        henüz çözülmemiş kitap bölümleri. Başarı yüksekse daha zor, düşükse daha kolay kitap önerilir.
+        henüz çözülmemiş kitap bölümleri. Başarı yüksekse daha zor, düşükse daha kolay
+        kitap önerilir.
       </p>
 
       {actionable.length > 0 ? (
@@ -105,7 +106,8 @@ export function KazanimRecommendations({
       ) : (
         <div className="rounded-2xl border border-dashed bg-muted/30 p-4 text-sm text-muted-foreground">
           Zayıf kazanımlar var ama kütüphanede bu sınıfa uygun, henüz çözülmemiş kitap
-          bulunamadı. Kütüphaneye uygun kitap ekleyip zorluk derecesi verirsen burada öneri çıkar.
+          bulunamadı. Kütüphaneye uygun kitap ekleyip zorluk derecesi verirsen burada
+          öneri çıkar.
         </div>
       )}
 

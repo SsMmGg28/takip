@@ -43,13 +43,19 @@ function revalidateExamPages() {
 }
 
 function isCount(value: unknown): value is number {
-  return typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= 200;
+  return (
+    typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= 200
+  );
 }
 
 function validatePayload(payload: ExamPayload): string | null {
   if (!payload.examName?.trim()) return "Deneme adı gerekli.";
   if (!payload.examDate) return "Deneme tarihi gerekli.";
-  if (typeof payload.score !== "number" || Number.isNaN(payload.score) || payload.score < 0)
+  if (
+    typeof payload.score !== "number" ||
+    Number.isNaN(payload.score) ||
+    payload.score < 0
+  )
     return "Puan gerekli.";
   if (payload.score > 500) return "Puan 500'den büyük olamaz.";
 
@@ -58,7 +64,11 @@ function validatePayload(payload: ExamPayload): string | null {
   for (const def of LGS_SUBJECTS) {
     const subject = payload.subjects.find((s) => s.name === def.name);
     if (!subject) return `${def.name} sonuçları eksik.`;
-    if (!isCount(subject.correct) || !isCount(subject.incorrect) || !isCount(subject.blank))
+    if (
+      !isCount(subject.correct) ||
+      !isCount(subject.incorrect) ||
+      !isCount(subject.blank)
+    )
       return `${def.name} için doğru/yanlış/boş sayıları eksik veya hatalı.`;
     const total = subject.correct + subject.incorrect + subject.blank;
     if (total !== def.questionCount)
@@ -70,7 +80,10 @@ function validatePayload(payload: ExamPayload): string | null {
       if (k.correct + k.incorrect + k.blank === 0)
         return `${def.name} dersinde boş kazanım satırı var; sayı girilmeyen kazanımı işaretlemeyin.`;
     }
-    const kTotal = subject.kazanimlar.reduce((s, k) => s + k.correct + k.incorrect + k.blank, 0);
+    const kTotal = subject.kazanimlar.reduce(
+      (s, k) => s + k.correct + k.incorrect + k.blank,
+      0,
+    );
     if (kTotal > total)
       return `${def.name} kazanım toplamı (${kTotal}) ders soru toplamını (${total}) aşamaz.`;
   }
@@ -95,33 +108,50 @@ async function insertSubjects(
   subjects: ExamSubjectInput[],
 ): Promise<string | null> {
   const supabase = await createClient();
-  for (const subject of subjects) {
-    const { data: subjectRow, error } = await supabase
-      .from("exam_subjects")
-      .insert({
+  // Tüm dersler tek insert'te; dönen id'ler ders adına göre eşlenip kazanım
+  // satırları da tek insert'te yazılır (ders başına 2 sorgu yerine toplam 2).
+  const { data: subjectRows, error } = await supabase
+    .from("exam_subjects")
+    .insert(
+      subjects.map((subject) => ({
         exam_id: examId,
         subject_name: subject.name,
         correct_count: subject.correct,
         incorrect_count: subject.incorrect,
         blank_count: subject.blank,
-      })
-      .select("id")
-      .single();
-    if (error || !subjectRow) return error?.message ?? "Ders sonucu kaydedilemedi.";
+      })),
+    )
+    .select("id, subject_name");
+  if (error || subjectRows?.length !== subjects.length) {
+    return error?.message ?? "Ders sonucu kaydedilemedi.";
+  }
 
-    if (subject.kazanimlar.length > 0) {
-      const { error: kError } = await supabase.from("exam_kazanim_results").insert(
-        subject.kazanimlar.map((k) => ({
-          exam_subject_id: subjectRow.id,
-          kazanim_code: k.code,
-          kazanim_name: k.name,
-          correct_count: k.correct,
-          incorrect_count: k.incorrect,
-          blank_count: k.blank,
-        })),
-      );
-      if (kError) return kError.message;
-    }
+  // Aynı ders adı iki kez geçerse sıra korunarak eşlensin diye id'ler kuyrukta tutulur.
+  const idsByName = new Map<string, string[]>();
+  for (const row of subjectRows) {
+    const list = idsByName.get(row.subject_name) ?? [];
+    list.push(row.id);
+    idsByName.set(row.subject_name, list);
+  }
+
+  const kazanimRows = subjects.flatMap((subject) => {
+    const subjectId = idsByName.get(subject.name)?.shift();
+    if (!subjectId) return [];
+    return subject.kazanimlar.map((k) => ({
+      exam_subject_id: subjectId,
+      kazanim_code: k.code,
+      kazanim_name: k.name,
+      correct_count: k.correct,
+      incorrect_count: k.incorrect,
+      blank_count: k.blank,
+    }));
+  });
+
+  if (kazanimRows.length > 0) {
+    const { error: kError } = await supabase
+      .from("exam_kazanim_results")
+      .insert(kazanimRows);
+    if (kError) return kError.message;
   }
   return null;
 }
@@ -148,7 +178,8 @@ export async function createFullExam(payload: ExamPayload): Promise<ActionResult
     })
     .select("id")
     .single();
-  if (error || !exam) return { ok: false, error: error?.message ?? "Deneme kaydedilemedi." };
+  if (error || !exam)
+    return { ok: false, error: error?.message ?? "Deneme kaydedilemedi." };
 
   const insertError = await insertSubjects(exam.id, payload.subjects);
   if (insertError) {
@@ -204,7 +235,10 @@ export async function updateFullExam(
   if (error) return { ok: false, error: error.message };
   // RLS izin vermediyse (ör. onaysız veli) güncellenen satır dönmez.
   if (!updated?.length)
-    return { ok: false, error: "Bu denemeyi düzenleme yetkin yok. Öğretmen onayı gerekli." };
+    return {
+      ok: false,
+      error: "Bu denemeyi düzenleme yetkin yok. Öğretmen onayı gerekli.",
+    };
 
   // Ders ve kazanım satırlarını baştan yaz (cascade kazanımları da siler).
   const { error: deleteError } = await supabase
@@ -248,7 +282,10 @@ export async function deleteExam(examId: string): Promise<ActionResult> {
 
 // ─── Düzenleme talepleri ─────────────────────────────────────────────────────
 
-export async function requestExamEdit(examId: string, reason: string): Promise<ActionResult> {
+export async function requestExamEdit(
+  examId: string,
+  reason: string,
+): Promise<ActionResult> {
   const supabase = await createClient();
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) return { ok: false, error: "Yetkisiz." };
@@ -261,7 +298,10 @@ export async function requestExamEdit(examId: string, reason: string): Promise<A
     .eq("requested_by", userData.user.id)
     .in("status", ["pending", "approved"]);
   if (existing?.length)
-    return { ok: false, error: "Bu deneme için zaten bekleyen veya onaylı bir talebin var." };
+    return {
+      ok: false,
+      error: "Bu deneme için zaten bekleyen veya onaylı bir talebin var.",
+    };
 
   const { error } = await supabase.from("exam_edit_requests").insert({
     exam_id: examId,
@@ -308,7 +348,8 @@ export async function reviewExamEditRequest(
     .eq("status", "pending")
     .select("id, exam_id, requested_by");
   if (error) return { ok: false, error: error.message };
-  if (!updated?.length) return { ok: false, error: "Talep bulunamadı veya zaten incelendi." };
+  if (!updated?.length)
+    return { ok: false, error: "Talep bulunamadı veya zaten incelendi." };
 
   // Talebi açan veli sonucu bildirimle öğrensin.
   const request = updated[0];
@@ -361,7 +402,8 @@ export async function setTargetScore(
     .eq("id", studentId)
     .select("id");
   if (error) return { ok: false, error: error.message };
-  if (!updated?.length) return { ok: false, error: "Hedef puanı yalnızca öğretmen belirleyebilir." };
+  if (!updated?.length)
+    return { ok: false, error: "Hedef puanı yalnızca öğretmen belirleyebilir." };
 
   revalidateExamPages();
   return { ok: true };

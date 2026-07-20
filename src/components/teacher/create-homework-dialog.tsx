@@ -78,8 +78,8 @@ export function CreateHomeworkDialog({
   );
   const [bookId, setBookId] = useState<string>(defaultBookId ?? NO_BOOK);
   const [subjectFilter, setSubjectFilter] = useState<string>("all");
-  const [selectedTests, setSelectedTests] = useState<Record<string, Set<number>>>(
-    () => buildTestState(defaultTests),
+  const [selectedTests, setSelectedTests] = useState<Record<string, Set<number>>>(() =>
+    buildTestState(defaultTests),
   );
   const [fileName, setFileName] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -103,7 +103,9 @@ export function CreateHomeworkDialog({
   const subjectOptions = useMemo(
     () =>
       Array.from(
-        new Set(gradeFilteredBooks.map((b) => b.subject).filter((s): s is string => Boolean(s))),
+        new Set(
+          gradeFilteredBooks.map((b) => b.subject).filter((s): s is string => Boolean(s)),
+        ),
       ).sort((a, b) => a.localeCompare(b, "tr")),
     [gradeFilteredBooks],
   );
@@ -259,7 +261,12 @@ export function CreateHomeworkDialog({
 
           <div className="flex flex-col gap-2">
             <Label htmlFor="title">Başlık</Label>
-            <Input id="title" name="title" required placeholder="Örn: Hafta sonu çalışması" />
+            <Input
+              id="title"
+              name="title"
+              required
+              placeholder="Örn: Hafta sonu çalışması"
+            />
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -386,7 +393,9 @@ export function CreateHomeworkDialog({
                   type="button"
                   onClick={() => {
                     setFileName(null);
-                    const input = document.getElementById("attachment") as HTMLInputElement;
+                    const input = document.getElementById(
+                      "attachment",
+                    ) as HTMLInputElement;
                     if (input) input.value = "";
                   }}
                   className="text-muted-foreground hover:text-foreground"

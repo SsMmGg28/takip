@@ -25,11 +25,7 @@ import {
   widgetTitle,
   type WidgetDef,
 } from "@/components/dashboard/registry";
-import type {
-  DashboardData,
-  LayoutItem,
-  StoredLayout,
-} from "@/lib/dashboard-types";
+import type { DashboardData, LayoutItem, StoredLayout } from "@/lib/dashboard-types";
 
 const LAYOUT_VERSION = 1;
 
@@ -162,7 +158,12 @@ export function CustomizableDashboard({
     for (const [id, el] of itemRefs.current) {
       if (id === dragId || !el) continue;
       const r = el.getBoundingClientRect();
-      if (clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom) {
+      if (
+        clientX >= r.left &&
+        clientX <= r.right &&
+        clientY >= r.top &&
+        clientY <= r.bottom
+      ) {
         const from = items.findIndex((i) => i.id === dragId);
         const to = items.findIndex((i) => i.id === id);
         if (from === -1 || to === -1 || from === to) return;

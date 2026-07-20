@@ -3,7 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { assertTeacherAction } from "@/lib/auth";
 import { getParentIdsByStudent, notifyUsers } from "@/lib/notifications";
+import { ATTACHMENT_TYPES, sanitizeFileName, validateUpload } from "@/lib/uploads";
 import type { AnnouncementAudience, AnnouncementScope } from "@/lib/types";
 
 function revalidateAnnouncementPaths() {
@@ -37,9 +39,8 @@ async function resolveTargetStudents(
 
 /** Duyuru oluşturur, isteğe bağlı belgeyi yükler ve hedef kitleyi bilgilendirir. */
 export async function createAnnouncement(formData: FormData) {
+  const teacher = await assertTeacherAction();
   const supabase = await createClient();
-  const { data: userData } = await supabase.auth.getUser();
-  if (!userData.user) throw new Error("Yetkisiz.");
 
   const title = String(formData.get("title") ?? "").trim();
   const body = String(formData.get("body") ?? "").trim();
@@ -58,6 +59,10 @@ export async function createAnnouncement(formData: FormData) {
     throw new Error("Sınıf düzeyi seçilmeli.");
   if (scope === "students" && studentIds.length === 0)
     throw new Error("En az bir öğrenci seçilmeli.");
+  if (hasFile) {
+    const fileError = validateUpload(file, { accepted: ATTACHMENT_TYPES });
+    if (fileError) throw new Error(fileError);
+  }
 
   // Yazma kullanıcı istemcisiyle (RLS: yalnızca öğretmen).
   const { data: announcement, error } = await supabase
@@ -68,7 +73,7 @@ export async function createAnnouncement(formData: FormData) {
       audience_role: audience,
       target_scope: scope,
       grade_level: scope === "grade" ? gradeLevel : null,
-      created_by: userData.user.id,
+      created_by: teacher.id,
     })
     .select("id")
     .single();
@@ -88,17 +93,25 @@ export async function createAnnouncement(formData: FormData) {
   }
 
   if (hasFile) {
-    const path = `${announcement.id}/${file.name}`;
+    const path = `${announcement.id}/${sanitizeFileName(file.name)}`;
     const { error: uploadError } = await supabase.storage
       .from("announcement-files")
       .upload(path, file, { upsert: true });
     if (uploadError) {
+      // Belge yüklenemezse duyuruyu yarım bırakma: satırı geri al (hedefler cascade).
       console.error("[announcement attachment upload]", uploadError);
-    } else {
-      await supabase
-        .from("announcements")
-        .update({ attachment_path: path, attachment_name: file.name })
-        .eq("id", announcement.id);
+      await supabase.from("announcements").delete().eq("id", announcement.id);
+      throw new Error("Belge yüklenemedi, duyuru oluşturulamadı. Lütfen tekrar dene.");
+    }
+    const { error: attachError } = await supabase
+      .from("announcements")
+      .update({ attachment_path: path, attachment_name: file.name })
+      .eq("id", announcement.id);
+    if (attachError) {
+      console.error("[announcement attachment link]", attachError);
+      await supabase.storage.from("announcement-files").remove([path]);
+      await supabase.from("announcements").delete().eq("id", announcement.id);
+      throw new Error("Belge yüklenemedi, duyuru oluşturulamadı. Lütfen tekrar dene.");
     }
   }
 
@@ -111,10 +124,15 @@ export async function createAnnouncement(formData: FormData) {
   const parentsByStudent = await getParentIdsByStudent(targetStudents);
   const parentIds = targetStudents.flatMap((id) => parentsByStudent.get(id) ?? []);
 
-  const payload = { type: "announcement_created" as const, title: `Yeni duyuru: ${title}` };
+  const payload = {
+    type: "announcement_created" as const,
+    title: `Yeni duyuru: ${title}`,
+  };
   const jobs: Promise<void>[] = [];
   if (audience !== "parents") {
-    jobs.push(notifyUsers(targetStudents, { ...payload, link: "/student/announcements" }));
+    jobs.push(
+      notifyUsers(targetStudents, { ...payload, link: "/student/announcements" }),
+    );
   }
   if (audience !== "students") {
     jobs.push(notifyUsers(parentIds, { ...payload, link: "/parent/announcements" }));
@@ -126,6 +144,7 @@ export async function createAnnouncement(formData: FormData) {
 
 /** Duyuruyu ve varsa belgesini siler (RLS: yalnızca öğretmen). */
 export async function deleteAnnouncement(formData: FormData) {
+  await assertTeacherAction();
   const supabase = await createClient();
   const id = String(formData.get("id"));
 

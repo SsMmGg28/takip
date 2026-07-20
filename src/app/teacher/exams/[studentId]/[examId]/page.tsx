@@ -7,6 +7,8 @@ import { ExamDetail } from "@/components/exams/exam-detail";
 import { DeleteExamButton } from "@/components/exams/exam-actions";
 import { getExamDetails } from "@/lib/exams";
 
+export const metadata = { title: "Deneme Detayı" };
+
 export default async function TeacherExamDetailPage({
   params,
 }: {

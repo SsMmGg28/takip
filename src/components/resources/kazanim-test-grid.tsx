@@ -34,7 +34,9 @@ export function KazanimTestGrid({
   const hasCatalog = units.length > 0;
 
   if (hasCatalog) {
-    return <CatalogGrid grade={grade!} subject={subject} units={units} initial={initial} />;
+    return (
+      <CatalogGrid grade={grade!} subject={subject} units={units} initial={initial} />
+    );
   }
   return <FreeGrid initial={initial} />;
 }
@@ -49,11 +51,16 @@ function CatalogGrid({
   initial: InitialSection[];
 }) {
   const initialByCode = new Map(
-    initial.filter((s) => s.kazanimCode).map((s) => [s.kazanimCode as string, s.testCount]),
+    initial
+      .filter((s) => s.kazanimCode)
+      .map((s) => [s.kazanimCode as string, s.testCount]),
   );
   const [counts, setCounts] = useState<Record<string, string>>(() =>
     Object.fromEntries(
-      units.map((u) => [u.code, initialByCode.has(u.code) ? String(initialByCode.get(u.code)) : ""]),
+      units.map((u) => [
+        u.code,
+        initialByCode.has(u.code) ? String(initialByCode.get(u.code)) : "",
+      ]),
     ),
   );
 
@@ -80,7 +87,9 @@ function CatalogGrid({
               inputMode="numeric"
               placeholder="0"
               value={counts[u.code] ?? ""}
-              onChange={(e) => setCounts((prev) => ({ ...prev, [u.code]: e.target.value }))}
+              onChange={(e) =>
+                setCounts((prev) => ({ ...prev, [u.code]: e.target.value }))
+              }
               className="w-20 bg-background"
               aria-label={`${u.name} test sayısı`}
             />
@@ -102,7 +111,11 @@ let freeKey = 0;
 function FreeGrid({ initial }: { initial: InitialSection[] }) {
   const [rows, setRows] = useState<FreeRow[]>(() =>
     initial.length
-      ? initial.map((s) => ({ key: ++freeKey, name: s.name, testCount: String(s.testCount) }))
+      ? initial.map((s) => ({
+          key: ++freeKey,
+          name: s.name,
+          testCount: String(s.testCount),
+        }))
       : [{ key: ++freeKey, name: "", testCount: "10" }],
   );
 
@@ -114,7 +127,9 @@ function FreeGrid({ initial }: { initial: InitialSection[] }) {
     <div className="flex flex-col gap-2 rounded-xl border bg-muted/30 p-3">
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium">Bölümler ve test sayıları</span>
-        <span className="text-[11px] text-muted-foreground">Bu sınıf/ders için hazır kazanım yok</span>
+        <span className="text-[11px] text-muted-foreground">
+          Bu sınıf/ders için hazır kazanım yok
+        </span>
       </div>
       <div className="flex flex-col gap-2">
         {rows.map((row, i) => (
@@ -144,7 +159,9 @@ function FreeGrid({ initial }: { initial: InitialSection[] }) {
             <button
               type="button"
               onClick={() =>
-                setRows((prev) => (prev.length > 1 ? prev.filter((r) => r.key !== row.key) : prev))
+                setRows((prev) =>
+                  prev.length > 1 ? prev.filter((r) => r.key !== row.key) : prev,
+                )
               }
               className="text-muted-foreground transition-colors hover:text-destructive disabled:opacity-40"
               disabled={rows.length <= 1}
@@ -160,7 +177,9 @@ function FreeGrid({ initial }: { initial: InitialSection[] }) {
         variant="outline"
         size="sm"
         className="mt-1 gap-1.5 self-start"
-        onClick={() => setRows((prev) => [...prev, { key: ++freeKey, name: "", testCount: "10" }])}
+        onClick={() =>
+          setRows((prev) => [...prev, { key: ++freeKey, name: "", testCount: "10" }])
+        }
       >
         <Plus className="h-3.5 w-3.5" /> Bölüm ekle
       </Button>

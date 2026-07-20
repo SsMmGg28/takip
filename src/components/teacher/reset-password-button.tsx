@@ -9,6 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { postAdmin } from "@/lib/admin-api";
 
 export function ResetPasswordButton({ profileId }: { profileId: string }) {
   const [open, setOpen] = useState(false);
@@ -19,19 +20,16 @@ export function ResetPasswordButton({ profileId }: { profileId: string }) {
   async function handleReset() {
     setLoading(true);
     setError(null);
-    const res = await fetch("/api/admin/reset-password", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ profile_id: profileId }),
+    const res = await postAdmin<{ tempPassword: string }>("reset-password", {
+      profile_id: profileId,
     });
-    const data = await res.json();
     setLoading(false);
 
     if (!res.ok) {
-      setError(data.error ?? "Bir hata oluştu.");
+      setError(res.error);
       return;
     }
-    setTempPassword(data.tempPassword);
+    setTempPassword(res.data.tempPassword);
   }
 
   return (
@@ -65,8 +63,8 @@ export function ResetPasswordButton({ profileId }: { profileId: string }) {
         ) : (
           <div className="flex flex-col gap-3">
             <p className="text-sm">
-              Bu kullanıcı için yeni bir geçici şifre oluşturulacak ve bir sonraki girişte şifre
-              değiştirmesi zorunlu olacak. Onaylıyor musun?
+              Bu kullanıcı için yeni bir geçici şifre oluşturulacak ve bir sonraki girişte
+              şifre değiştirmesi zorunlu olacak. Onaylıyor musun?
             </p>
             {error && <p className="text-sm text-destructive">{error}</p>}
             <Button onClick={handleReset} disabled={loading}>

@@ -76,9 +76,7 @@ export async function callGeminiJson<T>(opts: {
 
   if (!res.ok) {
     const detail = await res.text().catch(() => "");
-    throw new Error(
-      `Gemini isteği başarısız (${res.status}). ${detail.slice(0, 300)}`,
-    );
+    throw new Error(`Gemini isteği başarısız (${res.status}). ${detail.slice(0, 300)}`);
   }
 
   const data = (await res.json()) as GeminiResponse;

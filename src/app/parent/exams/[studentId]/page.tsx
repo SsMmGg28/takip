@@ -12,6 +12,8 @@ import { getEditRequestsForStudent } from "@/lib/exams";
 import { getStudentExamInfo } from "@/lib/students";
 import { examsEnabledForGrade } from "@/lib/kazanim";
 
+export const metadata = { title: "Denemeler" };
+
 export default async function ParentStudentExamsPage({
   params,
 }: {
@@ -61,8 +63,8 @@ export default async function ParentStudentExamsPage({
       <section className="flex flex-col gap-3">
         <h2 className="text-lg font-semibold">Geçmiş Denemeler</h2>
         <p className="text-sm text-muted-foreground">
-          Girilmiş bir denemede değişiklik veya silme için öğretmene düzenleme
-          talebi gönderebilirsin; onaylandığında düzenleme açılır.
+          Girilmiş bir denemede değişiklik veya silme için öğretmene düzenleme talebi
+          gönderebilirsin; onaylandığında düzenleme açılır.
         </p>
         <ExamList
           exams={overview.exams}

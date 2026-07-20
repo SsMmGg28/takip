@@ -74,9 +74,10 @@ export function summarizeWeek(logs: StudyLogLite[], weekStart: string): WeekSumm
   for (const l of inWeek) {
     bySubjectMap.set(l.subject, (bySubjectMap.get(l.subject) ?? 0) + l.minutes);
   }
-  const bySubject = Array.from(bySubjectMap, ([subject, m]) => ({ subject, minutes: m })).sort(
-    (a, b) => b.minutes - a.minutes,
-  );
+  const bySubject = Array.from(bySubjectMap, ([subject, m]) => ({
+    subject,
+    minutes: m,
+  })).sort((a, b) => b.minutes - a.minutes);
   return { days, minutes, bySubject };
 }
 

@@ -130,7 +130,12 @@ export function AddScheduleEntryDialog({
 
           <div className="flex flex-col gap-2">
             <Label htmlFor="activity_label">Ders/Konu</Label>
-            <Input id="activity_label" name="activity_label" required placeholder="Örn: Matematik - Kesirler" />
+            <Input
+              id="activity_label"
+              name="activity_label"
+              required
+              placeholder="Örn: Matematik - Kesirler"
+            />
           </div>
 
           <Button type="submit">Kaydet</Button>

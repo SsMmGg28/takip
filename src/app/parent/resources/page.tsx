@@ -16,6 +16,8 @@ import {
 } from "@/components/resources/shelf-actions";
 import { cn } from "@/lib/utils";
 
+export const metadata = { title: "Kaynaklar" };
+
 export default async function ParentResourcesPage({
   searchParams,
 }: {
@@ -34,8 +36,7 @@ export default async function ParentResourcesPage({
     );
   }
 
-  const activeStudent =
-    students.find((s) => s.id === selectedStudentId) ?? students[0];
+  const activeStudent = students.find((s) => s.id === selectedStudentId) ?? students[0];
 
   const [shelf, approved, pending] = await Promise.all([
     getStudentShelf(activeStudent.id),
@@ -105,10 +106,7 @@ export default async function ParentResourcesPage({
                   completedCount={b.completedCount}
                   footer={
                     <div className="flex items-center gap-1">
-                      <RemoveFromShelfButton
-                        studentId={activeStudent.id}
-                        bookId={b.id}
-                      />
+                      <RemoveFromShelfButton studentId={activeStudent.id} bookId={b.id} />
                       <Button asChild size="sm" variant="outline">
                         <Link
                           href={`/parent/resources/${b.id}?student=${activeStudent.id}`}

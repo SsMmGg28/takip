@@ -12,6 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { postAdmin } from "@/lib/admin-api";
 
 /** Öğretmenin bir öğrenci/veli hesabını kalıcı olarak silmesi (onaylı). */
 export function DeleteUserButton({
@@ -30,14 +31,9 @@ export function DeleteUserButton({
   async function handleDelete() {
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/delete-user", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: userId }),
-      });
-      const data = await res.json();
+      const res = await postAdmin("delete-user", { user_id: userId });
       if (!res.ok) {
-        toast.error(data.error ?? "Hesap silinemedi.");
+        toast.error(res.error);
         return;
       }
       toast.success("Hesap silindi.");

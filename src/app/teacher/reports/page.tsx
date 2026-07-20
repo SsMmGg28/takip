@@ -8,6 +8,8 @@ import { BugReportStatusButton } from "@/components/teacher/bug-report-status-bu
 import { cn } from "@/lib/utils";
 import type { BugReport } from "@/lib/types";
 
+export const metadata = { title: "Raporlar" };
+
 const ROLE_LABELS: Record<string, string> = {
   teacher: "Öğretmen",
   student: "Öğrenci",
@@ -45,11 +47,11 @@ export default async function TeacherReportsPage() {
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0 space-y-1">
             <div className="flex flex-wrap items-center gap-2">
-              <p className="font-medium">
-                {reporter?.full_name ?? "Silinmiş kullanıcı"}
-              </p>
+              <p className="font-medium">{reporter?.full_name ?? "Silinmiş kullanıcı"}</p>
               {reporter && (
-                <Badge variant="outline">{ROLE_LABELS[reporter.role] ?? reporter.role}</Badge>
+                <Badge variant="outline">
+                  {ROLE_LABELS[reporter.role] ?? reporter.role}
+                </Badge>
               )}
               <Badge variant={report.status === "open" ? "destructive" : "secondary"}>
                 {report.status === "open" ? "Açık" : "Çözüldü"}

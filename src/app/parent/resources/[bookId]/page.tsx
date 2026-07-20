@@ -8,6 +8,8 @@ import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
 import { TestGrid } from "@/components/resources/test-grid";
 
+export const metadata = { title: "Kitap Detayı" };
+
 export default async function ParentBookProgressPage({
   params,
   searchParams,
@@ -22,8 +24,7 @@ export default async function ParentBookProgressPage({
   const students = await getAccessibleStudents(profile);
   if (students.length === 0) redirect("/parent/resources");
 
-  const activeStudent =
-    students.find((s) => s.id === requestedStudentId) ?? students[0];
+  const activeStudent = students.find((s) => s.id === requestedStudentId) ?? students[0];
 
   const data = await getStudentProgressForBook(activeStudent.id, bookId);
   if (!data) notFound();

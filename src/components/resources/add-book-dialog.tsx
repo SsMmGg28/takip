@@ -172,13 +172,18 @@ export function AddBookDialog({ role }: { role: "teacher" | "parent" }) {
                 <StarRatingInput value={difficulty} onChange={setDifficulty} />
                 <p className="text-xs text-muted-foreground">
                   Kazanım önerisinde kullanılır: öğrencinin başarısı yüksek konularda daha
-                  zor, düşük konularda daha kolay kitap önerilir. Sonradan da atayabilirsin.
+                  zor, düşük konularda daha kolay kitap önerilir. Sonradan da
+                  atayabilirsin.
                 </p>
               </div>
             )}
 
             {ready ? (
-              <KazanimTestGrid key={`${grade}-${subject}`} grade={Number(grade)} subject={subject} />
+              <KazanimTestGrid
+                key={`${grade}-${subject}`}
+                grade={Number(grade)}
+                subject={subject}
+              />
             ) : (
               <p className="rounded-lg border border-dashed bg-muted/30 px-3 py-4 text-center text-sm text-muted-foreground">
                 Üniteleri görmek için önce sınıf ve ders seç.
@@ -193,11 +198,7 @@ export function AddBookDialog({ role }: { role: "teacher" | "parent" }) {
             )}
 
             <Button type="submit" disabled={pending || !ready}>
-              {pending
-                ? "Kaydediliyor..."
-                : isParent
-                  ? "Onaya Gönder"
-                  : "Kitabı Yayınla"}
+              {pending ? "Kaydediliyor..." : isParent ? "Onaya Gönder" : "Kitabı Yayınla"}
             </Button>
           </form>
         )}

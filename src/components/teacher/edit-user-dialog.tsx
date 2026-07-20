@@ -21,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { postAdmin } from "@/lib/admin-api";
 
 /** Öğretmenin bir hesabın adını/telefonunu ve (öğrenciyse) sınıfını düzenlemesi. */
 export function EditUserDialog({
@@ -50,19 +51,14 @@ export function EditUserDialog({
     }
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/update-user", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          user_id: userId,
-          full_name: fullName,
-          phone,
-          ...(role === "student" && grade ? { grade_level: Number(grade) } : {}),
-        }),
+      const res = await postAdmin("update-user", {
+        user_id: userId,
+        full_name: fullName,
+        phone,
+        ...(role === "student" && grade ? { grade_level: Number(grade) } : {}),
       });
-      const data = await res.json();
       if (!res.ok) {
-        toast.error(data.error ?? "Kaydedilemedi.");
+        toast.error(res.error);
         return;
       }
       toast.success("Hesap güncellendi.");

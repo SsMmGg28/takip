@@ -5,6 +5,8 @@ import { EmptyState } from "@/components/empty-state";
 import { StudentPickerGrid } from "@/components/student-picker-grid";
 import type { Profile } from "@/lib/types";
 
+export const metadata = { title: "Çalışma Programı" };
+
 export default async function TeacherScheduleOverviewPage() {
   const supabase = await createClient();
   const { data: students } = await supabase

@@ -4,13 +4,12 @@ import { requireRole } from "@/lib/auth";
 import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
 import { CreateHomeworkDialog } from "@/components/teacher/create-homework-dialog";
-import {
-  HomeworkCenter,
-  type CenterGroup,
-} from "@/components/teacher/homework-center";
+import { HomeworkCenter, type CenterGroup } from "@/components/teacher/homework-center";
 import { getApprovedBooks } from "@/lib/books";
 import { getAccessibleStudentsWithGrades } from "@/lib/students";
 import { getAssignmentGroups } from "@/lib/homework-fetch";
+
+export const metadata = { title: "Ödevler" };
 
 export default async function TeacherHomeworkPage() {
   const profile = await requireRole(["teacher"]);

@@ -7,6 +7,8 @@ import { EmptyState } from "@/components/empty-state";
 import { TestGrid } from "@/components/resources/test-grid";
 import { getStudentProgressForBook, isBookOnShelf } from "@/lib/books";
 
+export const metadata = { title: "Kitap Detayı" };
+
 export default async function StudentBookPage({
   params,
 }: {
@@ -31,7 +33,10 @@ export default async function StudentBookPage({
         title={book.name}
         description={`${book.subject ?? "Genel"} · ${completedCount} / ${totalTests} test tamam (%${percent})`}
         action={
-          <Link href="/student/resources" className="text-sm text-muted-foreground hover:underline">
+          <Link
+            href="/student/resources"
+            className="text-sm text-muted-foreground hover:underline"
+          >
             ← Kitaplığım
           </Link>
         }

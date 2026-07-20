@@ -3,6 +3,8 @@ import { getStudentReport } from "@/lib/report";
 import { ReportControls } from "@/components/report/report-controls";
 import { todayInIstanbul } from "@/lib/week";
 
+export const metadata = { title: "Öğrenci Raporu" };
+
 const YMD = /^\d{4}-\d{2}-\d{2}$/;
 const FLOOR = "2015-01-01";
 
@@ -98,7 +100,9 @@ export default async function StudentReportPage({
             <div key={tile.label} className="rounded-xl border bg-muted/30 p-3">
               <p className="text-xs text-muted-foreground">{tile.label}</p>
               <p className="mt-1 text-xl font-semibold tabular-nums">{tile.value}</p>
-              {tile.hint && <p className="text-[11px] text-muted-foreground">{tile.hint}</p>}
+              {tile.hint && (
+                <p className="text-[11px] text-muted-foreground">{tile.hint}</p>
+              )}
             </div>
           ))}
         </section>
@@ -126,7 +130,9 @@ export default async function StudentReportPage({
                         {fmtShort(e.date)}
                       </td>
                       <td className="py-1.5 pr-2">{e.name}</td>
-                      <td className="py-1.5 pr-2 text-right tabular-nums">{e.score ?? "—"}</td>
+                      <td className="py-1.5 pr-2 text-right tabular-nums">
+                        {e.score ?? "—"}
+                      </td>
                       <td className="py-1.5 text-right tabular-nums">{e.totalNet}</td>
                     </tr>
                   ))}
@@ -153,7 +159,9 @@ export default async function StudentReportPage({
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="text-sm font-medium">{k.name}</span>
-                    <span className="ml-2 text-xs text-muted-foreground">{k.subject}</span>
+                    <span className="ml-2 text-xs text-muted-foreground">
+                      {k.subject}
+                    </span>
                   </span>
                   <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
                     %{k.wrongRate} yanlış · {k.asked} soru
@@ -175,7 +183,10 @@ export default async function StudentReportPage({
                 {report.books.map((b) => {
                   const pct = b.total > 0 ? Math.round((b.done / b.total) * 100) : 0;
                   return (
-                    <li key={b.name} className="rounded-lg border bg-muted/30 px-3 py-1.5">
+                    <li
+                      key={b.name}
+                      className="rounded-lg border bg-muted/30 px-3 py-1.5"
+                    >
                       <div className="flex items-center justify-between gap-2 text-sm">
                         <span className="min-w-0 truncate font-medium">{b.name}</span>
                         <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
@@ -196,8 +207,13 @@ export default async function StudentReportPage({
             </p>
             <div className="grid grid-cols-2 gap-2">
               {(["completed", "incomplete", "overdue", "assigned"] as const).map((st) => (
-                <div key={st} className="rounded-lg border bg-muted/30 px-3 py-2 text-center">
-                  <p className="text-lg font-bold tabular-nums">{report.homework.byStatus[st]}</p>
+                <div
+                  key={st}
+                  className="rounded-lg border bg-muted/30 px-3 py-2 text-center"
+                >
+                  <p className="text-lg font-bold tabular-nums">
+                    {report.homework.byStatus[st]}
+                  </p>
                   <p className="text-[11px] text-muted-foreground">{HW_LABELS[st]}</p>
                 </div>
               ))}

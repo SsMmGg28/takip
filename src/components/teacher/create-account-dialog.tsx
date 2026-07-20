@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { postAdmin } from "@/lib/admin-api";
 import type { Profile } from "@/lib/types";
 
 export function CreateAccountDialog({ students }: { students: Profile[] }) {
@@ -30,7 +31,9 @@ export function CreateAccountDialog({ students }: { students: Profile[] }) {
   const [parentOf, setParentOf] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<{ username: string; tempPassword: string } | null>(null);
+  const [result, setResult] = useState<{ username: string; tempPassword: string } | null>(
+    null,
+  );
 
   function resetForm() {
     setFullName("");
@@ -55,25 +58,23 @@ export function CreateAccountDialog({ students }: { students: Profile[] }) {
     }
 
     setLoading(true);
-    const res = await fetch("/api/admin/create-user", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+    const res = await postAdmin<{ username: string; tempPassword: string }>(
+      "create-user",
+      {
         full_name: fullName,
         role,
         grade_level: gradeLevel ? Number(gradeLevel) : undefined,
         parent_of: role === "parent" ? parentOf : undefined,
-      }),
-    });
-    const data = await res.json();
+      },
+    );
     setLoading(false);
 
     if (!res.ok) {
-      setError(data.error ?? "Bir hata oluştu.");
+      setError(res.error);
       return;
     }
 
-    setResult(data);
+    setResult(res.data);
     router.refresh();
   }
 
@@ -113,7 +114,10 @@ export function CreateAccountDialog({ students }: { students: Profile[] }) {
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div className="flex flex-col gap-2">
               <Label>Hesap türü</Label>
-              <Select value={role} onValueChange={(v) => setRole(v as "student" | "parent")}>
+              <Select
+                value={role}
+                onValueChange={(v) => setRole(v as "student" | "parent")}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>

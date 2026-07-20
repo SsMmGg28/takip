@@ -48,12 +48,12 @@ export interface ExamFormInitial {
 
 /** Sekme başlıklarında kullanılan kısa ders adları. */
 const SHORT_NAME: Record<string, string> = {
-  "Türkçe": "Türkçe",
-  "Matematik": "Mat",
+  Türkçe: "Türkçe",
+  Matematik: "Mat",
   "Fen Bilimleri": "Fen",
   "T.C. İnkılap Tarihi": "İnkılap",
   "Din Kültürü": "Din",
-  "İngilizce": "İng",
+  İngilizce: "İng",
 };
 
 function emptyCounts(): KazanimCounts {
@@ -133,7 +133,9 @@ export function ExamEntryForm({
   const subjectTotal = (s: SubjectFormState) =>
     toInt(s.correct) + toInt(s.incorrect) + toInt(s.blank);
   /** Ders durumu: boş / eksik (toplam kotayla eşleşmiyor) / tam. */
-  const subjectState = (def: (typeof LGS_SUBJECTS)[number]): "empty" | "partial" | "done" => {
+  const subjectState = (
+    def: (typeof LGS_SUBJECTS)[number],
+  ): "empty" | "partial" | "done" => {
     const total = subjectTotal(subjects[def.name]);
     if (total === 0) return "empty";
     return total === def.questionCount ? "done" : "partial";
@@ -150,7 +152,10 @@ export function ExamEntryForm({
       LGS_SUBJECTS.reduce(
         (sum, def) =>
           sum +
-          calculateNet(toInt(subjects[def.name].correct), toInt(subjects[def.name].incorrect)),
+          calculateNet(
+            toInt(subjects[def.name].correct),
+            toInt(subjects[def.name].incorrect),
+          ),
         0,
       ) * 100,
     ) / 100;
@@ -339,7 +344,9 @@ export function ExamEntryForm({
                         min={0}
                         max={def.questionCount}
                         value={s.correct}
-                        onChange={(e) => patchSubject(def.name, { correct: e.target.value })}
+                        onChange={(e) =>
+                          patchSubject(def.name, { correct: e.target.value })
+                        }
                         required
                       />
                     </div>
@@ -350,7 +357,9 @@ export function ExamEntryForm({
                         min={0}
                         max={def.questionCount}
                         value={s.incorrect}
-                        onChange={(e) => patchSubject(def.name, { incorrect: e.target.value })}
+                        onChange={(e) =>
+                          patchSubject(def.name, { incorrect: e.target.value })
+                        }
                         required
                       />
                     </div>
@@ -361,7 +370,9 @@ export function ExamEntryForm({
                         min={0}
                         max={def.questionCount}
                         value={s.blank}
-                        onChange={(e) => patchSubject(def.name, { blank: e.target.value })}
+                        onChange={(e) =>
+                          patchSubject(def.name, { blank: e.target.value })
+                        }
                         required
                       />
                     </div>
@@ -430,29 +441,31 @@ export function ExamEntryForm({
                                 <span className="col-span-3 text-sm sm:col-span-1">
                                   {k.name}
                                 </span>
-                                {(["correct", "incorrect", "blank"] as const).map((field) => (
-                                  <Input
-                                    key={field}
-                                    type="number"
-                                    min={0}
-                                    max={def.questionCount}
-                                    value={counts[field]}
-                                    onChange={(e) =>
-                                      patchKazanim(def.name, k.code, {
-                                        [field]: e.target.value,
-                                      })
-                                    }
-                                    placeholder="-"
-                                    className="h-8 px-2 text-center text-sm"
-                                    aria-label={`${k.name} ${
-                                      field === "correct"
-                                        ? "doğru"
-                                        : field === "incorrect"
-                                          ? "yanlış"
-                                          : "boş"
-                                    }`}
-                                  />
-                                ))}
+                                {(["correct", "incorrect", "blank"] as const).map(
+                                  (field) => (
+                                    <Input
+                                      key={field}
+                                      type="number"
+                                      min={0}
+                                      max={def.questionCount}
+                                      value={counts[field]}
+                                      onChange={(e) =>
+                                        patchKazanim(def.name, k.code, {
+                                          [field]: e.target.value,
+                                        })
+                                      }
+                                      placeholder="-"
+                                      className="h-8 px-2 text-center text-sm"
+                                      aria-label={`${k.name} ${
+                                        field === "correct"
+                                          ? "doğru"
+                                          : field === "incorrect"
+                                            ? "yanlış"
+                                            : "boş"
+                                      }`}
+                                    />
+                                  ),
+                                )}
                               </div>
                             );
                           })}
@@ -481,8 +494,16 @@ export function ExamEntryForm({
           Vazgeç
         </Button>
         <Button type="submit" disabled={saving || !canSubmit} size="lg">
-          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-          {saving ? "Kaydediliyor..." : examId ? "Değişiklikleri Kaydet" : "Denemeyi Kaydet"}
+          {saving ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Save className="h-4 w-4" />
+          )}
+          {saving
+            ? "Kaydediliyor..."
+            : examId
+              ? "Değişiklikleri Kaydet"
+              : "Denemeyi Kaydet"}
         </Button>
       </div>
     </form>

@@ -110,8 +110,10 @@ export function aggregateKazanim(rows: KazanimRowWithContext[]): KazanimStat[] {
   }
   for (const [key, entry] of totals) {
     entry.examCount = examIdsByKey.get(key)?.size ?? 0;
-    entry.accuracy = entry.asked === 0 ? 0 : Math.round((entry.correct / entry.asked) * 100);
-    entry.wrongRate = entry.asked === 0 ? 0 : Math.round((entry.incorrect / entry.asked) * 100);
+    entry.accuracy =
+      entry.asked === 0 ? 0 : Math.round((entry.correct / entry.asked) * 100);
+    entry.wrongRate =
+      entry.asked === 0 ? 0 : Math.round((entry.incorrect / entry.asked) * 100);
   }
   return Array.from(totals.values());
 }

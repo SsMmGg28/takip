@@ -62,8 +62,8 @@ export function TargetScoreDialog({
         </DialogHeader>
         <div className="flex flex-col gap-4">
           <p className="text-sm text-muted-foreground">
-            Hedef, puan gelişim grafiğinde kesikli çizgi olarak öğrenciye ve
-            veliye de görünür.
+            Hedef, puan gelişim grafiğinde kesikli çizgi olarak öğrenciye ve veliye de
+            görünür.
           </p>
           <div className="flex flex-col gap-2">
             <Label htmlFor="target-score">Hedef puan (0-500)</Label>

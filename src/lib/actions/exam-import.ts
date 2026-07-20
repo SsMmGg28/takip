@@ -2,9 +2,15 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { getStudentGrade } from "@/lib/students";
-import { examsEnabledForGrade, getKazanimlar, LGS_SUBJECTS, type ExamGrade } from "@/lib/kazanim";
+import {
+  examsEnabledForGrade,
+  getKazanimlar,
+  LGS_SUBJECTS,
+  type ExamGrade,
+} from "@/lib/kazanim";
 import { callGeminiJson, isGeminiConfigured } from "@/lib/ai/gemini";
 import { normalizeImportedExam, type RawParsedExam } from "@/lib/exams/import-normalize";
+import { PDF_IMAGE_TYPES, resolveMimeType, validateUpload } from "@/lib/uploads";
 import type { ExamFormInitial } from "@/components/exams/exam-entry-form";
 
 export interface ParseExamResult {
@@ -13,16 +19,6 @@ export interface ParseExamResult {
   initial?: ExamFormInitial;
   warnings?: string[];
 }
-
-const ACCEPTED_TYPES = new Set([
-  "application/pdf",
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-  "image/heic",
-  "image/heif",
-]);
-const MAX_BYTES = 10 * 1024 * 1024; // 10 MB
 
 // Gemini'nin uyması gereken JSON şeması (OpenAPI alt kümesi). score STRING'dir;
 // Türkçe ondalık ("494,51" / "462,700") normalize katmanında ayrıştırılır.
@@ -148,13 +144,12 @@ export async function parseExamDocument(formData: FormData): Promise<ParseExamRe
   if (!(file instanceof File) || file.size === 0) {
     return { ok: false, error: "Lütfen bir PDF veya görsel seçin." };
   }
-  if (file.size > MAX_BYTES) {
-    return { ok: false, error: "Dosya çok büyük (en fazla 10 MB)." };
-  }
-  const mimeType = file.type || "application/pdf";
-  if (!ACCEPTED_TYPES.has(mimeType)) {
-    return { ok: false, error: "Desteklenmeyen dosya türü (PDF veya görsel yükleyin)." };
-  }
+  const validationError = validateUpload(file, {
+    accepted: PDF_IMAGE_TYPES,
+    typesLabel: "PDF veya görsel",
+  });
+  if (validationError) return { ok: false, error: validationError };
+  const mimeType = resolveMimeType(file) ?? "application/pdf";
 
   let base64: string;
   try {

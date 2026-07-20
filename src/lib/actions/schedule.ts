@@ -145,7 +145,9 @@ export async function notifyScheduleAssigned(formData: FormData) {
   if (!entries?.length) throw new Error("Bu hafta için program boş; önce etkinlik ekle.");
 
   const parentsByStudent = await getParentIdsByStudent([studentId]);
-  const parentIds = (parentsByStudent.get(studentId) ?? []).filter((id) => id !== senderId);
+  const parentIds = (parentsByStudent.get(studentId) ?? []).filter(
+    (id) => id !== senderId,
+  );
   const body = `${formatWeekRange(weekStart)} haftası için çalışma programın hazır.`;
 
   await Promise.all([

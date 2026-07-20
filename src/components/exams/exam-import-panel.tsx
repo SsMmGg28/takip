@@ -86,7 +86,10 @@ export function ExamImportPanel({
                 onCheckedChange={(v) => setIncludeKazanim(v === true)}
                 disabled={loading}
               />
-              <Label htmlFor="include-kazanim" className="text-xs font-normal text-muted-foreground">
+              <Label
+                htmlFor="include-kazanim"
+                className="text-xs font-normal text-muted-foreground"
+              >
                 Kazanımları da eşleştir (biraz daha uzun sürer)
               </Label>
             </div>
@@ -120,7 +123,12 @@ export function ExamImportPanel({
                 </span>
               )}
 
-              <Button type="button" size="sm" onClick={handleAnalyze} disabled={!file || loading}>
+              <Button
+                type="button"
+                size="sm"
+                onClick={handleAnalyze}
+                disabled={!file || loading}
+              >
                 {loading ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />

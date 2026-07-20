@@ -69,7 +69,10 @@ export function WeekSwitcher({
       </span>
 
       {archiveWeeks.length > 0 && (
-        <Select value={isPast ? weekStart : ""} onValueChange={(w) => router.push(weekHref(w))}>
+        <Select
+          value={isPast ? weekStart : ""}
+          onValueChange={(w) => router.push(weekHref(w))}
+        >
           <SelectTrigger className="w-44">
             <span className="flex items-center gap-1.5">
               <Archive className="h-3.5 w-3.5" />

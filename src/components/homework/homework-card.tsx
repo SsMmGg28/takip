@@ -1,5 +1,11 @@
 import Link from "next/link";
-import { BookOpen, CalendarDays, Check, ClipboardCheck, MessageSquareText } from "lucide-react";
+import {
+  BookOpen,
+  CalendarDays,
+  Check,
+  ClipboardCheck,
+  MessageSquareText,
+} from "lucide-react";
 import { AttachmentDownloadButton } from "@/components/attachment-download-button";
 import { HomeworkStatusBadge } from "@/components/homework/homework-status-badge";
 import { effectiveHomeworkStatus } from "@/lib/homework";

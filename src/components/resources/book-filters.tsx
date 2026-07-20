@@ -68,7 +68,9 @@ export function BookFilters({
     (b) => subject === "all" || b.subject === subject,
   );
   const difficultyValues = Array.from(
-    new Set(difficultyPool.map((b) => b.difficulty).filter((d): d is number => d != null)),
+    new Set(
+      difficultyPool.map((b) => b.difficulty).filter((d): d is number => d != null),
+    ),
   ).sort((a, b) => a - b);
   const hasUnrated = difficultyPool.some((b) => b.difficulty == null);
   const difficultyOptionCount = difficultyValues.length + (hasUnrated ? 1 : 0);
@@ -92,7 +94,11 @@ export function BookFilters({
   const activeSummary = [
     grade !== "all" ? `${grade}. sınıf` : null,
     subject !== "all" ? subject : null,
-    difficulty !== "all" ? (difficulty === "none" ? "Derecesiz" : `${difficulty}★`) : null,
+    difficulty !== "all"
+      ? difficulty === "none"
+        ? "Derecesiz"
+        : `${difficulty}★`
+      : null,
   ]
     .filter(Boolean)
     .join(" · ");
@@ -174,7 +180,11 @@ export function BookFilters({
   const difficultyRow = showDifficultyRow && (
     <div className="flex flex-wrap items-center gap-1.5">
       <span className="mr-1 text-xs font-medium text-muted-foreground">Zorluk:</span>
-      <button type="button" className={chip(difficulty === "all")} onClick={() => setDifficulty("all")}>
+      <button
+        type="button"
+        className={chip(difficulty === "all")}
+        onClick={() => setDifficulty("all")}
+      >
         Tümü
       </button>
       {difficultyValues.map((d) => (
@@ -215,7 +225,11 @@ export function BookFilters({
           <div className="sm:hidden">
             <Dialog open={mobileOpen} onOpenChange={setMobileOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="w-full justify-start gap-1.5">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start gap-1.5"
+                >
                   <SlidersHorizontal className="h-3.5 w-3.5 shrink-0" />
                   <span className="shrink-0">Filtrele</span>
                   {activeCount > 0 && (

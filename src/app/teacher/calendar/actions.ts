@@ -11,7 +11,11 @@ function revalidateCalendarPaths() {
 }
 
 /** Etkinlik ilgililerine bildirim: öğrenciye özelse öğrenci+velisi, genelse tüm öğrenci+veliler. */
-async function notifyEventAudience(studentId: string | null, title: string, dateLabel: string) {
+async function notifyEventAudience(
+  studentId: string | null,
+  title: string,
+  dateLabel: string,
+) {
   const supabase = await createClient();
 
   let studentIds: string[];
@@ -50,7 +54,8 @@ export async function createCalendarEvent(formData: FormData) {
   const title = String(formData.get("title") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim() || null;
   const startAt = String(formData.get("start_at"));
-  const recurrence = String(formData.get("recurrence") ?? "") === "weekly" ? "weekly" : null;
+  const recurrence =
+    String(formData.get("recurrence") ?? "") === "weekly" ? "weekly" : null;
 
   if (!title || !startAt) throw new Error("Başlık ve tarih gerekli.");
 
@@ -88,7 +93,8 @@ export async function updateCalendarEvent(formData: FormData) {
   const title = String(formData.get("title") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim() || null;
   const startAt = String(formData.get("start_at"));
-  const recurrence = String(formData.get("recurrence") ?? "") === "weekly" ? "weekly" : null;
+  const recurrence =
+    String(formData.get("recurrence") ?? "") === "weekly" ? "weekly" : null;
 
   if (!title || !startAt) throw new Error("Başlık ve tarih gerekli.");
 

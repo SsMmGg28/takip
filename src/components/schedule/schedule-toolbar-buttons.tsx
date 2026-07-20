@@ -61,8 +61,8 @@ export function CopyWeekButton({
         <div className="flex flex-col gap-3">
           <p className="text-sm">
             <span className="font-medium">{formatWeekRange(fromWeek)}</span> haftasının
-            programı güncel haftaya kopyalanacak. Bu haftada mevcut kayıt varsa
-            silinip yerine yazılır.
+            programı güncel haftaya kopyalanacak. Bu haftada mevcut kayıt varsa silinip
+            yerine yazılır.
           </p>
           <div className="grid grid-cols-2 gap-2">
             <Button variant="outline" onClick={() => setOpen(false)} disabled={pending}>

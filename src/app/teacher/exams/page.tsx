@@ -9,6 +9,8 @@ import { getPendingEditRequests } from "@/lib/exams";
 import { getAccessibleStudentsWithGrades } from "@/lib/students";
 import { examsEnabledForGrade } from "@/lib/kazanim";
 
+export const metadata = { title: "Denemeler" };
+
 export default async function TeacherExamsOverviewPage() {
   // requireRole layout'ta da çağrılıyor; React cache ile aynı istekte tekilleşir.
   const profile = await requireRole(["teacher"]);

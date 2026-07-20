@@ -1,4 +1,8 @@
-import { PageHeaderSkeleton, StatRowSkeleton, CardListSkeleton } from "@/components/skeletons";
+import {
+  PageHeaderSkeleton,
+  StatRowSkeleton,
+  CardListSkeleton,
+} from "@/components/skeletons";
 
 export default function Loading() {
   return (

@@ -100,7 +100,8 @@ export async function getKazanimRecommendations(
       solvedTests: solvedBySection.get(row.id) ?? new Set<number>(),
       onShelf: shelfBookIds.has(row.book_id),
     };
-    if (!candidatesByCode.has(row.kazanim_code)) candidatesByCode.set(row.kazanim_code, []);
+    if (!candidatesByCode.has(row.kazanim_code))
+      candidatesByCode.set(row.kazanim_code, []);
     candidatesByCode.get(row.kazanim_code)!.push(candidate);
   }
 

@@ -10,6 +10,8 @@ import { WeeklySchedule } from "@/components/schedule/weekly-schedule";
 import { currentWeekStart, parseWeekParam } from "@/lib/week";
 import type { StudyScheduleEntry } from "@/lib/types";
 
+export const metadata = { title: "Çalışma Programı" };
+
 export default async function ParentSchedulePage({
   searchParams,
 }: {

@@ -6,6 +6,8 @@ import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
 import { HomeworkCard } from "@/components/homework/homework-card";
 
+export const metadata = { title: "Ödevler" };
+
 export default async function ParentHomeworkPage() {
   const profile = await requireRole(["parent"]);
   const students = await getAccessibleStudents(profile);

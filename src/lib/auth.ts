@@ -30,3 +30,15 @@ export async function requireRole(allowed: Role[]): Promise<Profile> {
   if (!allowed.includes(profile.role)) redirect(`/${profile.role}`);
   return profile;
 }
+
+/**
+ * Server action koruması: oturum + öğretmen rolü gerektirir; aksi hâlde
+ * fırlatır (istemciler mesajı toast ile gösterir). RLS'e ek, kod içi savunma.
+ */
+export async function assertTeacherAction(): Promise<Profile> {
+  const profile = await getCurrentProfile();
+  if (!profile) throw new Error("Yetkisiz.");
+  if (profile.role !== "teacher")
+    throw new Error("Bu işlemi yalnızca öğretmen yapabilir.");
+  return profile;
+}

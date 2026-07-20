@@ -59,7 +59,10 @@ export function ExamList({
           role === "teacher" || (role === "parent" && request?.status === "approved");
 
         return (
-          <Card key={exam.id} className="hover-lift group relative overflow-hidden transition-colors hover:border-primary/40">
+          <Card
+            key={exam.id}
+            className="hover-lift group relative overflow-hidden transition-colors hover:border-primary/40"
+          >
             {/* Kartın tamamı detaya gider; sağdaki aksiyon düğmeleri z-10 ile üstte kalır. */}
             <Link
               href={`${detailHrefPrefix}/${exam.id}`}
@@ -81,7 +84,12 @@ export function ExamList({
                   )}
                   {canMutate && (
                     <>
-                      <Button variant="ghost" size="icon-sm" asChild aria-label="Denemeyi düzenle">
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        asChild
+                        aria-label="Denemeyi düzenle"
+                      >
                         <Link href={`${detailHrefPrefix}/${exam.id}/edit`}>
                           <Pencil className="h-4 w-4" />
                         </Link>

@@ -58,7 +58,10 @@ export async function getApprovedBooks(options?: {
   cacheLife("hours");
 
   const supabase = createAdminClient();
-  let query = supabase.from("resource_books").select(BOOK_WITH_SECTIONS).eq("approved", true);
+  let query = supabase
+    .from("resource_books")
+    .select(BOOK_WITH_SECTIONS)
+    .eq("approved", true);
   if (options?.grade != null) query = query.eq("grade_level", options.grade);
   const { data: books } = await query.order("name");
   return flattenSections((books as BookWithSectionsRow[] | null) ?? []);
@@ -148,7 +151,9 @@ export async function getStudentProgressForBook(studentId: string, bookId: strin
   if (!bookRow) return null;
 
   const { resource_book_sections, ...book } = bookRow as BookWithSectionsRow;
-  const sections = [...resource_book_sections].sort((a, b) => a.order_index - b.order_index);
+  const sections = [...resource_book_sections].sort(
+    (a, b) => a.order_index - b.order_index,
+  );
   const sectionIds = new Set(sections.map((s) => s.id));
   const progress = ((progressAll as StudentTestProgress[] | null) ?? []).filter((p) =>
     sectionIds.has(p.section_id),
