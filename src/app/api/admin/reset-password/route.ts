@@ -1,24 +1,11 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { requireTeacherApi } from "@/lib/api-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { generateTempPassword } from "@/lib/username";
 
 export async function POST(request: Request) {
-  const supabase = await createClient();
-  const { data: userData } = await supabase.auth.getUser();
-  if (!userData.user) {
-    return NextResponse.json({ error: "Yetkisiz." }, { status: 401 });
-  }
-
-  const { data: callerProfile } = await supabase
-    .from("profiles")
-    .select("role, is_admin")
-    .eq("id", userData.user.id)
-    .single();
-
-  if (callerProfile?.role !== "teacher") {
-    return NextResponse.json({ error: "Sadece öğretmen şifre sıfırlayabilir." }, { status: 403 });
-  }
+  const gate = await requireTeacherApi("Sadece öğretmen şifre sıfırlayabilir.");
+  if (!gate.ok) return gate.response;
 
   const { profile_id } = (await request.json()) as { profile_id: string };
   if (!profile_id) {

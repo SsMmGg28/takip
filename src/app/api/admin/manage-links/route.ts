@@ -1,26 +1,11 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { requireTeacherApi } from "@/lib/api-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 /** Öğretmenin veli-öğrenci bağlantısı eklemesi/kaldırması. */
 export async function POST(request: Request) {
-  const supabase = await createClient();
-  const { data: userData } = await supabase.auth.getUser();
-  if (!userData.user) {
-    return NextResponse.json({ error: "Yetkisiz." }, { status: 401 });
-  }
-
-  const { data: callerProfile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", userData.user.id)
-    .single();
-  if (callerProfile?.role !== "teacher") {
-    return NextResponse.json(
-      { error: "Bağlantıları sadece öğretmen yönetebilir." },
-      { status: 403 },
-    );
-  }
+  const gate = await requireTeacherApi("Bağlantıları sadece öğretmen yönetebilir.");
+  if (!gate.ok) return gate.response;
 
   const body = await request.json();
   const { parent_id, student_id, action } = body as {

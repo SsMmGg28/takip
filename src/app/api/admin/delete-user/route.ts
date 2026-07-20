@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { requireTeacherApi } from "@/lib/api-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 /**
@@ -10,27 +10,15 @@ import { createAdminClient } from "@/lib/supabase/admin";
  * girdiği denemeler) kaybolmasın.
  */
 export async function POST(request: Request) {
-  const supabase = await createClient();
-  const { data: userData } = await supabase.auth.getUser();
-  if (!userData.user) {
-    return NextResponse.json({ error: "Yetkisiz." }, { status: 401 });
-  }
-
-  const { data: callerProfile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", userData.user.id)
-    .single();
-  if (callerProfile?.role !== "teacher") {
-    return NextResponse.json({ error: "Sadece öğretmen hesap silebilir." }, { status: 403 });
-  }
+  const gate = await requireTeacherApi("Sadece öğretmen hesap silebilir.");
+  if (!gate.ok) return gate.response;
 
   const body = await request.json();
   const { user_id } = body as { user_id: string };
   if (!user_id) {
     return NextResponse.json({ error: "Geçersiz bilgi." }, { status: 400 });
   }
-  if (user_id === userData.user.id) {
+  if (user_id === gate.profile.id) {
     return NextResponse.json({ error: "Kendi hesabını silemezsin." }, { status: 400 });
   }
 
@@ -48,7 +36,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Öğretmen hesabı buradan silinemez." }, { status: 400 });
   }
 
-  const teacherId = userData.user.id;
+  const teacherId = gate.profile.id;
 
   // Cascade olmayan NOT NULL referansları öğretmene devret; nullable
   // inceleme/onay alanlarını boşalt. (Sıra önemli değil, hepsi bağımsız.)
