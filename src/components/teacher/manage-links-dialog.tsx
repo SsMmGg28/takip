@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { postAdmin } from "@/lib/admin-api";
 
 export interface LinkStudentOption {
   id: string;
@@ -48,14 +49,13 @@ export function ManageLinksDialog({
   async function mutate(studentId: string, action: "add" | "remove") {
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/manage-links", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ parent_id: parentId, student_id: studentId, action }),
+      const res = await postAdmin("manage-links", {
+        parent_id: parentId,
+        student_id: studentId,
+        action,
       });
-      const data = await res.json();
       if (!res.ok) {
-        toast.error(data.error ?? "İşlem tamamlanamadı.");
+        toast.error(res.error);
         return;
       }
       toast.success(action === "add" ? "Çocuk bağlandı." : "Bağlantı kaldırıldı.");

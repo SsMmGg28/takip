@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { postAdmin } from "@/lib/admin-api";
 import type { Profile } from "@/lib/types";
 
 export function CreateAccountDialog({ students }: { students: Profile[] }) {
@@ -55,25 +56,20 @@ export function CreateAccountDialog({ students }: { students: Profile[] }) {
     }
 
     setLoading(true);
-    const res = await fetch("/api/admin/create-user", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        full_name: fullName,
-        role,
-        grade_level: gradeLevel ? Number(gradeLevel) : undefined,
-        parent_of: role === "parent" ? parentOf : undefined,
-      }),
+    const res = await postAdmin<{ username: string; tempPassword: string }>("create-user", {
+      full_name: fullName,
+      role,
+      grade_level: gradeLevel ? Number(gradeLevel) : undefined,
+      parent_of: role === "parent" ? parentOf : undefined,
     });
-    const data = await res.json();
     setLoading(false);
 
     if (!res.ok) {
-      setError(data.error ?? "Bir hata oluştu.");
+      setError(res.error);
       return;
     }
 
-    setResult(data);
+    setResult(res.data);
     router.refresh();
   }
 
