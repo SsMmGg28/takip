@@ -2,6 +2,7 @@
 
 import { revalidatePath, updateTag } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { assertTeacherAction } from "@/lib/auth";
 import { BOOK_CATALOG_TAG } from "@/lib/books";
 import { getTeacherIds, notifyUsers } from "@/lib/notifications";
 import {
@@ -172,6 +173,7 @@ export async function approveBook(formData: FormData) {
 
 /** Öğretmen: bekleyen kitabı reddeder (kitap silinir). */
 export async function rejectBook(formData: FormData) {
+  await assertTeacherAction();
   const supabase = await createClient();
   const id = String(formData.get("id"));
 
@@ -198,8 +200,21 @@ export async function rejectBook(formData: FormData) {
 /** Veli: kendi bekleyen kitabını geri çeker. */
 export async function withdrawPendingBook(formData: FormData) {
   const supabase = await createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData.user) throw new Error("Yetkisiz.");
+
   const id = String(formData.get("id"));
-  await supabase.from("resource_books").delete().eq("id", id).eq("approved", false);
+  // Yalnızca kendi bekleyen kitabı; silinen satır dönmezse yetki/kayıt yok demektir.
+  const { data: deleted, error } = await supabase
+    .from("resource_books")
+    .delete()
+    .eq("id", id)
+    .eq("created_by", userData.user.id)
+    .eq("approved", false)
+    .select("id");
+  if (error) throw new Error(error.message);
+  if (!deleted?.length)
+    throw new Error("Bekleyen kitap bulunamadı veya geri çekme yetkin yok.");
   revalidateResourcePaths();
 }
 
@@ -209,6 +224,7 @@ export async function withdrawPendingBook(formData: FormData) {
  * kodu/ad eşleşmesi korunarak update ile saklanır.
  */
 export async function updateBookWithSections(formData: FormData) {
+  await assertTeacherAction();
   const supabase = await createClient();
   const id = String(formData.get("id"));
   const name = String(formData.get("name") ?? "").trim();
@@ -229,9 +245,11 @@ export async function updateBookWithSections(formData: FormData) {
 }
 
 export async function deleteBook(formData: FormData) {
+  await assertTeacherAction();
   const supabase = await createClient();
   const id = String(formData.get("id"));
-  await supabase.from("resource_books").delete().eq("id", id);
+  const { error } = await supabase.from("resource_books").delete().eq("id", id);
+  if (error) throw new Error(error.message);
   revalidateResourcePaths();
 }
 

@@ -64,9 +64,19 @@ export async function addStudyLog(formData: FormData) {
 /** Öğrenci kendi çalışma kaydını siler (RLS own-only). */
 export async function deleteStudyLog(formData: FormData) {
   const supabase = await createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData.user) throw new Error("Yetkisiz.");
+
   const id = String(formData.get("id"));
-  const { error } = await supabase.from("study_log").delete().eq("id", id);
+  // Yalnızca kendi kaydı; silinen satır dönmezse yetki/kayıt yok demektir.
+  const { data: deleted, error } = await supabase
+    .from("study_log")
+    .delete()
+    .eq("id", id)
+    .eq("student_id", userData.user.id)
+    .select("id");
   if (error) throw new Error(error.message);
+  if (!deleted?.length) throw new Error("Kayıt bulunamadı veya silme yetkin yok.");
 
   revalidatePath("/student");
   revalidatePath("/student/gunluk");
