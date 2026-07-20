@@ -1,151 +1,348 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import {
   ArrowRight,
+  BellRing,
   BookOpen,
   Calendar,
   CalendarClock,
+  Check,
+  ChevronRight,
+  ClipboardCheck,
   ClipboardList,
-  GraduationCap,
   KeyRound,
   LayoutDashboard,
   LineChart,
+  ListChecks,
   LogIn,
   MonitorSmartphone,
+  MoonStar,
+  NotebookPen,
+  PanelsTopLeft,
+  Pin,
+  RefreshCcw,
+  UserRoundCheck,
   Users,
 } from "lucide-react";
 import { Brand } from "@/components/brand";
-import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { RoleExplorer } from "@/components/landing/role-explorer";
 import { Reveal } from "@/components/landing/reveal";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { Button } from "@/components/ui/button";
+import styles from "@/components/landing/landing.module.css";
 
-const QUICK_START = [
+export const metadata: Metadata = {
+  title: "Öğrenci ve Veli Kullanım Rehberi",
+  description:
+    "Ders Takip öğrenci ve veli panellerindeki ödev, kaynak, program, günlük ve deneme bölümlerinin kullanım rehberi.",
+};
+
+type GuideItem = {
+  title: string;
+  summary: string;
+  icon: typeof BookOpen;
+  steps: string[];
+};
+
+const STUDENT_GUIDE: GuideItem[] = [
+  {
+    title: "Ana sayfa ve kişisel araçlar",
+    summary: "Günlük özetini düzenle, sık kullandığın araçları yakında tut.",
+    icon: LayoutDashboard,
+    steps: [
+      "Bekleyen ödev, bugünün programı, yaklaşan etkinlik ve kaynak ilerlemesini kartlar halinde gör.",
+      "Kartların yerini değiştir, kullanmadıklarını kaldır ve ihtiyaç duyduklarını yeniden ekle.",
+      "Pomodoro, hızlı not, geri sayım ve hızlı erişim gibi cihazına özel yardımcıları kullan.",
+    ],
+  },
+  {
+    title: "Ödevlerim",
+    summary: "Teslim tarihini, ekleri ve test durumunu aynı kayıtta gör.",
+    icon: ClipboardList,
+    steps: [
+      "Bekleyen ve tamamlanan ödevleri durumlarına veya tarihlerine göre incele.",
+      "Varsa ek dosyayı indir; ödeve bağlı testleri çözdükçe ayrı ayrı işaretle.",
+      "Ödevi tamamladığını bildir. Kontrol edilen ödevdeki işaretler sonradan değiştirilemez.",
+    ],
+  },
+  {
+    title: "Kaynaklarım",
+    summary: "Kitaplığını bölüm ve test düzeyinde takip et.",
+    icon: BookOpen,
+    steps: [
+      "Kitaplığındaki kaynakları ders, sınıf ve zorluk bilgileriyle görüntüle.",
+      "Bir kitabı açıp bölüm listesinden çözdüğün testleri işaretle; ilerleme yüzdesi otomatik güncellensin.",
+      "Aradığın kitap kütüphanede yoksa eklenmesi için talep oluştur ve onay durumunu takip et.",
+    ],
+  },
+  {
+    title: "Takvim ve program",
+    summary: "Dersleri, teslimleri ve haftalık çalışma saatlerini bir arada izle.",
+    icon: CalendarClock,
+    steps: [
+      "Takvimde ders saatlerini, genel hatırlatmaları ve ödev teslim tarihlerini gör.",
+      "Çalışma Programım bölümünde seçilen haftayı gün ve saat sırasıyla incele.",
+      "Geçmiş haftalara geçerek önceki planları görüntüle; program öğrenci ekranında salt okunurdur.",
+    ],
+  },
+  {
+    title: "Çalışma günlüğü",
+    summary: "Yaptığın çalışmayı süre, soru ve konu bilgisiyle kaydet.",
+    icon: NotebookPen,
+    steps: [
+      "Ders, konu, çalışma süresi, soru sayısı ve istersen kısa bir not ekle.",
+      "Yanlış eklenen kendi günlük kaydını sil ve günlere göre çalışma serini takip et.",
+      "Çalışma dökümünde süre ve soru sayılarını ders ve konu bazında karşılaştır.",
+    ],
+  },
+  {
+    title: "Deneme analizim",
+    summary: "Netlerini ve kazanım sonuçlarını ayrıntılı olarak incele.",
+    icon: LineChart,
+    steps: [
+      "Deneme listesinden tarih, tür ve toplam puan bilgilerini görüntüle.",
+      "Her ders için doğru, yanlış, boş ve net değerlerini karşılaştır.",
+      "Kazanım tablosu ve zayıf konu görünümüyle hangi alanların tekrar istediğini gör.",
+    ],
+  },
+  {
+    title: "Duyuru ve bildirimler",
+    summary: "Yeni gelişmeleri panelden veya desteklenen cihazdan takip et.",
+    icon: BellRing,
+    steps: [
+      "Duyurular bölümünde sana gönderilen metinleri ve varsa ek dosyaları aç.",
+      "Bildirim zilinden yeni ödev, program ve diğer güncellemeleri kontrol et.",
+      "Desteklenen telefonlarda Web Push seçeneğini açarak tarayıcı kapalıyken de bildirim al.",
+    ],
+  },
+  {
+    title: "Profil ve mobil menü",
+    summary: "Profilini güncelle, alt menüyü kendi kullanımına göre düzenle.",
+    icon: Pin,
+    steps: [
+      "Profil bölümünde kendi görüntülenebilir bilgilerini kontrol et ve güncelle.",
+      "Mobil menüyü aç, sık kullandığın en fazla dört ekranı alt çubuğa sabitle.",
+      "Sabitleri daha sonra değiştir; tercih yalnız kullandığın cihazda saklanır.",
+    ],
+  },
+];
+
+const PARENT_GUIDE: GuideItem[] = [
+  {
+    title: "Ana sayfa ve çocuklarım",
+    summary: "Bağlı öğrencilerin durumunu birbirine karıştırmadan izle.",
+    icon: Users,
+    steps: [
+      "Birden fazla öğrenci bağlıysa her birinin özetini kendi adı altında görüntüle.",
+      "Haftalık ödev, çözülen test, yaklaşan etkinlik ve son deneme kartlarını incele.",
+      "Panel kartlarını takip önceliğine göre taşı, kaldır veya yeniden görünür yap.",
+    ],
+  },
+  {
+    title: "Ödev takibi",
+    summary: "Bekleyen, tamamlanan ve kontrol edilen ödevleri ayırt et.",
+    icon: ClipboardCheck,
+    steps: [
+      "Öğrenci seçerek ona ait ödevleri teslim tarihi ve durum bilgisiyle listele.",
+      "Ödev açıklamasını, ek dosyaları ve öğrenci tarafından işaretlenen testleri görüntüle.",
+      "Tamamlanma ve kontrol durumlarını izleyerek geçmiş ödev kayıtlarına yeniden ulaş.",
+    ],
+  },
+  {
+    title: "Kaynak ve kitaplık",
+    summary: "Kitaplığı düzenle, kaynak ilerlemesini bölüm bölüm gör.",
+    icon: BookOpen,
+    steps: [
+      "Bağlı öğrenciyi seç; onaylı bir kitabı kitaplığa ekle veya artık kullanılmayanı çıkar.",
+      "Kitap ayrıntısında bölümleri, test sayılarını ve tamamlanan testleri görüntüle.",
+      "Listede olmayan kaynak için kitap ekleme talebi oluştur; onaylanınca kitaplığa ata.",
+    ],
+  },
+  {
+    title: "Takvim",
+    summary: "Dersleri, hatırlatmaları ve teslim tarihlerini tek takvimde gör.",
+    icon: Calendar,
+    steps: [
+      "Bağlı öğrencilere açık ders ve etkinlik kayıtlarını tarih sırasıyla incele.",
+      "Ödeve ait teslim tarihlerini diğer etkinliklerden ayrılmış biçimde gör.",
+      "Birden fazla öğrenci varsa takvimde hangi kaydın kime ait olduğunu kontrol et.",
+    ],
+  },
+  {
+    title: "Çalışma programı",
+    summary: "Gelecek haftaları düzenle, geçmiş bir planı yeniden kullan.",
+    icon: CalendarClock,
+    steps: [
+      "Öğrenci için gün, saat, ders ve konu bilgisiyle yeni çalışma kaydı ekle.",
+      "Güncel ve gelecek haftadaki kayıtları düzenle veya kaldır.",
+      "Geçmiş haftaları arşivden aç; uygun bir planı seçilen haftaya tek adımda kopyala.",
+    ],
+  },
+  {
+    title: "Deneme analizi",
+    summary: "Sonuç ekle, net gelişimini ve kazanımları incele.",
+    icon: LineChart,
+    steps: [
+      "Bağlı öğrenci için yeni deneme kaydı oluştur ve ders sonuçlarını gir.",
+      "Toplam puanı, ders netlerini, kazanım tablosunu ve zayıf konu listesini görüntüle.",
+      "Kayıt değişikliği gerektiğinde düzenleme talebi oluştur; onay verilen kaydı düzenle.",
+    ],
+  },
+  {
+    title: "Duyuru ve bildirimler",
+    summary: "Öğrenciyle ilgili güncellemeleri tek yerde takip et.",
+    icon: BellRing,
+    steps: [
+      "Veli hesabına veya bağlı öğrenciye gönderilen duyuruları görüntüle.",
+      "Duyuru eklerini güvenli indirme düğmesiyle aç.",
+      "Uygulama içi bildirimleri ve desteklenen cihazlarda Web Push seçeneğini kullan.",
+    ],
+  },
+  {
+    title: "Profil ve panel düzeni",
+    summary: "Kendi hesabını ve sık kullandığın ekranları düzenle.",
+    icon: PanelsTopLeft,
+    steps: [
+      "Profil bölümünde kendi görüntülenebilir hesap bilgilerini güncelle.",
+      "Ana sayfa kartlarının sırasını ve görünürlüğünü kişisel olarak belirle.",
+      "Mobil alt çubukta en sık kullandığın dört ekranı cihazına özel olarak sabitle.",
+    ],
+  },
+];
+
+const COMMON_FEATURES = [
+  {
+    icon: MonitorSmartphone,
+    title: "Her ekran boyutuna uyum",
+    description:
+      "Telefon, tablet ve bilgisayarda aynı bölümlere ulaşırsın. Mobilde sık kullanılan ekranlar alt çubukta kalır.",
+    color: "var(--brand-to)",
+  },
+  {
+    icon: MoonStar,
+    title: "Açık ve koyu tema",
+    description:
+      "Tema seçimini üst menüden değiştirebilir; cihaz ve ortam ışığına uygun görünümü kullanabilirsin.",
+    color: "var(--student)",
+  },
+  {
+    icon: PanelsTopLeft,
+    title: "Kişisel panel düzeni",
+    description:
+      "Ana sayfadaki bilgi kartlarını taşıyabilir, kaldırabilir ve daha sonra yeniden ekleyebilirsin.",
+    color: "var(--parent)",
+  },
+  {
+    icon: BellRing,
+    title: "Bildirim seçenekleri",
+    description:
+      "Yeni kayıtları uygulama içi bildirimlerden; desteklenen cihazlarda ise Web Push üzerinden takip edebilirsin.",
+    color: "var(--success)",
+  },
+];
+
+const START_STEPS = [
   {
     icon: KeyRound,
-    title: "1. Hesap bilgilerini al",
+    title: "Hesap bilgilerini al",
     description:
-      "Hesaplar öğretmen tarafından oluşturulur. Kullanıcı adını ve geçici şifreni öğretmeninden al; siteye kayıt olman gerekmez.",
+      "Öğrenci ve veli hesapları öğretmen tarafından oluşturulur. Ayrı bir kayıt formu doldurman gerekmez.",
   },
   {
     icon: LogIn,
-    title: "2. Giriş yap, şifreni belirle",
+    title: "İlk girişini yap",
     description:
-      "Sağ üstteki Giriş Yap butonuyla oturum aç. İlk girişte sistem güvenlik için senden yeni bir şifre belirlemeni ister.",
+      "Verilen kullanıcı adı ve geçici şifreyle giriş yap. Sistem ilk girişte kendi şifreni belirlemeni ister.",
   },
   {
-    icon: LayoutDashboard,
-    title: "3. Paneline yönlendirilirsin",
+    icon: UserRoundCheck,
+    title: "Rol paneline geç",
     description:
-      "Rolüne göre öğretmen, öğrenci veya veli paneli otomatik açılır. Tüm bölümlere üstteki menüden (mobilde alt çubuktan) ulaşırsın.",
+      "Giriş tamamlandığında öğrenci veya veli paneline otomatik olarak yönlendirilirsin.",
+  },
+  {
+    icon: RefreshCcw,
+    title: "Şifre desteği al",
+    description:
+      "Şifreni unutursan yeni geçici şifre oluşturulması için öğretmeninle iletişime geç.",
   },
 ];
 
-const FEATURES = [
-  {
-    icon: ClipboardList,
-    title: "Ödev Takibi",
-    description:
-      "Ödevler menüsünde sana atanan ödevler listelenir. Ekli dosyayı indirir, yaptığın testleri işaretlersin. Öğretmen kontrol edip geri bildirim yazar; veli süreci anlık izler.",
-  },
-  {
-    icon: BookOpen,
-    title: "Kaynak Kütüphanesi",
-    description:
-      "Kaynaklar menüsünde kitapların bölüm ve test listesi yer alır. Çözdüğün testin kutusuna tıklayarak işaretlersin; kitap ilerleme çubuğu otomatik dolar. Yeni kitap talebini de buradan gönderirsin.",
-  },
-  {
-    icon: Calendar,
-    title: "Ortak Takvim",
-    description:
-      'Takvim menüsünde ders saatleri ve hatırlatmalar görünür. Öğretmen "Yeni Etkinlik Ekle" ile ders saati veya genel hatırlatma oluşturur; öğrenciye özel etkinlik yalnızca o öğrenciye ve velisine görünür.',
-  },
-  {
-    icon: CalendarClock,
-    title: "Çalışma Programı",
-    description:
-      "Çalışma Programı menüsünde haftalık planın gün gün, saat saat listelenir. Programı öğretmenin, velin ve sen birlikte oluşturursunuz; hangi gün hangi konuya çalışacağını buradan takip edersin.",
-  },
-  {
-    icon: LineChart,
-    title: "Deneme Analizi",
-    description:
-      "Deneme Analizi menüsünde öğretmenin veya velinin girdiği deneme sonuçları ders bazında net grafiklerine dönüşür. Yanlış yaptığın konular zayıf konu tablosunda listelenir; neye çalışacağını buradan görürsün.",
-  },
-  {
-    icon: Users,
-    title: "Üç Ayrı Panel",
-    description:
-      "Giriş yaptığında sistem seni rolüne göre doğru panele yönlendirir: öğretmen tüm öğrencilerini yönetir, öğrenci kendi verilerini görür, veli çocuğunun tüm sürecini okuma modunda izler.",
-  },
-];
+function SectionHeader({
+  label,
+  title,
+  description,
+  centered = false,
+}: {
+  label: string;
+  title: string;
+  description: string;
+  centered?: boolean;
+}) {
+  return (
+    <div
+      className={`${styles.sectionHeader} ${centered ? styles.sectionHeaderCentered : ""}`}
+    >
+      <span className={styles.sectionLabel}>{label}</span>
+      <h2 className={styles.sectionTitle}>{title}</h2>
+      <p className={styles.sectionDescription}>{description}</p>
+    </div>
+  );
+}
 
-const HOW_IT_WORKS: {
-  role: string;
-  icon: typeof GraduationCap;
-  steps: string[];
-}[] = [
-  {
-    role: "Öğretmen",
-    icon: GraduationCap,
-    steps: [
-      "Öğrenciler menüsünden öğrenci ve veli hesaplarını oluştur; geçici şifreleri kendilerine ilet.",
-      "Ödevler menüsünden öğrenci seçip dosya ekiyle ödev ata; teslimleri aynı ekrandan takip et.",
-      "Kaynaklar'da kitap, bölüm ve test tanımla; İstekler kutusuna düşen kitap taleplerini yanıtla.",
-      "Takvim'e ders saatlerini ekle, her öğrenci için haftalık çalışma programı hazırla.",
-      "Deneme Analizi'nde sonuçları gir; net grafikleri ve zayıf konu listesi otomatik hesaplanır.",
-    ],
-  },
-  {
-    role: "Öğrenci",
-    icon: BookOpen,
-    steps: [
-      "Öğretmenin verdiği kullanıcı adı ve şifreyle giriş yap; ilk girişte yeni şifreni belirle.",
-      "Ödevlerim'de bekleyen ödevlerini gör, ekleri indir, yaptığın testleri işaretle.",
-      "Kaynaklarım'da çözdüğün testlere tıklayıp işaretle; kitap ilerlemen kendiliğinden güncellenir.",
-      "Takvim'den ders saatlerini, Çalışma Programım'dan haftalık planını takip et.",
-      "Deneme Analizim'de netlerini ve zayıf konularını grafiklerle incele.",
-    ],
-  },
-  {
-    role: "Veli",
-    icon: Users,
-    steps: [
-      "Sana verilen veli hesabıyla giriş yap; ilk girişte şifreni yenile.",
-      "Ödevler'de çocuğunun bekleyen ve teslim edilen ödevlerini görüntüle.",
-      "Kaynaklar'da kitap ilerlemesini, Takvim'de ders saatlerini takip et.",
-      "Çalışma Programı'nda haftalık planı, Deneme Analizi'nde net grafiklerini incele.",
-    ],
-  },
-];
+function GuideRail({ items, parent = false }: { items: GuideItem[]; parent?: boolean }) {
+  return (
+    <div className={`${styles.guideRail} ${parent ? styles.parentGuide : ""}`}>
+      {items.map((item, index) => {
+        const Icon = item.icon;
+        return (
+          <details key={item.title} className={styles.guideCard} open={index === 0}>
+            <summary>
+              <span className={styles.guideIcon}>
+                <Icon aria-hidden="true" />
+              </span>
+              <div>
+                <h3>{item.title}</h3>
+                <p>{item.summary}</p>
+              </div>
+              <ChevronRight aria-hidden="true" className={styles.summaryChevron} />
+            </summary>
+            <div className={styles.guideBody}>
+              <ol>
+                {item.steps.map((step) => (
+                  <li key={step}>{step}</li>
+                ))}
+              </ol>
+            </div>
+          </details>
+        );
+      })}
+    </div>
+  );
+}
 
 export default function LandingPage() {
   return (
-    <div className="relative min-h-screen overflow-x-clip">
-      {/* Arka plan blobları */}
-      <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-        <div className="animate-blob absolute -top-40 -left-40 h-[32rem] w-[32rem] rounded-full bg-primary/15 blur-3xl" />
-        <div
-          className="animate-blob absolute -right-40 top-40 h-[28rem] w-[28rem] rounded-full bg-brand-to/15 blur-3xl"
-          style={{ animationDelay: "-6s" }}
-        />
-        <div
-          className="animate-blob absolute left-1/3 top-[60rem] h-[30rem] w-[30rem] rounded-full bg-brand-via/10 blur-3xl"
-          style={{ animationDelay: "-11s" }}
-        />
-      </div>
+    <div className={styles.page}>
+      <div className={styles.backgroundGrid} />
+      <div className={`${styles.glow} ${styles.glowOne}`} />
+      <div className={`${styles.glow} ${styles.glowTwo}`} />
 
-      {/* Üst bar */}
-      <header className="glass sticky top-0 z-40 border-b">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
+      <header className="glass sticky top-0 z-40 border-b border-border/70">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <Brand size="sm" />
-          <nav className="hidden items-center gap-1 sm:flex">
+          <nav className="hidden items-center gap-1 md:flex" aria-label="Sayfa bölümleri">
             <Button variant="ghost" size="sm" asChild>
-              <a href="#hizli-baslangic">Hızlı Başlangıç</a>
+              <a href="#ogrenci">Öğrenci</a>
             </Button>
             <Button variant="ghost" size="sm" asChild>
-              <a href="#bolumler">Bölümler</a>
+              <a href="#veli">Veli</a>
             </Button>
             <Button variant="ghost" size="sm" asChild>
-              <a href="#kullanim-rehberi">Kullanım Rehberi</a>
+              <a href="#ortak">Ortak İmkânlar</a>
+            </Button>
+            <Button variant="ghost" size="sm" asChild>
+              <a href="#baslangic">Başlangıç</a>
             </Button>
           </nav>
           <div className="flex items-center gap-2">
@@ -153,219 +350,189 @@ export default function LandingPage() {
             <Button size="sm" asChild>
               <Link href="/login">
                 <LogIn className="h-4 w-4" />
-                Giriş Yap
+                <span className="hidden min-[390px]:inline">Giriş Yap</span>
               </Link>
             </Button>
           </div>
         </div>
+        <nav
+          className={`${styles.mobileChapterNav} flex gap-1 overflow-x-auto border-t border-border/50 px-3 py-2 md:hidden`}
+          aria-label="Mobil sayfa bölümleri"
+        >
+          {[
+            ["#ogrenci", "Öğrenci"],
+            ["#veli", "Veli"],
+            ["#ortak", "Ortak İmkânlar"],
+            ["#baslangic", "Başlangıç"],
+          ].map(([href, label]) => (
+            <a
+              key={href}
+              href={href}
+              className="shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:bg-accent hover:text-accent-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+            >
+              {label}
+            </a>
+          ))}
+        </nav>
       </header>
 
-      {/* Hero */}
-      <section className="mx-auto max-w-6xl px-4 pb-16 pt-16 text-center sm:pb-24 sm:pt-24">
-        <div className="animate-fade-up mx-auto mb-6 flex w-fit items-center gap-2 rounded-full border bg-card/60 px-4 py-1.5 text-sm shadow-sm">
-          <Users className="h-4 w-4 text-primary" />
-          <span className="text-muted-foreground">Öğretmen · Öğrenci · Veli paneli</span>
-        </div>
-        <h1
-          className="animate-fade-up mx-auto max-w-3xl text-4xl font-extrabold leading-tight tracking-tight sm:text-6xl"
-          style={{ animationDelay: "80ms" }}
-        >
-          <span className="gradient-text animate-gradient">Ders Takip</span> nasıl
-          kullanılır?
-        </h1>
-        <p
-          className="animate-fade-up mx-auto mt-6 max-w-2xl text-base text-muted-foreground sm:text-lg"
-          style={{ animationDelay: "160ms" }}
-        >
-          Bu sitede ödevlerini, kaynak kitaplarını, ders takvimini, haftalık çalışma
-          programını ve deneme sonuçlarını takip edersin. Aşağıda her bölümün ne işe
-          yaradığını ve adım adım nasıl kullanıldığını bulacaksın.
-        </p>
-        <div
-          className="animate-fade-up mt-8 flex flex-wrap items-center justify-center gap-3"
-          style={{ animationDelay: "240ms" }}
-        >
-          <Button size="lg" asChild>
+      <main>
+        <section className={`${styles.hero} mx-auto max-w-7xl px-4 sm:px-6`}>
+          <div className={styles.heroCopy}>
+            <span className={styles.heroBadge}>
+              <ListChecks aria-hidden="true" />
+              Öğrenci ve veli kullanım rehberi
+            </span>
+            <h1 className={styles.heroTitle}>
+              Panellerde neler var?
+              <span>Nasıl kullanılır?</span>
+            </h1>
+            <p className={styles.heroDescription}>
+              Ödev, kaynak, çalışma programı, günlük ve deneme bölümlerinde neleri
+              görebileceğini; hangi işlemleri yapabileceğini rolüne göre incele.
+            </p>
+            <div className={styles.heroFacts} aria-label="Sayfa özellikleri">
+              <span>
+                <Check aria-hidden="true" /> Temsili panel görünümü
+              </span>
+              <span>
+                <Check aria-hidden="true" /> Ayrıntılı kullanım adımları
+              </span>
+              <span>
+                <Check aria-hidden="true" /> Telefon öncelikli anlatım
+              </span>
+            </div>
+          </div>
+          <RoleExplorer />
+        </section>
+
+        <section id="ogrenci" className={`${styles.section} ${styles.sectionTint}`}>
+          <div className="mx-auto max-w-7xl px-4 sm:px-6">
+            <Reveal>
+              <SectionHeader
+                label="Öğrenci paneli"
+                title="Günlük işlerini adım adım takip et"
+                description="Her başlığı açarak ilgili bölümde hangi bilgilerin bulunduğunu ve hangi işlemleri yapabileceğini görebilirsin. Mobilde kartları yana kaydırabilirsin."
+              />
+            </Reveal>
+            <Reveal delay={80}>
+              <GuideRail items={STUDENT_GUIDE} />
+            </Reveal>
+          </div>
+        </section>
+
+        <section id="veli" className={styles.section}>
+          <div className="mx-auto max-w-7xl px-4 sm:px-6">
+            <Reveal>
+              <SectionHeader
+                label="Veli paneli"
+                title="Planı düzenle, ilerlemeyi ayrıntılı gör"
+                description="Bağlı öğrencilerin ödev, kaynak, program ve deneme bilgileri ayrı ayrı tutulur. Aşağıdaki başlıklar veli hesabındaki işlem alanlarını açıklar."
+              />
+            </Reveal>
+            <Reveal delay={80}>
+              <GuideRail items={PARENT_GUIDE} parent />
+            </Reveal>
+          </div>
+        </section>
+
+        <section id="ortak" className={`${styles.section} ${styles.sectionTint}`}>
+          <div className="mx-auto max-w-7xl px-4 sm:px-6">
+            <Reveal>
+              <SectionHeader
+                label="Ortak imkânlar"
+                title="İki rolde de aynı temel kullanım alışkanlıkları"
+                description="Ekran uyumu, görünüm tercihleri ve bildirim araçları öğrenci ve veli hesaplarında ortak şekilde çalışır."
+                centered
+              />
+            </Reveal>
+            <div className={styles.commonGrid}>
+              {COMMON_FEATURES.map((feature, index) => {
+                const Icon = feature.icon;
+                return (
+                  <Reveal key={feature.title} delay={(index % 4) * 70}>
+                    <article
+                      className={styles.commonCard}
+                      style={{ "--card-accent": feature.color } as React.CSSProperties}
+                    >
+                      <span className={styles.commonCardIcon}>
+                        <Icon aria-hidden="true" />
+                      </span>
+                      <h3>{feature.title}</h3>
+                      <p>{feature.description}</p>
+                    </article>
+                  </Reveal>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        <section id="baslangic" className={styles.section}>
+          <div className="mx-auto max-w-7xl px-4 sm:px-6">
+            <Reveal>
+              <SectionHeader
+                label="Başlangıç"
+                title="Hesabına ilk kez girerken"
+                description="Kayıt formu bulunmaz. Hesap bilgilerini aldıktan sonra aşağıdaki sırayla öğrenci veya veli paneline geçersin."
+              />
+            </Reveal>
+            <div className={styles.startGrid}>
+              {START_STEPS.map((step, index) => {
+                const Icon = step.icon;
+                return (
+                  <Reveal key={step.title} delay={index * 70}>
+                    <article className={styles.startStep}>
+                      <span className={styles.stepNumber} aria-hidden="true">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                      <div>
+                        <h3 className="flex items-center gap-2">
+                          <Icon className="h-4 w-4 text-primary" aria-hidden="true" />
+                          {step.title}
+                        </h3>
+                        <p>{step.description}</p>
+                      </div>
+                    </article>
+                  </Reveal>
+                );
+              })}
+            </div>
+
+            <Reveal delay={120}>
+              <div className={styles.loginNote}>
+                <div>
+                  <h3>Hesap bilgilerin hazırsa giriş ekranına geçebilirsin.</h3>
+                  <p>
+                    Kullanıcı adı ve şifre alanları öğrenci ve veli hesapları için
+                    aynıdır; yönlendirme girişten sonra otomatik yapılır.
+                  </p>
+                </div>
+                <Button size="lg" asChild className="shrink-0">
+                  <Link href="/login">
+                    Giriş Yap
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
+            </Reveal>
+          </div>
+        </section>
+      </main>
+
+      <footer className="border-t border-border/70">
+        <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-5 px-4 py-8 sm:flex-row sm:items-center sm:px-6">
+          <Brand size="sm" />
+          <p className="max-w-xl text-sm leading-relaxed text-muted-foreground">
+            Öğrenci ve veli hesapları için ödev, kaynak, takvim, çalışma programı ve
+            deneme takip sistemi.
+          </p>
+          <Button variant="ghost" size="sm" asChild>
             <Link href="/login">
               Giriş Yap
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
-          <Button size="lg" variant="outline" asChild>
-            <a href="#kullanim-rehberi">Kullanım Rehberine Git</a>
-          </Button>
-        </div>
-
-        {/* Panelde göreceklerine örnekler */}
-        <div className="relative mx-auto mt-16 hidden max-w-3xl items-center justify-center gap-6 sm:flex">
-          {[
-            { icon: ClipboardList, label: "5 ödev teslim edildi", delay: "0s" },
-            { icon: LineChart, label: "Matematik neti +4,25", delay: "-1.6s" },
-            { icon: BookOpen, label: "Kitap ilerlemesi %72", delay: "-3.2s" },
-            { icon: Calendar, label: "Yarın 18.00 ders", delay: "-4.8s" },
-          ].map(({ icon: Icon, label, delay }, i) => (
-            <div
-              key={label}
-              className="animate-float glass hover-lift flex items-center gap-2.5 rounded-2xl border px-4 py-3 text-sm font-medium shadow-lg shadow-primary/5"
-              style={{ animationDelay: delay, animationDuration: `${4.5 + i * 0.6}s` }}
-            >
-              <span className="gradient-surface flex h-8 w-8 items-center justify-center rounded-lg text-white">
-                <Icon className="h-4 w-4" />
-              </span>
-              {label}
-            </div>
-          ))}
-        </div>
-        <p className="animate-fade-in mt-6 hidden text-xs text-muted-foreground sm:block">
-          Panelinde bu tür özet kartları ve bildirimlerle karşılaşacaksın.
-        </p>
-      </section>
-
-      {/* Hızlı başlangıç */}
-      <section
-        id="hizli-baslangic"
-        className="mx-auto max-w-6xl scroll-mt-20 px-4 pb-20 sm:pb-28"
-      >
-        <Reveal className="mx-auto mb-12 max-w-2xl text-center">
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Üç adımda <span className="gradient-text">başla</span>
-          </h2>
-          <p className="mt-3 text-muted-foreground">
-            Siteye kayıt olma adımı yoktur; hesabını öğretmenin oluşturur ve bilgilerini
-            seninle paylaşır.
-          </p>
-        </Reveal>
-        <div className="grid gap-5 sm:grid-cols-3">
-          {QUICK_START.map((step, i) => (
-            <Reveal key={step.title} delay={i * 110}>
-              <div className="hover-lift group h-full rounded-2xl border bg-card/70 p-6 text-center shadow-sm">
-                <div className="gradient-surface mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl text-white shadow-lg shadow-primary/25 transition-transform duration-300 group-hover:scale-110">
-                  <step.icon className="h-5 w-5" />
-                </div>
-                <h3 className="mb-2 font-semibold">{step.title}</h3>
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  {step.description}
-                </p>
-              </div>
-            </Reveal>
-          ))}
-        </div>
-      </section>
-
-      {/* Bölümler ve kullanımları */}
-      <section
-        id="bolumler"
-        className="mx-auto max-w-6xl scroll-mt-20 px-4 pb-20 sm:pb-28"
-      >
-        <Reveal className="mx-auto mb-12 max-w-2xl text-center">
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Sitedeki <span className="gradient-text">bölümler</span> ve kullanımları
-          </h2>
-          <p className="mt-3 text-muted-foreground">
-            Menüde gördüğün her bölümün ne işe yaradığı ve içinde neler yapabileceğin
-            aşağıda açıklanıyor.
-          </p>
-        </Reveal>
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {FEATURES.map((feature, i) => (
-            <Reveal key={feature.title} delay={(i % 3) * 90}>
-              <div className="hover-lift group h-full rounded-2xl border bg-card/70 p-6 shadow-sm">
-                <div className="gradient-surface mb-4 flex h-12 w-12 items-center justify-center rounded-2xl text-white shadow-lg shadow-primary/25 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6">
-                  <feature.icon className="h-5 w-5" />
-                </div>
-                <h3 className="mb-2 text-lg font-semibold">{feature.title}</h3>
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  {feature.description}
-                </p>
-              </div>
-            </Reveal>
-          ))}
-        </div>
-      </section>
-
-      {/* Rol bazlı kullanım rehberi */}
-      <section
-        id="kullanim-rehberi"
-        className="mx-auto max-w-6xl scroll-mt-20 px-4 pb-20 sm:pb-28"
-      >
-        <Reveal className="mx-auto mb-12 max-w-2xl text-center">
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Rolüne göre <span className="gradient-text">adım adım</span> kullanım
-          </h2>
-          <p className="mt-3 text-muted-foreground">
-            Giriş yaptığında sistem seni rolüne uygun panele yönlendirir. Aşağıdaki
-            adımlar kendi panelinde izleyeceğin sırayı gösterir.
-          </p>
-        </Reveal>
-        <div className="grid gap-5 lg:grid-cols-3">
-          {HOW_IT_WORKS.map((item, i) => (
-            <Reveal key={item.role} delay={i * 110}>
-              <div className="hover-lift h-full rounded-2xl border bg-card/70 p-6 shadow-sm">
-                <div className="mb-5 flex items-center gap-3">
-                  <div className="gradient-surface flex h-11 w-11 items-center justify-center rounded-2xl text-white shadow-lg shadow-primary/25">
-                    <item.icon className="h-5 w-5" />
-                  </div>
-                  <h3 className="text-xl font-semibold">{item.role}</h3>
-                </div>
-                <ol className="space-y-3">
-                  {item.steps.map((step, stepIndex) => (
-                    <li key={stepIndex} className="flex gap-3 text-sm">
-                      <span className="gradient-surface mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white">
-                        {stepIndex + 1}
-                      </span>
-                      <span className="leading-relaxed text-muted-foreground">
-                        {step}
-                      </span>
-                    </li>
-                  ))}
-                </ol>
-              </div>
-            </Reveal>
-          ))}
-        </div>
-      </section>
-
-      {/* Giriş bölümü */}
-      <section className="mx-auto max-w-6xl px-4 pb-20 sm:pb-28">
-        <Reveal>
-          <div className="gradient-surface animate-gradient relative overflow-hidden rounded-3xl px-6 py-14 text-center text-white shadow-2xl shadow-primary/30 sm:px-12">
-            <div className="pointer-events-none absolute -left-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
-            <div className="pointer-events-none absolute -bottom-12 -right-8 h-48 w-48 rounded-full bg-white/10 blur-2xl" />
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              Kullanmaya başlamak için giriş yap
-            </h2>
-            <p className="mx-auto mt-3 max-w-xl text-white/85">
-              Öğretmeninden aldığın kullanıcı adı ve şifreyle oturum aç. Şifreni unutursan
-              yeni şifreni yine öğretmenin oluşturur.
-            </p>
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-              <Button
-                size="lg"
-                asChild
-                className="border-0 bg-white text-primary shadow-lg hover:bg-white/90 hover:brightness-100"
-              >
-                <Link href="/login">
-                  Giriş Yap
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-              <div className="flex items-center gap-2 text-sm text-white/85">
-                <MonitorSmartphone className="h-4 w-4" />
-                Telefon, tablet ve bilgisayar tarayıcısından kullanılır
-              </div>
-            </div>
-          </div>
-        </Reveal>
-      </section>
-
-      {/* Footer */}
-      <footer className="border-t">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 py-8 text-center sm:flex-row sm:text-left">
-          <Brand size="sm" />
-          <p className="text-xs text-muted-foreground">
-            Ders Takip — ödev, kaynak, takvim, çalışma programı ve deneme analizi tek
-            panelde.
-          </p>
         </div>
       </footer>
     </div>
