@@ -41,20 +41,27 @@ async function syncSections(
 
   const plan = planSectionSync((existing as ExistingSection[]) ?? [], desired);
 
-  for (const u of plan.toUpdate) {
-    await supabase
-      .from("resource_book_sections")
-      .update({
-        name: u.name,
-        test_count: u.testCount,
-        kazanim_code: u.kazanimCode,
-        order_index: u.orderIndex,
-      })
-      .eq("id", u.id);
+  // Güncellemeler satır bazında farklı değerler taşıdığından tek sorguya
+  // inemez; paralel koşturulur. Silme tek IN sorgusuna toplanır.
+  const updateResults = await Promise.all(
+    plan.toUpdate.map((u) =>
+      supabase
+        .from("resource_book_sections")
+        .update({
+          name: u.name,
+          test_count: u.testCount,
+          kazanim_code: u.kazanimCode,
+          order_index: u.orderIndex,
+        })
+        .eq("id", u.id),
+    ),
+  );
+  for (const r of updateResults) {
+    if (r.error) throw new Error(r.error.message);
   }
 
   if (plan.toInsert.length) {
-    await supabase.from("resource_book_sections").insert(
+    const { error } = await supabase.from("resource_book_sections").insert(
       plan.toInsert.map((s) => ({
         book_id: bookId,
         name: s.name,
@@ -63,10 +70,15 @@ async function syncSections(
         kazanim_code: s.kazanimCode,
       })),
     );
+    if (error) throw new Error(error.message);
   }
 
-  for (const id of plan.toDeleteIds) {
-    await supabase.from("resource_book_sections").delete().eq("id", id);
+  if (plan.toDeleteIds.length) {
+    const { error } = await supabase
+      .from("resource_book_sections")
+      .delete()
+      .in("id", plan.toDeleteIds);
+    if (error) throw new Error(error.message);
   }
 }
 
@@ -269,8 +281,8 @@ export async function addBookToShelf(formData: FormData) {
     book_id: bookId,
     added_by: userData.user.id,
   });
-  // Aynı kitap zaten ekliyse (unique ihlali) sessizce geç
-  if (error && !error.message.includes("duplicate")) throw new Error(error.message);
+  // Aynı kitap zaten ekliyse (unique ihlali, Postgres 23505) sessizce geç
+  if (error && error.code !== "23505") throw new Error(error.message);
 
   revalidateResourcePaths();
 }

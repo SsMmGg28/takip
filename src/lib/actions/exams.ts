@@ -95,33 +95,48 @@ async function insertSubjects(
   subjects: ExamSubjectInput[],
 ): Promise<string | null> {
   const supabase = await createClient();
-  for (const subject of subjects) {
-    const { data: subjectRow, error } = await supabase
-      .from("exam_subjects")
-      .insert({
+  // Tüm dersler tek insert'te; dönen id'ler ders adına göre eşlenip kazanım
+  // satırları da tek insert'te yazılır (ders başına 2 sorgu yerine toplam 2).
+  const { data: subjectRows, error } = await supabase
+    .from("exam_subjects")
+    .insert(
+      subjects.map((subject) => ({
         exam_id: examId,
         subject_name: subject.name,
         correct_count: subject.correct,
         incorrect_count: subject.incorrect,
         blank_count: subject.blank,
-      })
-      .select("id")
-      .single();
-    if (error || !subjectRow) return error?.message ?? "Ders sonucu kaydedilemedi.";
+      })),
+    )
+    .select("id, subject_name");
+  if (error || subjectRows?.length !== subjects.length) {
+    return error?.message ?? "Ders sonucu kaydedilemedi.";
+  }
 
-    if (subject.kazanimlar.length > 0) {
-      const { error: kError } = await supabase.from("exam_kazanim_results").insert(
-        subject.kazanimlar.map((k) => ({
-          exam_subject_id: subjectRow.id,
-          kazanim_code: k.code,
-          kazanim_name: k.name,
-          correct_count: k.correct,
-          incorrect_count: k.incorrect,
-          blank_count: k.blank,
-        })),
-      );
-      if (kError) return kError.message;
-    }
+  // Aynı ders adı iki kez geçerse sıra korunarak eşlensin diye id'ler kuyrukta tutulur.
+  const idsByName = new Map<string, string[]>();
+  for (const row of subjectRows) {
+    const list = idsByName.get(row.subject_name) ?? [];
+    list.push(row.id);
+    idsByName.set(row.subject_name, list);
+  }
+
+  const kazanimRows = subjects.flatMap((subject) => {
+    const subjectId = idsByName.get(subject.name)?.shift();
+    if (!subjectId) return [];
+    return subject.kazanimlar.map((k) => ({
+      exam_subject_id: subjectId,
+      kazanim_code: k.code,
+      kazanim_name: k.name,
+      correct_count: k.correct,
+      incorrect_count: k.incorrect,
+      blank_count: k.blank,
+    }));
+  });
+
+  if (kazanimRows.length > 0) {
+    const { error: kError } = await supabase.from("exam_kazanim_results").insert(kazanimRows);
+    if (kError) return kError.message;
   }
   return null;
 }

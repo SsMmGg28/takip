@@ -101,10 +101,15 @@ politikaları testsiz. Önerilen sıra:
 
 ---
 
-## P3 — Orta: Bakım Kolaylığı (DRY Refaktörleri) (8 ve 9 ✅, 10 açık)
+## P3 — Orta: Bakım Kolaylığı (DRY Refaktörleri) ✅
 
 > 8: `src/lib/api-auth.ts` `requireTeacherApi` beş admin route'una uygulandı.
 > 9: `src/lib/admin-api.ts` `postAdmin` beş bileşene uygulandı.
+> 10: duplicate tespiti `23505` koduna geçirildi; `insertSubjects` toplu insert'e,
+> `syncSections` paralel güncelleme + tek IN silmeye çevrildi (hatalar artık
+> yutulmuyor). Revalidate yardımcıları bilinçli olarak ayrı bırakıldı: her biri
+> farklı path kümesi tazeliyor, birleştirme gerçek tekrar kaldırmadan dolaylılık
+> eklerdi.
 
 ### 8. `requireTeacher()` API yardımcısı
 
