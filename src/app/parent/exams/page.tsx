@@ -7,6 +7,8 @@ import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
 import { StudentPickerGrid } from "@/components/student-picker-grid";
 
+export const metadata = { title: "Denemeler" };
+
 export default async function ParentExamsPage() {
   const profile = await requireRole(["parent"]);
   const students = await getAccessibleStudentsWithGrades(profile);

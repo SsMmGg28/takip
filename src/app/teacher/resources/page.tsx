@@ -11,6 +11,8 @@ import { BookApprovalActions } from "@/components/resources/book-approval-action
 import { getApprovedBooks, getPendingBooks } from "@/lib/books";
 import type { Profile } from "@/lib/types";
 
+export const metadata = { title: "Kaynaklar" };
+
 export default async function TeacherResourcesPage() {
   await requireRole(["teacher"]);
   const supabase = await createClient();

@@ -7,6 +7,8 @@ import { getExamDetails, toFormInitial } from "@/lib/exams";
 import { getStudentGrade } from "@/lib/students";
 import { examsEnabledForGrade } from "@/lib/kazanim";
 
+export const metadata = { title: "Deneme Düzenle" };
+
 export default async function ParentExamEditPage({
   params,
 }: {

@@ -8,6 +8,8 @@ import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
 import { TestGrid } from "@/components/resources/test-grid";
 
+export const metadata = { title: "Kitap Detayı" };
+
 export default async function ParentBookProgressPage({
   params,
   searchParams,

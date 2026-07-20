@@ -12,6 +12,8 @@ import {
 } from "@/components/exams/exam-actions";
 import { getExamDetails, getEditRequestsForStudent } from "@/lib/exams";
 
+export const metadata = { title: "Deneme Detayı" };
+
 export default async function ParentExamDetailPage({
   params,
 }: {

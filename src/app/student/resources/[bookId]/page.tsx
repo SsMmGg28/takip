@@ -7,6 +7,8 @@ import { EmptyState } from "@/components/empty-state";
 import { TestGrid } from "@/components/resources/test-grid";
 import { getStudentProgressForBook, isBookOnShelf } from "@/lib/books";
 
+export const metadata = { title: "Kitap Detayı" };
+
 export default async function StudentBookPage({
   params,
 }: {

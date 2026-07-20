@@ -12,6 +12,8 @@ import { getStudentGrade } from "@/lib/students";
 import { getBookSubjects, getBookUnits } from "@/lib/book-catalog";
 import { LGS_SUBJECTS } from "@/lib/kazanim";
 
+export const metadata = { title: "Günlük Çalışma" };
+
 export default async function StudentJournalPage() {
   const profile = await requireRole(["student"]);
   const [summary, grade] = await Promise.all([

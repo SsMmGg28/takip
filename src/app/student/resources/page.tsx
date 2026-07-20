@@ -6,6 +6,8 @@ import { BookCard } from "@/components/resources/book-card";
 import { BookFilters } from "@/components/resources/book-filters";
 import { getStudentShelf } from "@/lib/books";
 
+export const metadata = { title: "Kaynaklar" };
+
 export default async function StudentResourcesPage() {
   const profile = await requireRole(["student"]);
   const shelf = await getStudentShelf(profile.id);

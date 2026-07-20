@@ -9,6 +9,8 @@ import { getApprovedBooks } from "@/lib/books";
 import { getAccessibleStudentsWithGrades } from "@/lib/students";
 import { getAssignmentGroups } from "@/lib/homework-fetch";
 
+export const metadata = { title: "Ödevler" };
+
 export default async function TeacherHomeworkPage() {
   const profile = await requireRole(["teacher"]);
 

@@ -11,6 +11,8 @@ import { BookApprovalActions } from "@/components/resources/book-approval-action
 import { getBookStudents } from "@/lib/books";
 import type { ResourceBook, ResourceBookSection } from "@/lib/types";
 
+export const metadata = { title: "Kitap Detayı" };
+
 export default async function TeacherBookDetailPage({
   params,
 }: {

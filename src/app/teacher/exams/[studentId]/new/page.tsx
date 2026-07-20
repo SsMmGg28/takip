@@ -6,6 +6,8 @@ import { getStudentGrade } from "@/lib/students";
 import { examsEnabledForGrade } from "@/lib/kazanim";
 import { isGeminiConfigured } from "@/lib/ai/gemini";
 
+export const metadata = { title: "Yeni Deneme" };
+
 export default async function TeacherNewExamPage({
   params,
 }: {

@@ -16,6 +16,8 @@ import {
 } from "@/components/resources/shelf-actions";
 import { cn } from "@/lib/utils";
 
+export const metadata = { title: "Kaynaklar" };
+
 export default async function ParentResourcesPage({
   searchParams,
 }: {

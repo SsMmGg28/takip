@@ -12,6 +12,8 @@ import { getEditRequestsForStudent } from "@/lib/exams";
 import { getStudentExamInfo } from "@/lib/students";
 import { examsEnabledForGrade } from "@/lib/kazanim";
 
+export const metadata = { title: "Denemeler" };
+
 export default async function ParentStudentExamsPage({
   params,
 }: {

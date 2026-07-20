@@ -29,6 +29,8 @@ import { effectiveHomeworkStatus } from "@/lib/homework";
 import { examsEnabledForGrade } from "@/lib/kazanim";
 import type { Homework } from "@/lib/types";
 
+export const metadata = { title: "Öğrenci Detayı" };
+
 export default async function TeacherStudentDetailPage({
   params,
 }: {

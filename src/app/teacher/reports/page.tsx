@@ -8,6 +8,8 @@ import { BugReportStatusButton } from "@/components/teacher/bug-report-status-bu
 import { cn } from "@/lib/utils";
 import type { BugReport } from "@/lib/types";
 
+export const metadata = { title: "Raporlar" };
+
 const ROLE_LABELS: Record<string, string> = {
   teacher: "Öğretmen",
   student: "Öğrenci",

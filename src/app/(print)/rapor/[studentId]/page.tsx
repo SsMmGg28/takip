@@ -3,6 +3,8 @@ import { getStudentReport } from "@/lib/report";
 import { ReportControls } from "@/components/report/report-controls";
 import { todayInIstanbul } from "@/lib/week";
 
+export const metadata = { title: "Öğrenci Raporu" };
+
 const YMD = /^\d{4}-\d{2}-\d{2}$/;
 const FLOOR = "2015-01-01";
 

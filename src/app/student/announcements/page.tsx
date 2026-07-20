@@ -6,6 +6,8 @@ import { EmptyState } from "@/components/empty-state";
 import { AnnouncementCard } from "@/components/announcements/announcement-card";
 import type { Announcement } from "@/lib/types";
 
+export const metadata = { title: "Duyurular" };
+
 export default async function AnnouncementsPage() {
   await requireRole(["student"]);
   const supabase = await createClient();

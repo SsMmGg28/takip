@@ -17,6 +17,8 @@ import { getApprovedBooks } from "@/lib/books";
 import { getAccessibleStudentsWithGrades } from "@/lib/students";
 import { getHomeworkForStudent } from "@/lib/homework-fetch";
 
+export const metadata = { title: "Ödevler" };
+
 export default async function TeacherStudentHomeworkPage({
   params,
 }: {

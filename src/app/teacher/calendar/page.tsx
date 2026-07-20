@@ -6,6 +6,8 @@ import { EventManageList } from "@/components/teacher/event-manage-list";
 import { expandCalendarEvent, type CalendarItem } from "@/lib/calendar";
 import type { CalendarEvent, Profile } from "@/lib/types";
 
+export const metadata = { title: "Takvim" };
+
 export default async function TeacherCalendarPage() {
   const supabase = await createClient();
 

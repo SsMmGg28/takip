@@ -15,6 +15,8 @@ import { getApprovedBooks } from "@/lib/books";
 import { getStudentExamInfo } from "@/lib/students";
 import { examsEnabledForGrade } from "@/lib/kazanim";
 
+export const metadata = { title: "Denemeler" };
+
 export default async function TeacherStudentExamsPage({
   params,
 }: {

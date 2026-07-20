@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/table";
 import { getStudyBreakdown } from "@/lib/study-log-fetch";
 
+export const metadata = { title: "Çalışma Dökümü" };
+
 export default async function StudyBreakdownPage() {
   const profile = await requireRole(["student"]);
   const rows = await getStudyBreakdown(profile.id);

@@ -20,6 +20,8 @@ import { ManageLinksDialog } from "@/components/teacher/manage-links-dialog";
 import { ResetPasswordButton } from "@/components/teacher/reset-password-button";
 import type { Profile } from "@/lib/types";
 
+export const metadata = { title: "Öğrenciler" };
+
 export default async function TeacherStudentsPage() {
   const supabase = await createClient();
 
