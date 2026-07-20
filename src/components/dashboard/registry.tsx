@@ -1,4 +1,5 @@
 import type { ComponentType } from "react";
+import dynamic from "next/dynamic";
 import {
   BarChart3,
   Bell,
@@ -19,16 +20,9 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { Role } from "@/lib/types";
-import type { LayoutItem } from "@/lib/dashboard-types";
+import type { LayoutItem, StoredLayout } from "@/lib/dashboard-types";
+import { DEFAULT_WIDGET_IDS } from "@/lib/dashboard-layout";
 import type { WidgetProps } from "@/components/dashboard/types";
-import {
-  ClockWidget,
-  CountdownWidget,
-  NotesWidget,
-  PomodoroWidget,
-  QuickLinksWidget,
-  QuoteWidget,
-} from "@/components/dashboard/widgets-utility";
 import {
   BooksWidget,
   EventsWidget,
@@ -39,10 +33,31 @@ import {
   PeopleWidget,
   StatsWidget,
   StreakWidget,
-  TodayScheduleWidget,
   WeeklyScheduleWidget,
   WeeklySummaryWidget,
 } from "@/components/dashboard/widgets-data";
+import { TodayScheduleWidget } from "@/components/dashboard/today-schedule-widget";
+
+// Yerel/dekoratif araçlar varsayılan düzende değildir. Kullanıcı eklediğinde
+// ilgili chunk yüklenir; böylece her rol ilk açılışta tüm araç kodunu ödemez.
+const ClockWidget = dynamic<WidgetProps>(() =>
+  import("@/components/dashboard/widgets-utility").then((m) => m.ClockWidget),
+);
+const CountdownWidget = dynamic<WidgetProps>(() =>
+  import("@/components/dashboard/widgets-utility").then((m) => m.CountdownWidget),
+);
+const NotesWidget = dynamic<WidgetProps>(() =>
+  import("@/components/dashboard/widgets-utility").then((m) => m.NotesWidget),
+);
+const PomodoroWidget = dynamic<WidgetProps>(() =>
+  import("@/components/dashboard/widgets-utility").then((m) => m.PomodoroWidget),
+);
+const QuickLinksWidget = dynamic<WidgetProps>(() =>
+  import("@/components/dashboard/widgets-utility").then((m) => m.QuickLinksWidget),
+);
+const QuoteWidget = dynamic<WidgetProps>(() =>
+  import("@/components/dashboard/widgets-utility").then((m) => m.QuoteWidget),
+);
 
 export interface WidgetDef {
   id: string;
@@ -338,46 +353,39 @@ export function widgetsForRole(role: Role): WidgetDef[] {
 }
 
 /** Rol için varsayılan yerleşim: sırayla, varsayılan boyutlarla. */
-const DEFAULT_IDS: Record<Role, string[]> = {
-  student: [
-    "stats",
-    "streak",
-    "homework",
-    "today-schedule",
-    "clock",
-    "countdown",
-    "events",
-    "exams",
-    "pomodoro",
-    "quote",
-    "books",
-  ],
-  teacher: [
-    "stats",
-    "homework",
-    "book-approvals",
-    "clock",
-    "quote",
-    "events",
-    "people",
-    "notifications",
-  ],
-  parent: [
-    "stats",
-    "weekly-summary",
-    "homework",
-    "people",
-    "clock",
-    "quote",
-    "events",
-    "exams",
-    "books",
-  ],
-};
-
 export function defaultLayout(role: Role): LayoutItem[] {
-  return DEFAULT_IDS[role]
+  return DEFAULT_WIDGET_IDS[role]
     .map((id) => WIDGET_BY_ID.get(id))
     .filter((def): def is WidgetDef => Boolean(def && def.roles.includes(role)))
     .map((def) => ({ id: def.id, w: def.defaultW, h: def.defaultH }));
+}
+
+function clampSize(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, Math.round(value)));
+}
+
+/** Kayıtlı yerleşimi hem sunucu görünümü hem istemci editörü için tek yerde doğrular. */
+export function resolveLayout(
+  stored: StoredLayout | null,
+  role: Role,
+): { items: LayoutItem[]; removed: string[] } {
+  if (!stored) return { items: defaultLayout(role), removed: [] };
+
+  const seen = new Set<string>();
+  const items: LayoutItem[] = [];
+  for (const item of stored.items ?? []) {
+    const def = WIDGET_BY_ID.get(item.id);
+    if (!def || !def.roles.includes(role) || seen.has(item.id)) continue;
+    seen.add(item.id);
+    items.push({
+      id: item.id,
+      w: clampSize(item.w || def.defaultW, def.minW, def.maxW),
+      h: clampSize(item.h || def.defaultH, def.minH, def.maxH),
+    });
+  }
+
+  const removed = (stored.removed ?? []).filter((id) => WIDGET_BY_ID.has(id));
+  const known = new Set([...items.map((item) => item.id), ...removed]);
+  const fresh = defaultLayout(role).filter((item) => !known.has(item.id));
+  return { items: [...items, ...fresh], removed };
 }

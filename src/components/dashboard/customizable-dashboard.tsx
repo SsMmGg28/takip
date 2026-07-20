@@ -20,6 +20,7 @@ import { PageHeader } from "@/components/page-header";
 import { saveDashboardLayout } from "@/lib/actions/dashboard";
 import {
   defaultLayout,
+  resolveLayout,
   WIDGET_BY_ID,
   widgetsForRole,
   widgetTitle,
@@ -32,34 +33,18 @@ const LAYOUT_VERSION = 1;
 // Tailwind'in sınıfları statik görebilmesi için span haritaları sabit metin.
 const COL_CLASS: Record<number, string> = {
   1: "col-span-1",
-  2: "col-span-2",
-  3: "col-span-2 lg:col-span-3",
-  4: "col-span-2 lg:col-span-4",
+  2: "col-span-1 lg:col-span-2",
+  3: "col-span-1 lg:col-span-3",
+  4: "col-span-1 lg:col-span-4",
 };
 const ROW_CLASS: Record<number, string> = {
-  1: "row-span-1",
-  2: "row-span-2",
-  3: "row-span-3",
+  1: "lg:row-span-1",
+  2: "lg:row-span-2",
+  3: "lg:row-span-3",
 };
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
-}
-
-function sanitize(items: LayoutItem[], role: DashboardData["role"]): LayoutItem[] {
-  const seen = new Set<string>();
-  const result: LayoutItem[] = [];
-  for (const item of items) {
-    const def = WIDGET_BY_ID.get(item.id);
-    if (!def || !def.roles.includes(role) || seen.has(item.id)) continue;
-    seen.add(item.id);
-    result.push({
-      id: item.id,
-      w: clamp(Math.round(item.w) || def.defaultW, def.minW, def.maxW),
-      h: clamp(Math.round(item.h) || def.defaultH, def.minH, def.maxH),
-    });
-  }
-  return result;
 }
 
 /**
@@ -68,29 +53,22 @@ function sanitize(items: LayoutItem[], role: DashboardData["role"]): LayoutItem[
  * hesabına bağlı olarak sunucuda (dashboard_layouts) saklanır ve cihazlar
  * arasında eşitlenir.
  */
-/** Kayıtlı yerleşimi doğrular; sonradan eklenen widget türlerini sona ekler. */
-function reconcile(
-  stored: StoredLayout | null,
-  role: DashboardData["role"],
-): { items: LayoutItem[]; removed: string[] } {
-  if (!stored) return { items: defaultLayout(role), removed: [] };
-  const cleanItems = sanitize(stored.items ?? [], role);
-  const cleanRemoved = (stored.removed ?? []).filter((id) => WIDGET_BY_ID.has(id));
-  const known = new Set([...cleanItems.map((i) => i.id), ...cleanRemoved]);
-  const fresh = defaultLayout(role).filter((i) => !known.has(i.id));
-  return { items: [...cleanItems, ...fresh], removed: cleanRemoved };
-}
-
 export function CustomizableDashboard({
   data,
   initialLayout,
+  startEditing = false,
+  onFinish,
 }: {
   data: DashboardData;
   initialLayout: StoredLayout | null;
+  startEditing?: boolean;
+  onFinish?: () => void;
 }) {
   const { role } = data;
-  const [{ items, removed }, setLayout] = useState(() => reconcile(initialLayout, role));
-  const [editing, setEditing] = useState(false);
+  const [{ items, removed }, setLayout] = useState(() =>
+    resolveLayout(initialLayout, role),
+  );
+  const [editing, setEditing] = useState(startEditing);
   const [dragId, setDragId] = useState<string | null>(null);
   const itemRefs = useRef(new Map<string, HTMLDivElement>());
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -132,6 +110,16 @@ export function CustomizableDashboard({
       items.filter((item) => item.id !== id),
       [...removed, id],
     );
+  }
+
+  function move(id: string, direction: -1 | 1) {
+    const from = items.findIndex((item) => item.id === id);
+    const to = from + direction;
+    if (from < 0 || to < 0 || to >= items.length) return;
+    const next = [...items];
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    update(next);
   }
 
   function add(def: WidgetDef) {
@@ -192,7 +180,10 @@ export function CustomizableDashboard({
         action={
           <button
             type="button"
-            onClick={() => setEditing((v) => !v)}
+            onClick={() => {
+              if (editing && onFinish) onFinish();
+              else setEditing((value) => !value);
+            }}
             className={cn(
               "flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium shadow-sm",
               editing
@@ -229,7 +220,7 @@ export function CustomizableDashboard({
         </div>
       )}
 
-      <div className="animate-fade-up grid auto-rows-[8.5rem] grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+      <div className="animate-fade-up grid grid-cols-1 gap-3 lg:auto-rows-[8.5rem] lg:grid-cols-4 lg:gap-4">
         {items.map((item) => {
           const def = WIDGET_BY_ID.get(item.id);
           if (!def) return null;
@@ -245,7 +236,7 @@ export function CustomizableDashboard({
                 else itemRefs.current.delete(item.id);
               }}
               className={cn(
-                "flex min-h-0 flex-col overflow-hidden rounded-2xl border bg-card text-card-foreground shadow-sm",
+                "flex min-h-36 flex-col overflow-hidden rounded-2xl border bg-card text-card-foreground shadow-sm lg:min-h-0",
                 COL_CLASS[clamp(item.w, 1, 4)],
                 ROW_CLASS[clamp(item.h, 1, 3)],
                 editing && "border-dashed",
@@ -261,7 +252,7 @@ export function CustomizableDashboard({
                     onPointerUp={onDragEnd}
                     onPointerCancel={onDragEnd}
                     aria-label={`${widgetTitle(def, role)} taşı`}
-                    className="-ml-1 flex h-6 w-6 shrink-0 cursor-grab touch-none select-none items-center justify-center rounded-md text-muted-foreground hover:bg-accent active:cursor-grabbing"
+                    className="-ml-1 flex h-11 w-11 shrink-0 cursor-grab touch-none select-none items-center justify-center rounded-lg text-muted-foreground hover:bg-accent active:cursor-grabbing"
                   >
                     <GripVertical className="h-4 w-4" />
                   </button>
@@ -292,7 +283,7 @@ export function CustomizableDashboard({
                     type="button"
                     onClick={() => remove(item.id)}
                     aria-label={`${widgetTitle(def, role)} kaldır`}
-                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-destructive/12 hover:text-destructive"
+                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:bg-destructive/12 hover:text-destructive"
                   >
                     <X className="h-3.5 w-3.5" />
                   </button>
@@ -309,7 +300,22 @@ export function CustomizableDashboard({
               </div>
 
               {editing && (
-                <div className="flex items-center justify-center gap-1 border-t bg-muted/40 px-2 py-1">
+                <div className="flex flex-wrap items-center justify-center gap-1 border-t bg-muted/40 px-2 py-1.5">
+                  <SizeButton
+                    label="Önceye taşı"
+                    disabled={items[0]?.id === item.id}
+                    onClick={() => move(item.id, -1)}
+                  >
+                    <ChevronUp className="h-4 w-4" />
+                  </SizeButton>
+                  <SizeButton
+                    label="Sonraya taşı"
+                    disabled={items.at(-1)?.id === item.id}
+                    onClick={() => move(item.id, 1)}
+                  >
+                    <ChevronDown className="h-4 w-4" />
+                  </SizeButton>
+                  <span className="mx-1 h-5 w-px bg-border" />
                   <SizeButton
                     label="Daralt"
                     disabled={item.w <= def.minW}
@@ -373,7 +379,7 @@ export function CustomizableDashboard({
                       <span className="block truncate text-sm font-medium">
                         {widgetTitle(def, role)}
                       </span>
-                      <span className="block truncate text-[11px] text-muted-foreground">
+                      <span className="block truncate text-xs text-muted-foreground">
                         {def.description}
                       </span>
                     </span>
@@ -407,7 +413,7 @@ function SizeButton({
       disabled={disabled}
       aria-label={label}
       title={label}
-      className="flex h-6 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground disabled:opacity-30"
+      className="flex h-11 w-11 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-accent-foreground disabled:opacity-30"
     >
       {children}
     </button>

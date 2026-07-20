@@ -4,7 +4,7 @@ import { useSyncExternalStore } from "react";
 import Link from "next/link";
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getLinks, useActiveCheck } from "@/components/dashboard-nav";
+import { getLinks, useActiveCheck } from "@/components/dashboard-navigation-config";
 import type { Role } from "@/lib/types";
 
 const STORAGE_KEY = "sidebar-collapsed";

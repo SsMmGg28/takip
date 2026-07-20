@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import {
   AlertTriangle,
@@ -19,7 +17,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DAY_LABELS } from "@/lib/schedule";
-import { useNow } from "@/components/dashboard/hooks";
 import type { NotificationType } from "@/lib/types";
 import type { WidgetProps } from "@/components/dashboard/types";
 
@@ -37,7 +34,7 @@ function FooterLink({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
-      className="mt-auto flex items-center justify-end gap-1 pt-1.5 text-[11px] font-medium text-primary hover:underline"
+      className="mt-auto flex min-h-11 items-center justify-end gap-1 pt-1.5 text-xs font-medium text-primary hover:underline"
     >
       {label} <ArrowRight className="h-3 w-3" />
     </Link>
@@ -47,7 +44,7 @@ function FooterLink({ href, label }: { href: string; label: string }) {
 function NameTag({ name }: { name?: string }) {
   if (!name) return null;
   return (
-    <span className="shrink-0 rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-medium text-accent-foreground">
+    <span className="shrink-0 rounded-full bg-accent px-1.5 py-0.5 text-xs font-medium text-accent-foreground">
       {name}
     </span>
   );
@@ -76,7 +73,7 @@ export function StatsWidget({ data, w }: WidgetProps) {
     <div
       className={cn(
         "grid h-full content-center gap-2",
-        w >= 3 ? "grid-cols-4" : "grid-cols-2",
+        w >= 3 ? "grid-cols-2 lg:grid-cols-4" : "grid-cols-2",
       )}
     >
       {data.stats.map((s) => {
@@ -85,11 +82,11 @@ export function StatsWidget({ data, w }: WidgetProps) {
             <p className="truncate text-2xl font-bold tabular-nums tracking-tight">
               {s.value}
             </p>
-            <p className="truncate text-[11px] font-medium text-muted-foreground">
+            <p className="text-xs font-medium leading-tight text-muted-foreground">
               {s.label}
             </p>
             {s.hint && (
-              <p className="truncate text-[10px] text-muted-foreground/70">{s.hint}</p>
+              <p className="text-xs leading-tight text-muted-foreground/70">{s.hint}</p>
             )}
           </>
         );
@@ -118,21 +115,21 @@ export function StatsWidget({ data, w }: WidgetProps) {
 
 // ─── Bekleyen Ödevler ────────────────────────────────────────────────────────
 
-export function HomeworkWidget({ data, h }: WidgetProps) {
-  const items = data.homework.slice(0, h >= 3 ? 8 : h === 2 ? 4 : 2);
+export function HomeworkWidget({ data }: WidgetProps) {
+  const items = data.homework.slice(0, 3);
   if (!items.length) {
     return <EmptyState text="Bekleyen ödev yok — hepsi tamam! 🎉" />;
   }
   return (
     <div className="flex h-full flex-col">
-      <ul className="min-h-0 flex-1 space-y-1.5 overflow-y-auto">
+      <ul className="min-h-0 flex-1 space-y-1.5">
         {items.map((hw) => {
           const due = hw.dueDate ? formatDay(hw.dueDate) : null;
           return (
             <li key={hw.id}>
               <Link
                 href={`/${data.role}/homework`}
-                className="flex items-center gap-2 rounded-xl border bg-muted/30 px-2.5 py-2 transition-colors hover:bg-accent/60"
+                className="flex min-h-11 items-center gap-2 rounded-xl border bg-muted/30 px-2.5 py-2 transition-colors hover:bg-accent/60"
               >
                 <span
                   className={cn(
@@ -155,7 +152,7 @@ export function HomeworkWidget({ data, h }: WidgetProps) {
                 {due && (
                   <span
                     className={cn(
-                      "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold",
+                      "shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold",
                       due.urgent
                         ? "bg-destructive/12 text-destructive"
                         : "bg-muted text-muted-foreground",
@@ -170,61 +167,6 @@ export function HomeworkWidget({ data, h }: WidgetProps) {
         })}
       </ul>
       <FooterLink href={`/${data.role}/homework`} label="Tüm ödevler" />
-    </div>
-  );
-}
-
-// ─── Bugünün Programı ────────────────────────────────────────────────────────
-
-export function TodayScheduleWidget({ data, h }: WidgetProps) {
-  // Hydration uyumu için "şimdi" işareti yalnızca istemcide hesaplanır.
-  const nowDate = useNow(30_000);
-  const now = nowDate ? nowDate.toTimeString().slice(0, 5) : null;
-
-  const todayIdx = ((nowDate ?? new Date()).getDay() + 6) % 7;
-  const items = data.schedule
-    .filter((s) => s.day === todayIdx)
-    .slice(0, h >= 3 ? 8 : h === 2 ? 4 : 2);
-
-  if (!items.length) {
-    return (
-      <EmptyState text={`Bugün (${DAY_LABELS[todayIdx]}) programda etkinlik yok.`} />
-    );
-  }
-
-  return (
-    <div className="flex h-full flex-col">
-      <ul className="min-h-0 flex-1 space-y-1.5 overflow-y-auto">
-        {items.map((s) => {
-          const active = now !== null && s.start <= now && now < s.end;
-          return (
-            <li key={s.id}>
-              <Link
-                href={`/${data.role}/schedule`}
-                className={cn(
-                  "flex items-center gap-2 rounded-xl border px-2.5 py-2 transition-colors hover:bg-accent/60",
-                  active ? "border-primary/40 bg-primary/8" : "bg-muted/30",
-                )}
-              >
-                <span className="shrink-0 text-[11px] font-semibold tabular-nums text-muted-foreground">
-                  {s.start}–{s.end}
-                </span>
-                <span className="min-w-0 flex-1 truncate text-xs font-medium">
-                  {s.label}
-                </span>
-                <NameTag name={s.studentName} />
-                {active && (
-                  <span className="relative flex h-2 w-2 shrink-0">
-                    <span className="animate-ping-soft absolute h-2 w-2 rounded-full bg-primary/60" />
-                    <span className="h-2 w-2 rounded-full bg-primary" />
-                  </span>
-                )}
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
-      <FooterLink href={`/${data.role}/schedule`} label="Tüm program" />
     </div>
   );
 }
@@ -248,7 +190,7 @@ export function WeeklyScheduleWidget({ data }: WidgetProps) {
       <div className="grid min-h-0 flex-1 grid-cols-7 items-end gap-1.5 pb-1">
         {counts.map((count, day) => (
           <div key={day} className="flex h-full flex-col items-center justify-end gap-1">
-            <span className="text-[10px] font-semibold tabular-nums text-muted-foreground">
+            <span className="text-xs font-semibold tabular-nums text-muted-foreground">
               {count || ""}
             </span>
             <div
@@ -264,7 +206,7 @@ export function WeeklyScheduleWidget({ data }: WidgetProps) {
             />
             <span
               className={cn(
-                "text-[10px] font-medium",
+                "text-xs font-medium",
                 day === todayIdx ? "text-primary" : "text-muted-foreground",
               )}
             >
@@ -295,14 +237,14 @@ const EVENT_TONE: Record<string, string> = {
   homework_deadline: "bg-destructive/12 text-destructive",
 };
 
-export function EventsWidget({ data, h }: WidgetProps) {
-  const items = data.events.slice(0, h >= 3 ? 8 : h === 2 ? 4 : 2);
+export function EventsWidget({ data }: WidgetProps) {
+  const items = data.events.slice(0, 3);
   if (!items.length) {
     return <EmptyState text="Yaklaşan etkinlik yok." />;
   }
   return (
     <div className="flex h-full flex-col">
-      <ul className="min-h-0 flex-1 space-y-1.5 overflow-y-auto">
+      <ul className="min-h-0 flex-1 space-y-1.5">
         {items.map((e) => {
           const Icon = EVENT_ICON[e.type] ?? CalendarDays;
           const day = formatDay(e.date);
@@ -310,7 +252,7 @@ export function EventsWidget({ data, h }: WidgetProps) {
             <li key={e.id}>
               <Link
                 href={`/${data.role}/calendar`}
-                className="flex items-center gap-2 rounded-xl border bg-muted/30 px-2.5 py-2 transition-colors hover:bg-accent/60"
+                className="flex min-h-11 items-center gap-2 rounded-xl border bg-muted/30 px-2.5 py-2 transition-colors hover:bg-accent/60"
               >
                 <span
                   className={cn(
@@ -325,7 +267,7 @@ export function EventsWidget({ data, h }: WidgetProps) {
                 </span>
                 <span
                   className={cn(
-                    "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold",
+                    "shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold",
                     day.urgent
                       ? "bg-primary/12 text-primary"
                       : "bg-muted text-muted-foreground",
@@ -354,7 +296,7 @@ export function ExamsWidget({ data, h }: WidgetProps) {
 
   return (
     <div className="flex h-full flex-col">
-      <ul className="min-h-0 flex-1 space-y-2 overflow-y-auto">
+      <ul className="min-h-0 flex-1 space-y-2">
         {items.map((exam, i) => {
           const prev = items[i + 1];
           const delta = prev ? exam.totalNet - prev.totalNet : null;
@@ -376,7 +318,7 @@ export function ExamsWidget({ data, h }: WidgetProps) {
                   {delta !== null && delta !== 0 && (
                     <span
                       className={cn(
-                        "shrink-0 text-[10px] font-bold",
+                        "shrink-0 text-xs font-bold",
                         delta > 0 ? "text-success" : "text-destructive",
                       )}
                     >
@@ -412,7 +354,7 @@ export function BooksWidget({ data, h }: WidgetProps) {
   }
   return (
     <div className="flex h-full flex-col">
-      <ul className="min-h-0 flex-1 space-y-2 overflow-y-auto">
+      <ul className="min-h-0 flex-1 space-y-2">
         {items.map((b) => {
           const pct = b.total > 0 ? Math.round((b.done / b.total) * 100) : 0;
           return (
@@ -427,7 +369,7 @@ export function BooksWidget({ data, h }: WidgetProps) {
                     {b.name}
                   </span>
                   <NameTag name={b.studentName} />
-                  <span className="shrink-0 text-[11px] font-semibold tabular-nums text-muted-foreground">
+                  <span className="shrink-0 text-xs font-semibold tabular-nums text-muted-foreground">
                     {b.done}/{b.total} · %{pct}
                   </span>
                 </div>
@@ -486,7 +428,7 @@ export function NotificationsWidget({ data, h }: WidgetProps) {
     return <EmptyState text="Henüz bildirim yok." />;
   }
   return (
-    <ul className="h-full space-y-1.5 overflow-y-auto">
+    <ul className="h-full space-y-1.5">
       {items.map((n) => {
         const Icon = NOTIF_ICON[n.type] ?? Bell;
         const inner = (
@@ -497,12 +439,12 @@ export function NotificationsWidget({ data, h }: WidgetProps) {
             <span className="min-w-0 flex-1">
               <span className="block truncate text-xs font-medium">{n.title}</span>
               {n.body && (
-                <span className="block truncate text-[11px] text-muted-foreground">
+                <span className="block truncate text-xs text-muted-foreground">
                   {n.body}
                 </span>
               )}
             </span>
-            <span className="shrink-0 text-[10px] text-muted-foreground/70">
+            <span className="shrink-0 text-xs text-muted-foreground/70">
               {timeAgo(n.created_at)}
             </span>
           </>
@@ -512,12 +454,12 @@ export function NotificationsWidget({ data, h }: WidgetProps) {
             {n.link ? (
               <Link
                 href={n.link}
-                className="flex items-center gap-2 rounded-xl border bg-muted/30 px-2.5 py-2 hover:bg-accent/60"
+                className="flex min-h-11 items-center gap-2 rounded-xl border bg-muted/30 px-2.5 py-2 hover:bg-accent/60"
               >
                 {inner}
               </Link>
             ) : (
-              <div className="flex items-center gap-2 rounded-xl border bg-muted/30 px-2.5 py-2">
+              <div className="flex min-h-11 items-center gap-2 rounded-xl border bg-muted/30 px-2.5 py-2">
                 {inner}
               </div>
             )}
@@ -537,18 +479,18 @@ export function PendingBooksWidget({ data, h }: WidgetProps) {
   }
   return (
     <div className="flex h-full flex-col">
-      <ul className="min-h-0 flex-1 space-y-1.5 overflow-y-auto">
+      <ul className="min-h-0 flex-1 space-y-1.5">
         {items.map((b) => (
           <li
             key={b.id}
-            className="flex items-center gap-2 rounded-xl border bg-muted/30 px-2.5 py-2"
+            className="flex min-h-11 items-center gap-2 rounded-xl border bg-muted/30 px-2.5 py-2"
           >
             <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-warning/15 text-warning">
               <BookOpen className="h-3.5 w-3.5" />
             </span>
             <span className="min-w-0 flex-1 truncate text-xs font-medium">{b.name}</span>
             {b.subject && (
-              <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+              <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
                 {b.subject}
               </span>
             )}
@@ -578,7 +520,7 @@ export function PeopleWidget({ data, h }: WidgetProps) {
   const linkBase = data.role === "teacher" ? "/teacher/students" : null;
   return (
     <div className="flex h-full flex-col">
-      <ul className="min-h-0 flex-1 space-y-1.5 overflow-y-auto">
+      <ul className="min-h-0 flex-1 space-y-1.5">
         {items.map((p) => {
           const inner = (
             <>
@@ -589,7 +531,7 @@ export function PeopleWidget({ data, h }: WidgetProps) {
                 {p.name}
               </span>
               {p.grade !== null && (
-                <span className="shrink-0 rounded-full bg-primary/12 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                <span className="shrink-0 rounded-full bg-primary/12 px-2 py-0.5 text-xs font-semibold text-primary">
                   {p.grade}. sınıf
                 </span>
               )}
@@ -600,12 +542,12 @@ export function PeopleWidget({ data, h }: WidgetProps) {
               {linkBase ? (
                 <Link
                   href={`${linkBase}/${p.id}`}
-                  className="flex items-center gap-2 rounded-xl border bg-muted/30 px-2.5 py-2 hover:bg-accent/60"
+                  className="flex min-h-11 items-center gap-2 rounded-xl border bg-muted/30 px-2.5 py-2 hover:bg-accent/60"
                 >
                   {inner}
                 </Link>
               ) : (
-                <div className="flex items-center gap-2 rounded-xl border bg-muted/30 px-2.5 py-2">
+                <div className="flex min-h-11 items-center gap-2 rounded-xl border bg-muted/30 px-2.5 py-2">
                   {inner}
                 </div>
               )}
@@ -627,7 +569,7 @@ export function WeeklySummaryWidget({ data }: WidgetProps) {
   }
   return (
     <div className="flex h-full flex-col">
-      <ul className="min-h-0 flex-1 space-y-1.5 overflow-y-auto">
+      <ul className="min-h-0 flex-1 space-y-1.5">
         {summaries.map((s) => (
           <li
             key={s.studentId}
@@ -638,7 +580,7 @@ export function WeeklySummaryWidget({ data }: WidgetProps) {
               {s.netChange !== null && (
                 <span
                   className={cn(
-                    "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold",
+                    "shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold",
                     s.netChange > 0
                       ? "bg-success/15 text-success"
                       : s.netChange < 0
@@ -655,22 +597,28 @@ export function WeeklySummaryWidget({ data }: WidgetProps) {
             <div className="mt-1.5 grid grid-cols-3 gap-1.5 text-center">
               <div className="rounded-lg bg-background/60 px-1 py-1">
                 <p className="text-sm font-bold tabular-nums">{s.completedHomework}</p>
-                <p className="text-[10px] text-muted-foreground">Tam. ödev</p>
+                <p className="text-xs text-muted-foreground">Tam. ödev</p>
               </div>
               <div className="rounded-lg bg-background/60 px-1 py-1">
                 <p className="text-sm font-bold tabular-nums">{s.incompleteHomework}</p>
-                <p className="text-[10px] text-muted-foreground">Eksik ödev</p>
+                <p className="text-xs text-muted-foreground">Eksik ödev</p>
               </div>
               <div className="rounded-lg bg-background/60 px-1 py-1">
                 <p className="text-sm font-bold tabular-nums">{s.testsSolved}</p>
-                <p className="text-[10px] text-muted-foreground">Çözülen test</p>
+                <p className="text-xs text-muted-foreground">Çözülen test</p>
               </div>
             </div>
-            <p className="mt-1 text-[10px] text-muted-foreground">
-              🔥 Bu hafta{" "}
-              <strong className="text-foreground tabular-nums">{s.studyDays}</strong> gün
-              çalıştı
-            </p>
+            <div className="mt-2 flex items-center gap-2">
+              <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+                <div
+                  className="gradient-surface h-full rounded-full"
+                  style={{ width: `${Math.min(100, (s.studyDays / 7) * 100)}%` }}
+                />
+              </div>
+              <span className="shrink-0 text-xs font-medium text-muted-foreground">
+                {s.studyDays}/7 gün
+              </span>
+            </div>
           </li>
         ))}
       </ul>
@@ -697,7 +645,7 @@ export function StreakWidget({ data }: WidgetProps) {
           <p className="mt-1.5 text-xs text-muted-foreground">
             Bugün {s?.todayMinutes ?? 0} dk · Bu hafta {s?.weekDays ?? 0}/7 gün
           </p>
-          <p className="text-[11px] text-muted-foreground">En iyi: {s?.best ?? 0} gün</p>
+          <p className="text-xs text-muted-foreground">En iyi: {s?.best ?? 0} gün</p>
         </div>
       </div>
       <FooterLink href="/student/gunluk" label="Çalışma Günlüğü" />

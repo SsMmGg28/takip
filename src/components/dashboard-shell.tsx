@@ -10,6 +10,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { requireRole } from "@/lib/auth";
 import { getAccessibleStudentsWithGrades, getStudentGrade } from "@/lib/students";
 import { examsEnabledForGrade } from "@/lib/kazanim";
+import { createClient } from "@/lib/supabase/server";
 import type { Profile, Role } from "@/lib/types";
 
 /** Deneme sekmesi yalnızca 7-8. sınıf bağlamında gösterilir. */
@@ -46,7 +47,15 @@ export async function DashboardShell({
   profile: Profile;
   children: React.ReactNode;
 }) {
-  const showExams = await shouldShowExams(role, profile);
+  const supabase = await createClient();
+  const [showExams, { count: unreadCount }] = await Promise.all([
+    shouldShowExams(role, profile),
+    supabase
+      .from("notifications")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", profile.id)
+      .is("read_at", null),
+  ]);
 
   return (
     <div className="relative min-h-screen">
@@ -81,7 +90,10 @@ export async function DashboardShell({
                 </span>
               </span>
             </Link>
-            <NotificationsBell userId={profile.id} />
+            <NotificationsBell
+              userId={profile.id}
+              initialUnreadCount={unreadCount ?? 0}
+            />
             <ThemeToggle />
             <SignOutButton />
           </div>

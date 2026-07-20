@@ -428,6 +428,22 @@ body {
   }
 }
 
+/* Düşük güçlü telefonlarda sürekli blur/animasyon GPU'yu meşgul etmesin. */
+@media (max-width: 639px), (pointer: coarse) {
+  .animate-blob {
+    animation: none;
+  }
+  .glass {
+    background: color-mix(in oklch, var(--background) 96%, transparent);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .hover-lift:hover {
+    transform: none;
+    box-shadow: none;
+  }
+}
+
 /* ─── Yazdırma (dönem raporu) ─── */
 @page {
   margin: 1.4cm;

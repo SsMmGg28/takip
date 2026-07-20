@@ -25,13 +25,21 @@ function urlBase64ToUint8Array(base64String: string) {
  */
 export function ServiceWorkerRegistrar() {
   useEffect(() => {
-    if ("serviceWorker" in navigator) {
+    const register = () => {
+      if (!("serviceWorker" in navigator)) return;
       navigator.serviceWorker
         .register("/sw.js", { scope: "/", updateViaCache: "none" })
         .catch(() => {
           // kayıt başarısızsa push açılırken tekrar denenir
         });
+    };
+
+    if ("requestIdleCallback" in window) {
+      const id = window.requestIdleCallback(register, { timeout: 2500 });
+      return () => window.cancelIdleCallback(id);
     }
+    const id = globalThis.setTimeout(register, 1200);
+    return () => globalThis.clearTimeout(id);
   }, []);
   return null;
 }
@@ -174,7 +182,7 @@ export function PushNotificationToggle() {
         disabled={state === "busy"}
         aria-pressed={on}
         className={cn(
-          "flex h-7 items-center gap-1.5 rounded-full px-3 text-[11px] font-semibold transition-colors",
+          "flex min-h-11 items-center gap-1.5 rounded-full px-3 text-xs font-semibold transition-colors",
           on
             ? "gradient-surface text-white shadow-sm"
             : "border bg-card text-muted-foreground hover:bg-accent hover:text-accent-foreground",

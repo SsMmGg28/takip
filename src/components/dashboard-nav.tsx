@@ -2,144 +2,17 @@
 
 import { useCallback, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import {
-  LayoutDashboard,
-  Users,
-  UserRound,
-  ClipboardList,
-  BookOpen,
-  Calendar,
-  CalendarClock,
-  Flame,
-  LineChart,
-  Megaphone,
-  Menu,
-  X,
-  Pin,
-  PinOff,
-  Check,
-  Settings2,
-  type LucideIcon,
-} from "lucide-react";
+import { Check, Menu, Pin, PinOff, Settings2, X } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-
-type Role = "teacher" | "student" | "parent";
-
-export interface NavLinkDef {
-  href: string;
-  label: string;
-  shortLabel?: string;
-  icon: LucideIcon;
-}
-
-export const LINKS_BY_ROLE: Record<Role, NavLinkDef[]> = {
-  teacher: [
-    { href: "/teacher", label: "Anasayfa", icon: LayoutDashboard },
-    { href: "/teacher/students", label: "Öğrenciler", icon: Users },
-    { href: "/teacher/homework", label: "Ödevler", icon: ClipboardList },
-    { href: "/teacher/resources", label: "Kütüphane", icon: BookOpen },
-    { href: "/teacher/calendar", label: "Takvim", icon: Calendar },
-    {
-      href: "/teacher/exams",
-      label: "Deneme Analizi",
-      shortLabel: "Deneme",
-      icon: LineChart,
-    },
-    {
-      href: "/teacher/announcements",
-      label: "Duyurular",
-      shortLabel: "Duyuru",
-      icon: Megaphone,
-    },
-    {
-      href: "/teacher/profile",
-      label: "Profilim",
-      shortLabel: "Profil",
-      icon: UserRound,
-    },
-  ],
-  student: [
-    { href: "/student", label: "Anasayfa", icon: LayoutDashboard },
-    { href: "/student/homework", label: "Ödevlerim", icon: ClipboardList },
-    { href: "/student/resources", label: "Kaynaklarım", icon: BookOpen },
-    { href: "/student/calendar", label: "Takvim", icon: Calendar },
-    {
-      href: "/student/schedule",
-      label: "Çalışma Programım",
-      shortLabel: "Program",
-      icon: CalendarClock,
-    },
-    {
-      href: "/student/gunluk",
-      label: "Çalışma Günlüğü",
-      shortLabel: "Günlük",
-      icon: Flame,
-    },
-    {
-      href: "/student/exams",
-      label: "Deneme Analizim",
-      shortLabel: "Deneme",
-      icon: LineChart,
-    },
-    {
-      href: "/student/announcements",
-      label: "Duyurular",
-      shortLabel: "Duyuru",
-      icon: Megaphone,
-    },
-    {
-      href: "/student/profile",
-      label: "Profilim",
-      shortLabel: "Profil",
-      icon: UserRound,
-    },
-  ],
-  parent: [
-    { href: "/parent", label: "Anasayfa", icon: LayoutDashboard },
-    { href: "/parent/homework", label: "Ödevler", icon: ClipboardList },
-    { href: "/parent/resources", label: "Kaynaklar", icon: BookOpen },
-    { href: "/parent/calendar", label: "Takvim", icon: Calendar },
-    {
-      href: "/parent/schedule",
-      label: "Çalışma Programı",
-      shortLabel: "Program",
-      icon: CalendarClock,
-    },
-    {
-      href: "/parent/exams",
-      label: "Deneme Analizi",
-      shortLabel: "Deneme",
-      icon: LineChart,
-    },
-    {
-      href: "/parent/announcements",
-      label: "Duyurular",
-      shortLabel: "Duyuru",
-      icon: Megaphone,
-    },
-    { href: "/parent/profile", label: "Profilim", shortLabel: "Profil", icon: UserRound },
-  ],
-};
+import type { Role } from "@/lib/types";
+import {
+  getLinks,
+  useActiveCheck,
+  type NavLinkDef,
+} from "@/components/dashboard-navigation-config";
 
 const MAX_PINNED = 4;
-
-export function getLinks(role: Role, showExams: boolean) {
-  return LINKS_BY_ROLE[role].filter((link) => showExams || !link.href.endsWith("/exams"));
-}
-
-export function useActiveCheck(role: Role) {
-  const pathname = usePathname();
-  const roleRoot = `/${role}`;
-  return (href: string) =>
-    href === roleRoot
-      ? pathname === roleRoot
-      : pathname === href || pathname.startsWith(href + "/");
-}
-
-// Masaüstü navigasyonu artık dashboard-sidebar.tsx'teki yan menüdür;
-// buradaki getLinks/useActiveCheck yardımcıları oradan da kullanılır.
 
 // ─── Mobil: sabit butonlar + menü adası ──────────────────────────────────────
 
@@ -258,7 +131,7 @@ export function MobileNav({
           <button
             type="button"
             onClick={() => unpin(link.href)}
-            className="flex min-w-0 flex-col items-center gap-0.5 rounded-xl px-1 py-1.5 text-[10px] font-medium text-muted-foreground"
+            className="flex min-h-14 min-w-0 flex-col items-center gap-0.5 rounded-xl px-1 py-1.5 text-xs font-medium text-muted-foreground"
             aria-label={`${link.label} sabitten çıkar`}
           >
             <span className="relative flex h-8 w-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
@@ -274,7 +147,7 @@ export function MobileNav({
             href={link.href}
             onClick={closeIsland}
             className={cn(
-              "flex min-w-0 flex-col items-center gap-0.5 rounded-xl px-1 py-1.5 text-[10px] font-medium",
+              "flex min-h-14 min-w-0 flex-col items-center gap-0.5 rounded-xl px-1 py-1.5 text-xs font-medium",
               active ? "text-primary" : "text-muted-foreground active:scale-90",
             )}
           >
@@ -363,7 +236,7 @@ export function MobileNav({
                             <Pin className="h-2.5 w-2.5" />
                           </span>
                         </span>
-                        <span className="text-[11px] font-medium leading-tight">
+                        <span className="text-xs font-medium leading-tight">
                           {link.shortLabel ?? link.label}
                         </span>
                       </button>
@@ -389,7 +262,7 @@ export function MobileNav({
                       >
                         <Icon className="h-5 w-5" />
                       </span>
-                      <span className="text-[11px] font-medium leading-tight">
+                      <span className="text-xs font-medium leading-tight">
                         {link.shortLabel ?? link.label}
                       </span>
                     </Link>
@@ -413,7 +286,7 @@ export function MobileNav({
               onClick={() => (open ? closeIsland() : setOpen(true))}
               aria-label={open ? "Menüyü kapat" : "Menüyü aç"}
               aria-expanded={open}
-              className="flex flex-col items-center gap-0.5 px-1 py-1.5 text-[10px] font-medium text-muted-foreground"
+              className="flex min-h-14 flex-col items-center gap-0.5 px-1 py-1.5 text-xs font-medium text-muted-foreground"
             >
               <span
                 className={cn(

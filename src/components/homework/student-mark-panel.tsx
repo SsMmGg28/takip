@@ -80,7 +80,7 @@ export function StudentMarkPanel({
           disabled={pending}
           onClick={toggleDone}
           className={cn(
-            "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all hover:-translate-y-0.5 active:translate-y-0",
+            "inline-flex min-h-11 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all hover:-translate-y-0.5 active:translate-y-0",
             done
               ? "border-success/40 bg-success/10 text-success"
               : "border-input bg-background text-muted-foreground hover:bg-accent",
@@ -89,7 +89,7 @@ export function StudentMarkPanel({
           <CheckCircle2 className="h-3.5 w-3.5" />
           {done ? "Tamamladım (işaretli)" : "Tamamladım olarak işaretle"}
         </button>
-        <span className="text-[11px] text-muted-foreground">
+        <span className="text-xs text-muted-foreground">
           Öğretmen kontrolüyle kesinleşir.
         </span>
       </div>
@@ -112,7 +112,7 @@ export function StudentMarkPanel({
               onClick={() => toggleTest(t)}
               aria-pressed={on}
               className={cn(
-                "inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium transition-all hover:-translate-y-0.5 active:translate-y-0",
+                "inline-flex min-h-11 items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium transition-all hover:-translate-y-0.5 active:translate-y-0",
                 on
                   ? "border-primary/40 bg-primary/10 text-primary"
                   : "border-input bg-muted/40 text-muted-foreground hover:bg-accent",
@@ -124,7 +124,7 @@ export function StudentMarkPanel({
           );
         })}
       </div>
-      <p className="text-[11px] text-muted-foreground">
+      <p className="text-xs text-muted-foreground">
         {markedCount}/{tests.length} testi yaptım olarak işaretledin — öğretmen
         kontrolüyle kesinleşir.
       </p>

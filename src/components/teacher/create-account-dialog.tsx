@@ -22,7 +22,11 @@ import {
 import { postAdmin } from "@/lib/admin-api";
 import type { Profile } from "@/lib/types";
 
-export function CreateAccountDialog({ students }: { students: Profile[] }) {
+export function CreateAccountDialog({
+  students,
+}: {
+  students: Pick<Profile, "id" | "full_name">[];
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [role, setRole] = useState<"student" | "parent">("student");
