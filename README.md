@@ -13,9 +13,16 @@ planına bakabilirsin: `.claude/plans` altındaki ilgili dosya (varsa) veya bu R
    - `Project URL`
    - `anon` `public` key
    - `service_role` key (gizli, sadece sunucu tarafında kullanılacak)
-3. **SQL Editor**'e gir ve sırasıyla şu iki dosyanın içeriğini çalıştır:
-   - `supabase/migrations/0001_initial_schema.sql`
-   - `supabase/migrations/0002_rls_policies.sql`
+3. **SQL Editor**'e gir ve `supabase/migrations/` altındaki **tüm** dosyaları
+   dosya adı sırasıyla (0001'den başlayarak, `0007`'den sonra `0007b`) çalıştır.
+   Her dosya bir kez ve sırayla uygulanmalıdır; atlanan dosya eksik tablo/politika
+   demektir.
+
+> **Not (Supabase CLI):** `supabase/config.toml` sayesinde yerelde
+> `npx supabase start` ile tam bir yerel Supabase yığını çalıştırabilirsin.
+> Uzak projeye `supabase db push` ile şema göndermek, migration dosyalarının
+> zaman damgalı ada geçirilmesini ve mevcut şemanın baseline'lanmasını
+> gerektirir; şimdilik migration'lar yukarıdaki gibi elle uygulanır.
 
 ### 2. Ortam değişkenlerini ayarla
 
