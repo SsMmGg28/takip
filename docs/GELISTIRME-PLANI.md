@@ -67,7 +67,12 @@ Derinlemesine savunma: bir RLS politikası ileride gevşetilirse bu aksiyonlar a
 
 ---
 
-## P2 — Yüksek: Şema Güvenilirliği ve Kalite Kapıları
+## P2 — Yüksek: Şema Güvenilirliği ve Kalite Kapıları (5 ve 6 ✅, 7 açık)
+
+> 5: `0007_profiles_privilege_guard` → `0007b` olarak yeniden adlandırıldı, README
+> tüm migration'ların sırayla uygulanmasını anlatıyor, `supabase/config.toml` eklendi
+> (tam `db push` geçişi zaman damgalı ad + baseline gerektirir, not düşüldü).
+> 6: CI'ya sahte env ile build adımı eklendi. 7 (test genişletme) hâlâ açık.
 
 ### 5. Migration hijyeni
 
@@ -96,7 +101,10 @@ politikaları testsiz. Önerilen sıra:
 
 ---
 
-## P3 — Orta: Bakım Kolaylığı (DRY Refaktörleri)
+## P3 — Orta: Bakım Kolaylığı (DRY Refaktörleri) (8 ve 9 ✅, 10 açık)
+
+> 8: `src/lib/api-auth.ts` `requireTeacherApi` beş admin route'una uygulandı.
+> 9: `src/lib/admin-api.ts` `postAdmin` beş bileşene uygulandı.
 
 ### 8. `requireTeacher()` API yardımcısı
 
