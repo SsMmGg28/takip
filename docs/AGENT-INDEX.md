@@ -221,7 +221,7 @@ varsayılan/sıra/gizleme/daraltma normalizasyonu `src/lib/dashboard-layout.ts` 
 | `POST /api/admin/manage-links`   | teacher                                             | service-role | parent-student link ekle/sil                               |
 | `POST /api/admin/delete-user`    | teacher; admin kuralları                            | service-role | sahibi silinecek kayıtları öğretmene devret, Auth user sil |
 | `GET /api/cron/reminders`        | `Authorization: Bearer CRON_SECRET`                 | service-role | yarınki ödev bildirimi; pazartesi program auto-repeat      |
-| `GET /api/dev/preview-login`     | local dev/Vercel Preview + secret; production 404   | SSR          | preview rol hesabıyla oturum cookie'si                     |
+| `GET /api/dev/preview-login`     | local dev/Vercel Preview + secret; production 404   | SSR/admin    | preview rol hesabını env şifresiyle eşitle + oturum cookie |
 
 Client admin çağrılarının tek sarmalayıcısı `src/lib/admin-api.ts#postAdmin`.
 
@@ -378,7 +378,9 @@ Dashboard veya uygun Vercel env aracıyla doğrulanmalıdır.
 `NEXT_PUBLIC_*` değerler browser bundle'a girer. Service role, VAPID private,
 cron, Gemini ve preview sırları asla client component'e veya belgeye taşınmamalıdır.
 `DEV_PREVIEW_*` production kapsamına verilmemeli; route yalnız yerel development veya
-`VERCEL_ENV=preview` iken çalışır ve production'da 404 verir.
+`VERCEL_ENV=preview` iken çalışır ve production'da 404 verir. Preview şifresi mevcut
+demo hesabıyla uyuşmazsa route yalnız tam `preview.<role>` kullanıcı adı, rol ve
+`is_demo=true` doğrulamasından sonra Auth şifresini env değeriyle eşitler.
 
 ## Olay, bildirim ve cache bağlantıları
 
