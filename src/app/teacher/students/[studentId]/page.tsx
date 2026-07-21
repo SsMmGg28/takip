@@ -97,18 +97,22 @@ export default async function TeacherStudentDetailPage({
 
   function HomeworkRow({ hw }: { hw: (typeof homework)[number] }) {
     return (
-      <li>
+      <li className="min-w-0">
         <Link
           href={`/teacher/homework/${studentId}`}
-          className="flex items-center gap-2 rounded-xl border bg-muted/30 px-3 py-2 transition-colors hover:bg-accent/60"
+          className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 rounded-xl border bg-muted/30 px-3 py-2 transition-colors hover:bg-accent/60"
         >
-          <span className="min-w-0 flex-1 truncate text-sm font-medium">{hw.title}</span>
-          {hw.due_date && (
-            <span className="shrink-0 text-xs text-muted-foreground">
-              {new Date(hw.due_date + "T00:00:00").toLocaleDateString("tr-TR")}
-            </span>
-          )}
-          <HomeworkStatusBadge status={hw.effectiveStatus} />
+          <span className="basis-full min-w-0 truncate text-sm font-medium sm:basis-auto sm:flex-1">
+            {hw.title}
+          </span>
+          <span className="ml-auto flex shrink-0 items-center gap-2">
+            {hw.due_date && (
+              <span className="whitespace-nowrap text-xs text-muted-foreground">
+                {new Date(hw.due_date + "T00:00:00").toLocaleDateString("tr-TR")}
+              </span>
+            )}
+            <HomeworkStatusBadge status={hw.effectiveStatus} />
+          </span>
         </Link>
       </li>
     );
@@ -233,17 +237,17 @@ export default async function TeacherStudentDetailPage({
       )}
 
       {/* Ödevler */}
-      <div className="grid gap-5 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <span className="gradient-surface flex h-8 w-8 items-center justify-center rounded-lg text-white">
+      <div className="grid min-w-0 gap-5 lg:grid-cols-2">
+        <Card className="min-w-0">
+          <CardHeader className="px-4 sm:px-6">
+            <CardTitle className="flex min-w-0 items-center gap-2 text-base">
+              <span className="gradient-surface flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-white">
                 <ClipboardList className="h-4 w-4" />
               </span>
-              Son Ödevler
+              <span className="min-w-0 flex-1">Son Ödevler</span>
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 sm:px-6">
             {recentHomework.length === 0 ? (
               <p className="text-sm text-muted-foreground">Henüz ödev gönderilmedi.</p>
             ) : (
@@ -256,19 +260,19 @@ export default async function TeacherStudentDetailPage({
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <span className="gradient-surface flex h-8 w-8 items-center justify-center rounded-lg text-white">
+        <Card className="min-w-0">
+          <CardHeader className="px-4 sm:px-6">
+            <CardTitle className="flex min-w-0 items-center gap-2 text-base">
+              <span className="gradient-surface flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-white">
                 <ClipboardList className="h-4 w-4" />
               </span>
-              Eksik / Geciken Ödevler
-              <span className="text-xs font-normal text-muted-foreground">
+              <span className="min-w-0 flex-1">Eksik / Geciken Ödevler</span>
+              <span className="shrink-0 text-xs font-normal text-muted-foreground">
                 ({problemHomework.length})
               </span>
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 sm:px-6">
             {problemHomework.length === 0 ? (
               <p className="text-sm text-muted-foreground">
                 Eksik veya geciken ödev yok. 🎉
