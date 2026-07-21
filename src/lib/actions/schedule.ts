@@ -152,6 +152,35 @@ export async function createScheduleEntry(formData: FormData) {
   revalidateSchedulePaths(studentId);
 }
 
+/** Öğretmen veya bağlı veli, erişebildiği mevcut/gelecek program kaydını düzenler. */
+export async function updateScheduleEntry(formData: FormData) {
+  const userId = await requireEditorRole();
+  const supabase = await createClient();
+  const id = String(formData.get("id") ?? "");
+  const { data: entry } = await supabase
+    .from("study_schedule_entries")
+    .select("id, student_id, week_start")
+    .eq("id", id)
+    .single();
+  if (!entry) throw new Error("Program kaydı bulunamadı.");
+  if (entry.week_start < currentWeekStart()) {
+    throw new Error("Geçmiş haftanın programı düzenlenemez; arşiv salt okunur.");
+  }
+  const details = readScheduleEntryForm(formData);
+  const { error } = await supabase
+    .from("study_schedule_entries")
+    .update({
+      day_of_week: details.dayOfWeek,
+      start_time: details.startTime,
+      end_time: details.endTime,
+      activity_label: details.activityLabel,
+      updated_by: userId,
+    })
+    .eq("id", entry.id);
+  if (error) throw new Error(error.message);
+  revalidateSchedulePaths(entry.student_id);
+}
+
 /** Öğrenci yalnız kendi programına, mevcut veya gelecek hafta için kayıt ekler. */
 export async function createOwnScheduleEntry(formData: FormData) {
   const student = await assertStudentAction();
@@ -322,6 +351,24 @@ export async function completeOwnScheduleEntry(formData: FormData) {
     })
     .eq("id", entry.id)
     .eq("student_id", student.id);
+  if (error) throw new Error(error.message);
+
+  revalidateSchedulePaths(student.id);
+  revalidatePath("/student");
+  revalidatePath("/student/gunluk");
+  revalidatePath("/student/gunluk/dokum");
+}
+
+/** Aynı İstanbul gününde tamamlanan programı ve bağlı günlüğü tek transaction ile geri alır. */
+export async function undoOwnScheduleCompletion(formData: FormData) {
+  const student = await assertStudentAction();
+  const entryId = String(formData.get("id") ?? "");
+  if (!entryId) throw new Error("Program kaydı bulunamadı.");
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("undo_own_schedule_completion", {
+    p_entry_id: entryId,
+  });
   if (error) throw new Error(error.message);
 
   revalidateSchedulePaths(student.id);

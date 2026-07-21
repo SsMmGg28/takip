@@ -20,6 +20,9 @@ export interface StudentProfile {
   target_score: number | null;
   /** true ise çalışma programı her hafta önceki haftadan otomatik kopyalanır. */
   schedule_auto_repeat: boolean;
+  /** Öğrencinin her gün otomatik tekrarlanan hedefi; iki alan birlikte doludur. */
+  daily_goal_minutes: number | null;
+  daily_goal_questions: number | null;
 }
 
 export interface ParentStudentLink {

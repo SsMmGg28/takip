@@ -1,7 +1,7 @@
 # Ders Takip — yapay zeka ajanı proje indeksi
 
 > Zorunlu başlangıç belgesi. Son yerel doğrulama: **2026-07-21**. Canlı Supabase
-> ve Vercel anlık görüntüsü: **2026-07-20, Europe/Istanbul**. Gizli değer içermez.
+> ve Vercel anlık görüntüsü: **2026-07-21, Europe/Istanbul**. Gizli değer içermez.
 
 Bu belge, bir ajanın bütün depoyu tekrar taramadan doğru dosyaya ve doğru güvenlik
 katmanına gitmesi için hazırlanmıştır. Bir çelişkide kaynak önceliği şöyledir:
@@ -129,7 +129,8 @@ demo izolasyonu için canlı şemada `profiles.is_demo` vardır.
 
 ### Öğretmen
 
-- `/teacher`: özelleştirilebilir dashboard.
+- `/teacher`: mobil öncelikli dashboard; sabit işlem/öncelik kartı, işlem kuyruğu,
+  hızlı oluşturma, eşik gerekçeli öğrenci radarı ve takvim bölümleri.
 - `/teacher/students`, `/teacher/students/[studentId]`,
   `/teacher/students/[studentId]/[bookId]`: hesap/link, öğrenci özeti, kitap ilerlemesi.
 - `/teacher/homework`, `/teacher/homework/[studentId]`: grup ödev atama, düzenleme,
@@ -146,7 +147,8 @@ demo izolasyonu için canlı şemada `profiles.is_demo` vardır.
 
 ### Öğrenci
 
-- `/student`: dashboard.
+- `/student`: mobil öncelikli dashboard; sabit öncelikler, bugünün akışı, ödev
+  beyan/test işlemleri, günlük hedef ve isteğe bağlı Pomodoro/geri sayım bölümleri.
 - `/student/homework`: kendi ödevleri; öğrenci beyan action'ları rota yanındadır.
 - `/student/resources`, `/student/resources/[bookId]`: kitaplık ve test ilerlemesi.
 - `/student/calendar`, `/student/schedule`: takvim; haftalık programda ders/kazanım
@@ -157,7 +159,8 @@ demo izolasyonu için canlı şemada `profiles.is_demo` vardır.
 
 ### Veli
 
-- `/parent`: bağlı öğrencilerin dashboard özeti.
+- `/parent`: seçili çocuk bağlamı + tüm çocuk acilleri; haftalık hikâye, yaklaşanlar,
+  hedef/akademik gelişim ve program ekleme/düzenleme panelleri.
 - `/parent/homework`, `/parent/resources`, `/parent/resources/[bookId]`.
 - `/parent/calendar`, `/parent/schedule`.
 - `/parent/exams`, `/parent/exams/[studentId]`, `/new`, `/[examId]`,
@@ -165,26 +168,27 @@ demo izolasyonu için canlı şemada `profiles.is_demo` vardır.
 - `/parent/announcements`, `/parent/profile`.
 
 Navigasyonun tek ana kaydı `src/components/dashboard-nav.tsx#LINKS_BY_ROLE`;
-dashboard widget ana kaydı `src/components/dashboard/registry.tsx`; rol başına izinli
-widget id'leri `src/lib/dashboard-layout.ts` içindedir.
+dashboard bölüm kimlikleri ve rol beyaz listesi `src/lib/dashboard-types.ts`, v2
+varsayılan/sıra/gizleme/daraltma normalizasyonu `src/lib/dashboard-layout.ts` içindedir.
+Öncelik ve radar kuralları saf/testlenebilir `src/lib/dashboard-priority.ts` modülündedir.
 
 ## Domain bağlantı matrisi
 
-| Domain        | Ana UI / giriş                           | Okuma ve saf mantık                                                       | Mutasyon                                              | Supabase nesneleri                                                                                      |
-| ------------- | ---------------------------------------- | ------------------------------------------------------------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| Kimlik/hesap  | login, set-password, teacher/students    | `auth.ts`, `students.ts`, `username.ts`, `password.ts`                    | `actions/account.ts`, admin API'leri                  | Auth users, `profiles`, `student_profiles`, `parent_student_links`                                      |
-| Dashboard     | rol kökleri, `components/dashboard/*`    | `dashboard.ts`, `dashboard-types.ts`, `dashboard-layout.ts`               | `actions/dashboard.ts`                                | Birçok domain tablosu, `dashboard_layouts`, `notifications`                                             |
-| Ödev          | teacher/student/parent homework          | `homework-fetch.ts`, `homework.ts`, `homework-parse.ts`                   | teacher ve student rota `actions.ts`                  | `homework`, `homework_tests`, `resource_*`, `student_test_progress`, `homework-attachments`             |
-| Kaynak        | role/resources, kitap ilerlemesi         | `books.ts`, `book-catalog.ts`, `resources-parse.ts`, `recommendations.ts` | `actions/resources.ts`                                | `resource_books`, `resource_book_sections`, `student_books`, `student_test_progress`                    |
-| Deneme        | role/exams                               | `exams.ts`, `exam-analysis.ts`, `exam-shared.ts`, `kazanim.ts`, `exams/*` | `actions/exams.ts`, `actions/exam-import.ts`          | `exams`, `exam_subjects`, `exam_kazanim_results`, `exam_edit_requests`, `student_profiles.target_score` |
-| Takvim        | role/calendar                            | `calendar.ts`                                                             | `teacher/calendar/actions.ts`                         | `calendar_events`, teslim tarihleri için `homework`                                                     |
-| Program       | role/schedule                            | `schedule.ts`, `week.ts`                                                  | `actions/schedule.ts`, cron                           | `study_schedule_entries` (ders/kazanım/tamamlama), `student_profiles.schedule_auto_repeat`              |
-| Günlük        | student/gunluk, rapor/dashboard özetleri | `study-log.ts`, `study-log-fetch.ts`                                      | `actions/study-log.ts`                                | `study_log`                                                                                             |
-| Duyuru        | role/announcements                       | doğrudan SSR sorguları                                                    | `actions/announcements.ts`                            | `announcements`, `announcement_targets`, `announcement-files`                                           |
-| Bildirim/push | bell + push toggle + service worker      | `notifications.ts`, `push.ts`                                             | `actions/push.ts`; domain action'ları bildirim üretir | `notifications`, `push_subscriptions`                                                                   |
-| Rapor         | `/rapor/[studentId]`                     | `report.ts`, `components/report/*`                                        | yok                                                   | `profiles`, `homework`, `exams` ve ilişkileri                                                           |
-| Hata raporu   | global dialog, teacher/reports           | doğrudan SSR                                                              | `actions/bug-reports.ts`                              | `bug_reports`, öğretmen bildirimleri                                                                    |
-| AI import     | exam import panel                        | `ai/gemini.ts`, `exams/import-normalize.ts`                               | `actions/exam-import.ts`                              | Kaydetme öncesi dış Gemini çağrısı; dosya kalıcı saklanmaz                                              |
+| Domain        | Ana UI / giriş                           | Okuma ve saf mantık                                                                  | Mutasyon                                              | Supabase nesneleri                                                                                      |
+| ------------- | ---------------------------------------- | ------------------------------------------------------------------------------------ | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Kimlik/hesap  | login, set-password, teacher/students    | `auth.ts`, `students.ts`, `username.ts`, `password.ts`                               | `actions/account.ts`, admin API'leri                  | Auth users, `profiles`, `student_profiles`, `parent_student_links`                                      |
+| Dashboard     | rol kökleri, `components/dashboard/*`    | `dashboard.ts`, `dashboard-types.ts`, `dashboard-layout.ts`, `dashboard-priority.ts` | `actions/dashboard.ts`, role action'ları              | Birçok domain tablosu, `dashboard_layouts`, `notifications`, `student_profiles.daily_goal_*`            |
+| Ödev          | teacher/student/parent homework          | `homework-fetch.ts`, `homework.ts`, `homework-parse.ts`                              | teacher ve student rota `actions.ts`                  | `homework`, `homework_tests`, `resource_*`, `student_test_progress`, `homework-attachments`             |
+| Kaynak        | role/resources, kitap ilerlemesi         | `books.ts`, `book-catalog.ts`, `resources-parse.ts`, `recommendations.ts`            | `actions/resources.ts`                                | `resource_books`, `resource_book_sections`, `student_books`, `student_test_progress`                    |
+| Deneme        | role/exams                               | `exams.ts`, `exam-analysis.ts`, `exam-shared.ts`, `kazanim.ts`, `exams/*`            | `actions/exams.ts`, `actions/exam-import.ts`          | `exams`, `exam_subjects`, `exam_kazanim_results`, `exam_edit_requests`, `student_profiles.target_score` |
+| Takvim        | role/calendar                            | `calendar.ts`                                                                        | `teacher/calendar/actions.ts`                         | `calendar_events`, teslim tarihleri için `homework`                                                     |
+| Program       | role/schedule                            | `schedule.ts`, `week.ts`                                                             | `actions/schedule.ts`, cron                           | `study_schedule_entries` (ders/kazanım/tamamlama), `student_profiles.schedule_auto_repeat`              |
+| Günlük        | student/gunluk, rapor/dashboard özetleri | `study-log.ts`, `study-log-fetch.ts`                                                 | `actions/study-log.ts`                                | `study_log`                                                                                             |
+| Duyuru        | role/announcements                       | doğrudan SSR sorguları                                                               | `actions/announcements.ts`                            | `announcements`, `announcement_targets`, `announcement-files`                                           |
+| Bildirim/push | bell + push toggle + service worker      | `notifications.ts`, `push.ts`                                                        | `actions/push.ts`; domain action'ları bildirim üretir | `notifications`, `push_subscriptions`                                                                   |
+| Rapor         | `/rapor/[studentId]`                     | `report.ts`, `components/report/*`                                                   | yok                                                   | `profiles`, `homework`, `exams` ve ilişkileri                                                           |
+| Hata raporu   | global dialog, teacher/reports           | doğrudan SSR                                                                         | `actions/bug-reports.ts`                              | `bug_reports`, öğretmen bildirimleri                                                                    |
+| AI import     | exam import panel                        | `ai/gemini.ts`, `exams/import-normalize.ts`                                          | `actions/exam-import.ts`                              | Kaydetme öncesi dış Gemini çağrısı; dosya kalıcı saklanmaz                                              |
 
 ## Server Action ve API yüzeyi
 
@@ -192,14 +196,16 @@ widget id'leri `src/lib/dashboard-layout.ts` içindedir.
 
 - `actions/account.ts`: ilk şifreyi tamamla ve `must_change_password=false` yap.
 - `actions/profile.ts`: kendi profilini güncelle.
-- `actions/dashboard.ts`: kullanıcıya özel widget düzenini upsert et.
+- `actions/dashboard.ts`: rol beyaz listeli layout v2 upsert'i, veli seçili çocuk
+  erişim kontrolü ve yalnız doğrulanmış öğrencinin günlük hedef güncellemesi.
 - `actions/resources.ts`: kitap/bölüm/onay/raf/test ilerlemesi.
 - `actions/exams.ts`: tam deneme CRUD, edit request review, hedef puan, analiz fetch.
 - `actions/exam-import.ts`: PDF/görsel doğrula → base64 → Gemini JSON → normalize et.
 - `actions/schedule.ts`: program CRUD/kopya/bildirim; öğrenci kendi güncel/gelecek
   hafta kaydını ders/kazanım seçerek yönetir, tamamlayınca çalışma günlüğüne süre
   (başlangıç-bitiş saatinden hesaplanır) ve isteğe bağlı soru kaydı ekler; bu dar
-  service-role işlemleri doğrulanmış öğrenci kimliğiyle yapılır.
+  service-role işlemleri doğrulanmış öğrenci kimliğiyle yapılır. Aynı gün geri alma,
+  public `SECURITY INVOKER` RPC üzerinden program + bağlı günlüğü atomik geri çevirir.
 - `actions/study-log.ts`: günlük ekle/sil; öğrenci sahipliği veya öğretmen yetkisi.
 - `actions/announcements.ts`: hedefleri çöz, duyuru/ek yükle, bildirim ve push üret.
 - `actions/bug-reports.ts`: rapor aç/durum değiştir.
@@ -249,6 +255,10 @@ Client admin çağrılarının tek sarmalayıcısı `src/lib/admin-api.ts#postAd
   `announcements` oluşturana, `announcement_targets` duyuru↔öğrenciye;
   `bug_reports` raporlayana bağlıdır.
 - Kullanıcı tercihi: `dashboard_layouts.user_id` hem PK hem `profiles` FK'sidir.
+  Layout JSON v2; sıralı bölüm/daraltma, gizlenen bölümler ve veli seçili çocuk
+  tercihini taşır. v1 satırları silinmez, okurken geçersiz sayılıp varsayılan v2 gösterilir.
+- `student_profiles.daily_goal_minutes` (1–1440) ve `daily_goal_questions` (1–2000)
+  birlikte nullable/doludur; hedef geçmişi yoktur, bugünkü ilerleme `study_log` toplamıdır.
 - `exam_topics` canlıda durur fakat uygulama kodu kullanmaz; güncel kazanım sistemi
   `exam_kazanim_results` kullanır. Silmeden önce veri/bağımlılık doğrula.
 
@@ -266,6 +276,9 @@ gibi alanlar bu arayüzlerde eksik olabilir; `types.ts` şemanın eksiksiz kayna
 - `enforce_profile_privilege_guard()`: role/is_admin gibi alanların ayrıcalık koruması.
 - `trigger_set_updated_at()`: güncelleme timestamp trigger helper.
 - `cleanup_old_homework_attachments()`: eski ödev eklerini storage'dan temizleme.
+- `public.undo_own_schedule_completion(uuid)`: `SECURITY INVOKER`, yalnız
+  `authenticated`; Data API'ye kapalı `private` helper sahiplik + Europe/Istanbul aynı
+  gün koşuluyla program ve bağlı günlük kaydını tek transaction içinde geri alır.
 
 ### Storage
 
@@ -279,18 +292,21 @@ gibi alanlar bu arayüzlerde eksik olabilir; `types.ts` şemanın eksiksiz kayna
 ### Migration gerçeği — kritik
 
 - Depoda `0001_initial_schema.sql` → `0019_perf_indexes.sql` ve sonrasında
-  timestamp'li `20260721181041_schedule_student_planning.sql` var; `0007` sonrasında
-  `0007b` gelir. README şu anda bunların elle, sırayla uygulanmasını söyler.
+  timestamp'li `20260721181041_schedule_student_planning.sql` ile
+  `20260721221500_dashboard_daily_goals.sql` var; `0007` sonrasında `0007b` gelir.
+  README şu anda migration'ların elle, sırayla uygulanmasını söyler.
 - Canlı migration history yalnız timestamp'li 17 kayıt gösterir; ilk kayıt
   `20260704064525_source_books_assignments_redesign` ile başlar ve ayrıca depoda
   aynı adlı dosyası bulunmayan `push_dashboard_reconcile` kaydı vardır.
-- Son canlı migration `20260719091533_0019_perf_indexes`; güncel özellik seviyesi
-  yerel `0019` ile uyumludur, fakat history birebir değildir.
+- Son canlı migration `20260721195438_dashboard_daily_goals`; hedef kolonları,
+  pair/range constraint'i ve atomik geri alma RPC'si 2026-07-21'de doğrulandı.
+  `schedule_student_planning` kolonları canlıda bulunmasına rağmen migration history'de
+  ayrı kayıt değildir; yerel/canlı history hâlâ birebir değildir.
 - Bu nedenle mevcut uzak projeye körlemesine `supabase db push/reset` çalıştırma.
   Önce canlı `list_migrations`, `list_tables` ve gerekiyorsa `db pull/diff` ile drift'i
   incele; yıkıcı reset/branch işlemi için açık kullanıcı onayı al.
 
-### 2026-07-20 advisor anlık görüntüsü — düzeltilmedi
+### 2026-07-21 advisor anlık görüntüsü — mevcut uyarılar düzeltilmedi
 
 - Güvenlik: `trigger_set_updated_at` için mutable `search_path`; yedi
   `SECURITY DEFINER` helper'ın `anon` ve `authenticated` tarafından executable
@@ -300,6 +316,9 @@ gibi alanlar bu arayüzlerde eksik olabilir; `types.ts` şemanın eksiksiz kayna
   multiple permissive policies uyarısı. Sayılar canlı veriyle değişebilir.
 - Yeni DB işi öncesi Supabase Security Advisor ve Performance Advisor'ı yeniden al;
   özellikle helper grant'lerini RLS'in onları nasıl çağırdığıyla birlikte değerlendir.
+- `dashboard_daily_goals` sonrasında advisor yeniden çalıştırıldı; yeni public RPC
+  `SECURITY INVOKER`, `anon` execute kapalı ve yeni hedef alanları ek bir advisor
+  bulgusu üretmedi. Yukarıdaki önceden var olan uyarılar kapsam dışı bırakıldı.
 
 ## Vercel ve üretim haritası
 

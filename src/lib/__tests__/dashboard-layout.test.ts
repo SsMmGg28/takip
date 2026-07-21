@@ -1,43 +1,53 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_WIDGET_IDS, visibleWidgetIds } from "@/lib/dashboard-layout";
-import type { StoredLayout } from "@/lib/dashboard-types";
+import {
+  assertDashboardLayout,
+  defaultDashboardLayout,
+  normalizeDashboardLayout,
+} from "@/lib/dashboard-layout";
+import type { StoredLayout, StoredLayoutV2 } from "@/lib/dashboard-types";
 
-describe("visibleWidgetIds", () => {
-  it("returns the lightweight role defaults without a saved layout", () => {
-    expect([...visibleWidgetIds("student", null)]).toEqual([
-      ...DEFAULT_WIDGET_IDS.student,
-    ]);
-    expect(visibleWidgetIds("teacher", null).has("clock")).toBe(false);
+describe("dashboard layout v2", () => {
+  it("sürüm 1 kaydını silmeden varsayılan v2 düzenine sıfırlar", () => {
+    const legacy = { version: 1, items: [{ id: "stats", w: 4, h: 1 }] };
+    expect(normalizeDashboardLayout("student", legacy as StoredLayout)).toEqual(
+      defaultDashboardLayout("student"),
+    );
   });
 
-  it("keeps valid saved widgets and respects explicit removals", () => {
-    const stored: StoredLayout = {
-      version: 1,
-      items: [
-        { id: "stats", w: 4, h: 1 },
-        { id: "notes", w: 2, h: 2 },
+  it("sıra, gizleme ve daraltma durumunu korur", () => {
+    const layout: StoredLayoutV2 = {
+      version: 2,
+      sections: [
+        { id: "progress", collapsed: true },
+        { id: "today-flow", collapsed: false },
       ],
-      removed: ["homework", "events"],
+      hidden: ["homework-plan"],
     };
-
-    const visible = visibleWidgetIds("student", stored);
-    expect(visible.has("stats")).toBe(true);
-    expect(visible.has("notes")).toBe(true);
-    expect(visible.has("homework")).toBe(false);
-    expect(visible.has("events")).toBe(false);
-    expect(visible.has("books")).toBe(true);
+    const normalized = normalizeDashboardLayout("student", layout);
+    expect(normalized.sections.slice(0, 2)).toEqual(layout.sections);
+    expect(normalized.hidden).toEqual(["homework-plan"]);
   });
 
-  it("drops widget ids that are not available to the role", () => {
-    const stored: StoredLayout = {
-      version: 1,
-      items: [
-        { id: "book-approvals", w: 2, h: 2 },
-        { id: "stats", w: 4, h: 1 },
-      ],
-      removed: [],
-    };
+  it("role ait olmayan bölümü reddeder", () => {
+    const layout = {
+      version: 2,
+      sections: [{ id: "student-radar", collapsed: false }],
+      hidden: [],
+    } as StoredLayoutV2;
+    expect(() => assertDashboardLayout("parent", layout)).toThrow("Bu role ait olmayan");
+  });
 
-    expect(visibleWidgetIds("parent", stored).has("book-approvals")).toBe(false);
+  it("veli seçiminde yalnız erişilebilir çocuğu korur", () => {
+    const layout: StoredLayoutV2 = {
+      ...defaultDashboardLayout("parent"),
+      selectedStudentId: "student-2",
+    };
+    expect(normalizeDashboardLayout("parent", layout, ["student-1"])).not.toHaveProperty(
+      "selectedStudentId",
+    );
+    expect(normalizeDashboardLayout("parent", layout, ["student-2"])).toHaveProperty(
+      "selectedStudentId",
+      "student-2",
+    );
   });
 });

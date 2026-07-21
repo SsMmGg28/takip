@@ -4,6 +4,7 @@ import { currentWeekStart, todayInIstanbul } from "@/lib/week";
 
 const mocks = vi.hoisted(() => ({
   adminHandle: null as unknown as SupabaseMockHandle,
+  serverHandle: null as unknown as SupabaseMockHandle,
   assertStudentAction: vi.fn(),
   revalidatePath: vi.fn(),
 }));
@@ -12,7 +13,9 @@ vi.mock("@/lib/auth", () => ({ assertStudentAction: mocks.assertStudentAction })
 vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => mocks.adminHandle.client,
 }));
-vi.mock("@/lib/supabase/server", () => ({ createClient: vi.fn() }));
+vi.mock("@/lib/supabase/server", () => ({
+  createClient: async () => mocks.serverHandle.client,
+}));
 vi.mock("@/lib/notifications", () => ({
   getParentIdsByStudent: vi.fn(),
   notifyUsers: vi.fn(),
@@ -24,6 +27,7 @@ import {
   createOwnScheduleEntry,
   deleteOwnScheduleEntry,
   setOwnScheduleAutoRepeat,
+  undoOwnScheduleCompletion,
   updateOwnScheduleEntry,
 } from "@/lib/actions/schedule";
 
@@ -31,6 +35,41 @@ beforeEach(() => {
   mocks.assertStudentAction.mockReset();
   mocks.assertStudentAction.mockResolvedValue({ id: "student-1", role: "student" });
   mocks.revalidatePath.mockClear();
+  mocks.serverHandle = createSupabaseMock();
+});
+
+describe("undoOwnScheduleCompletion", () => {
+  it("kimliği doğrulanmış öğrencinin kaydını dar RPC ile geri alır", async () => {
+    mocks.serverHandle = createSupabaseMock({
+      rpcResults: { undo_own_schedule_completion: [{}] },
+    });
+    const formData = new FormData();
+    formData.set("id", "entry-1");
+    await undoOwnScheduleCompletion(formData);
+    expect(mocks.serverHandle.rpcCalls).toEqual([
+      { name: "undo_own_schedule_completion", args: { p_entry_id: "entry-1" } },
+    ]);
+    expect(mocks.revalidatePath).toHaveBeenCalledWith("/student/gunluk/dokum");
+  });
+
+  it("ikinci geri alma veya gün/sahiplik hatasını kullanıcıya taşır", async () => {
+    mocks.serverHandle = createSupabaseMock({
+      rpcResults: {
+        undo_own_schedule_completion: [
+          {
+            error: {
+              message: "Bu çalışma tamamlanmış değil veya daha önce geri alındı.",
+            },
+          },
+        ],
+      },
+    });
+    const formData = new FormData();
+    formData.set("id", "entry-1");
+    await expect(undoOwnScheduleCompletion(formData)).rejects.toThrow(
+      "daha önce geri alındı",
+    );
+  });
 });
 
 describe("setOwnScheduleAutoRepeat", () => {

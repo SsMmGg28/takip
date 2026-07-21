@@ -23,6 +23,7 @@ import {
 import {
   createOwnScheduleEntry,
   createScheduleEntry,
+  updateScheduleEntry,
   updateOwnScheduleEntry,
 } from "@/lib/actions/schedule";
 import { DAY_LABELS } from "@/lib/schedule";
@@ -103,7 +104,8 @@ export function AddScheduleEntryDialog({
                   await createOwnScheduleEntry(formData);
                 }
               } else {
-                await createScheduleEntry(formData);
+                if (isEditing) await updateScheduleEntry(formData);
+                else await createScheduleEntry(formData);
               }
               toast.success(
                 isEditing ? "Program kaydı güncellendi." : "Program kaydı eklendi.",
