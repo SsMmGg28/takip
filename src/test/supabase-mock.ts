@@ -29,6 +29,8 @@ export interface SupabaseMockOptions {
   results?: Record<string, MockResult[]>;
   /** storage.upload çağrısının döneceği hata (rollback senaryoları için). */
   storageUploadError?: { message: string } | null;
+  /** RPC adı → sırayla dönecek sonuçlar. */
+  rpcResults?: Record<string, MockResult[]>;
 }
 
 export interface SupabaseMockHandle {
@@ -36,6 +38,7 @@ export interface SupabaseMockHandle {
   client: unknown;
   queries: RecordedQuery[];
   storageCalls: RecordedStorageCall[];
+  rpcCalls: Array<{ name: string; args: unknown }>;
 }
 
 export function createSupabaseMock(
@@ -43,11 +46,16 @@ export function createSupabaseMock(
 ): SupabaseMockHandle {
   const queries: RecordedQuery[] = [];
   const storageCalls: RecordedStorageCall[] = [];
+  const rpcCalls: Array<{ name: string; args: unknown }> = [];
   const queues = new Map<string, MockResult[]>();
   for (const [table, results] of Object.entries(options.results ?? {})) {
     queues.set(table, [...results]);
   }
   const user = options.user ?? null;
+  const rpcQueues = new Map<string, MockResult[]>();
+  for (const [name, results] of Object.entries(options.rpcResults ?? {})) {
+    rpcQueues.set(name, [...results]);
+  }
 
   function from(table: string) {
     const record: RecordedQuery = { table, op: null, filters: [], single: false };
@@ -120,6 +128,12 @@ export function createSupabaseMock(
 
   const client = {
     from,
+    rpc: async (name: string, args: unknown) => {
+      rpcCalls.push({ name, args });
+      const queue = rpcQueues.get(name);
+      const result = queue?.length ? queue.shift()! : {};
+      return { data: result.data ?? null, error: result.error ?? null };
+    },
     auth: {
       getUser: async () => ({ data: { user }, error: null }),
       getClaims: async () => ({
@@ -143,5 +157,5 @@ export function createSupabaseMock(
     },
   };
 
-  return { client, queries, storageCalls };
+  return { client, queries, storageCalls, rpcCalls };
 }

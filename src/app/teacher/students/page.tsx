@@ -12,6 +12,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/page-header";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/empty-state";
 import { CreateAccountDialog } from "@/components/teacher/create-account-dialog";
 import { DeleteUserButton } from "@/components/teacher/delete-user-button";
@@ -22,19 +24,59 @@ import type { Profile } from "@/lib/types";
 
 export const metadata = { title: "Öğrenciler" };
 
-export default async function TeacherStudentsPage() {
-  const supabase = await createClient();
+const PAGE_SIZE = 25;
 
-  // Üç bağımsız sorgu tek dalgada; öğrenci sınıfı embedded select ile gelir.
-  const [{ data: students }, { data: parents }, { data: links }] = await Promise.all([
+export default async function TeacherStudentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; page?: string }>;
+}) {
+  const supabase = await createClient();
+  const params = await searchParams;
+  const q = (params.q ?? "")
+    .trim()
+    .replace(/[,%()]/g, "")
+    .slice(0, 80);
+  const page = Math.max(1, Number.parseInt(params.page ?? "1", 10) || 1);
+  const from = (page - 1) * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
+
+  let studentQuery = supabase
+    .from("profiles")
+    .select("*, student_profiles(grade_level)", { count: "exact" })
+    .eq("role", "student")
+    .order("full_name")
+    .range(from, to);
+  let parentQuery = supabase
+    .from("profiles")
+    .select("*", { count: "exact" })
+    .eq("role", "parent")
+    .order("full_name")
+    .range(from, to);
+  if (q) {
+    const filter = `full_name.ilike.%${q}%,username.ilike.%${q}%`;
+    studentQuery = studentQuery.or(filter);
+    parentQuery = parentQuery.or(filter);
+  }
+
+  const [
+    { data: students, count: studentCount },
+    { data: parents, count: parentCount },
+    { data: allStudentOptions },
+  ] = await Promise.all([
+    studentQuery,
+    parentQuery,
     supabase
       .from("profiles")
-      .select("*, student_profiles(grade_level)")
+      .select("id, full_name")
       .eq("role", "student")
       .order("full_name"),
-    supabase.from("profiles").select("*").eq("role", "parent").order("full_name"),
-    supabase.from("parent_student_links").select("*"),
   ]);
+
+  const parentIds = ((parents as Profile[] | null) ?? []).map((parent) => parent.id);
+  const { data: links } = parentIds.length
+    ? await supabase.from("parent_student_links").select("*").in("parent_id", parentIds)
+    : { data: [] };
 
   const studentList = (
     (students as
@@ -44,16 +86,45 @@ export default async function TeacherStudentsPage() {
     ...(s as Profile),
     grade_level: student_profiles?.grade_level ?? null,
   }));
-  const studentNameById = new Map(studentList.map((s) => [s.id, s.full_name]));
-  const studentOptions = studentList.map((s) => ({ id: s.id, fullName: s.full_name }));
+  const accountStudentOptions =
+    (allStudentOptions as Pick<Profile, "id" | "full_name">[] | null) ?? [];
+  const studentNameById = new Map(
+    accountStudentOptions.map((student) => [student.id, student.full_name]),
+  );
+  const studentOptions = accountStudentOptions.map((student) => ({
+    id: student.id,
+    fullName: student.full_name,
+  }));
+  const totalPages = Math.max(
+    1,
+    Math.ceil(Math.max(studentCount ?? 0, parentCount ?? 0) / PAGE_SIZE),
+  );
 
   return (
     <>
       <PageHeader
         title="Öğrenciler ve Veliler"
         description="Hesap oluştur, düzenle, şifre sıfırla; veli-çocuk bağlantılarını yönet."
-        action={<CreateAccountDialog students={studentList} />}
+        action={<CreateAccountDialog students={accountStudentOptions} />}
       />
+
+      <form className="flex flex-col gap-2 rounded-2xl border bg-card p-3 sm:flex-row">
+        <Input
+          name="q"
+          defaultValue={q}
+          placeholder="Ad veya kullanıcı adı ara"
+          aria-label="Öğrenci veya veli ara"
+          className="min-h-11 flex-1"
+        />
+        <Button type="submit" variant="outline">
+          Ara
+        </Button>
+        {q && (
+          <Button variant="ghost" asChild>
+            <Link href="/teacher/students">Temizle</Link>
+          </Button>
+        )}
+      </form>
 
       <section className="space-y-3">
         <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
@@ -61,9 +132,9 @@ export default async function TeacherStudentsPage() {
         </h2>
         {studentList.length ? (
           <Card className="overflow-hidden p-0">
-            <div className="overflow-x-auto">
+            <div className="sm:overflow-x-auto">
               <Table>
-                <TableHeader>
+                <TableHeader className="hidden sm:table-header-group">
                   <TableRow>
                     <TableHead>Ad Soyad</TableHead>
                     <TableHead>Kullanıcı adı</TableHead>
@@ -74,8 +145,8 @@ export default async function TeacherStudentsPage() {
                 </TableHeader>
                 <TableBody>
                   {studentList.map((s) => (
-                    <TableRow key={s.id}>
-                      <TableCell className="font-medium">
+                    <TableRow key={s.id} className="grid gap-2 p-4 sm:table-row sm:p-0">
+                      <TableCell className="block p-0 font-medium sm:table-cell sm:p-2">
                         <Link
                           href={`/teacher/students/${s.id}`}
                           className="hover:underline"
@@ -83,21 +154,27 @@ export default async function TeacherStudentsPage() {
                           {s.full_name}
                         </Link>
                       </TableCell>
-                      <TableCell className="text-muted-foreground">
+                      <TableCell className="block p-0 text-sm text-muted-foreground sm:table-cell sm:p-2">
+                        <span className="mr-1 font-medium text-foreground sm:hidden">
+                          Kullanıcı:
+                        </span>
                         {s.username}
                       </TableCell>
-                      <TableCell className="text-muted-foreground">
+                      <TableCell className="block p-0 text-sm text-muted-foreground sm:table-cell sm:p-2">
+                        <span className="mr-1 font-medium text-foreground sm:hidden">
+                          Sınıf:
+                        </span>
                         {s.grade_level ? `${s.grade_level}. sınıf` : "—"}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="block p-0 sm:table-cell sm:p-2">
                         {s.must_change_password ? (
                           <Badge variant="outline">Şifre değiştirilmedi</Badge>
                         ) : (
                           <Badge>Aktif</Badge>
                         )}
                       </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex flex-wrap justify-end gap-1.5">
+                      <TableCell className="block p-0 sm:table-cell sm:p-2 sm:text-right">
+                        <div className="flex flex-wrap gap-1.5 sm:justify-end">
                           <EditUserDialog
                             userId={s.id}
                             role="student"
@@ -134,9 +211,9 @@ export default async function TeacherStudentsPage() {
         </h2>
         {parents?.length ? (
           <Card className="overflow-hidden p-0">
-            <div className="overflow-x-auto">
+            <div className="sm:overflow-x-auto">
               <Table>
-                <TableHeader>
+                <TableHeader className="hidden sm:table-header-group">
                   <TableRow>
                     <TableHead>Ad Soyad</TableHead>
                     <TableHead>Kullanıcı adı</TableHead>
@@ -154,23 +231,31 @@ export default async function TeacherStudentsPage() {
                         fullName: studentNameById.get(l.student_id) ?? "?",
                       }));
                     return (
-                      <TableRow key={p.id}>
-                        <TableCell className="font-medium">{p.full_name}</TableCell>
-                        <TableCell className="text-muted-foreground">
+                      <TableRow key={p.id} className="grid gap-2 p-4 sm:table-row sm:p-0">
+                        <TableCell className="block p-0 font-medium sm:table-cell sm:p-2">
+                          {p.full_name}
+                        </TableCell>
+                        <TableCell className="block p-0 text-sm text-muted-foreground sm:table-cell sm:p-2">
+                          <span className="mr-1 font-medium text-foreground sm:hidden">
+                            Kullanıcı:
+                          </span>
                           {p.username}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="block p-0 text-sm sm:table-cell sm:p-2">
+                          <span className="mr-1 font-medium text-foreground sm:hidden">
+                            Çocuğu:
+                          </span>
                           {linkedStudents.map((s) => s.fullName).join(", ") || "—"}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="block p-0 sm:table-cell sm:p-2">
                           {p.must_change_password ? (
                             <Badge variant="outline">Şifre değiştirilmedi</Badge>
                           ) : (
                             <Badge>Aktif</Badge>
                           )}
                         </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex flex-wrap justify-end gap-1.5">
+                        <TableCell className="block p-0 sm:table-cell sm:p-2 sm:text-right">
+                          <div className="flex flex-wrap gap-1.5 sm:justify-end">
                             <EditUserDialog
                               userId={p.id}
                               role="parent"
@@ -202,6 +287,40 @@ export default async function TeacherStudentsPage() {
           <EmptyState title="Henüz veli eklenmedi" />
         )}
       </section>
+
+      {totalPages > 1 && (
+        <nav className="flex items-center justify-center gap-2" aria-label="Sayfalar">
+          {page > 1 ? (
+            <Button variant="outline" asChild>
+              <Link
+                href={`/teacher/students?${new URLSearchParams({ ...(q ? { q } : {}), page: String(page - 1) })}`}
+              >
+                Önceki
+              </Link>
+            </Button>
+          ) : (
+            <Button variant="outline" disabled>
+              Önceki
+            </Button>
+          )}
+          <span className="px-2 text-sm text-muted-foreground">
+            {page} / {totalPages}
+          </span>
+          {page < totalPages ? (
+            <Button variant="outline" asChild>
+              <Link
+                href={`/teacher/students?${new URLSearchParams({ ...(q ? { q } : {}), page: String(page + 1) })}`}
+              >
+                Sonraki
+              </Link>
+            </Button>
+          ) : (
+            <Button variant="outline" disabled>
+              Sonraki
+            </Button>
+          )}
+        </nav>
+      )}
     </>
   );
 }

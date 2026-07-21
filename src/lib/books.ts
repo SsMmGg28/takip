@@ -142,22 +142,28 @@ export async function isBookOnShelf(studentId: string, bookId: string): Promise<
 export async function getStudentProgressForBook(studentId: string, bookId: string) {
   const supabase = await createClient();
 
-  // Kitap + bölümleri tek embedded sorguda; öğrencinin ilerlemesi paralel
-  // çekilip kitabın bölümlerine bellekte daraltılır.
-  const [{ data: bookRow }, { data: progressAll }] = await Promise.all([
-    supabase.from("resource_books").select(BOOK_WITH_SECTIONS).eq("id", bookId).single(),
-    supabase.from("student_test_progress").select("*").eq("student_id", studentId),
-  ]);
+  // Önce kitabın bölüm kimliklerini öğren, sonra yalnız o kitaba ait ilerlemeyi
+  // getir. Öğrencinin yıllar içinde büyüyen bütün test geçmişini taşımayız.
+  const { data: bookRow } = await supabase
+    .from("resource_books")
+    .select(BOOK_WITH_SECTIONS)
+    .eq("id", bookId)
+    .single();
   if (!bookRow) return null;
 
   const { resource_book_sections, ...book } = bookRow as BookWithSectionsRow;
   const sections = [...resource_book_sections].sort(
     (a, b) => a.order_index - b.order_index,
   );
-  const sectionIds = new Set(sections.map((s) => s.id));
-  const progress = ((progressAll as StudentTestProgress[] | null) ?? []).filter((p) =>
-    sectionIds.has(p.section_id),
-  );
+  const sectionIds = sections.map((s) => s.id);
+  const { data: progressRows } = sectionIds.length
+    ? await supabase
+        .from("student_test_progress")
+        .select("*")
+        .eq("student_id", studentId)
+        .in("section_id", sectionIds)
+    : { data: [] };
+  const progress = (progressRows as StudentTestProgress[] | null) ?? [];
 
   const completedBySection = new Map<string, Set<number>>();
   for (const p of progress) {

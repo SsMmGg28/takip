@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   AlertTriangle,
   Bell,
@@ -84,9 +83,15 @@ const PANEL_MARGIN = 12;
  * ekran koordinatlarından hesaplanır. Böylece dar ekranlarda taşmaz ve
  * arkasındaki içerik panelin içinden görünmez.
  */
-export function NotificationsBell({ userId }: { userId: string }) {
-  const router = useRouter();
+export function NotificationsBell({
+  userId,
+  initialUnreadCount,
+}: {
+  userId: string;
+  initialUnreadCount: number;
+}) {
   const [items, setItems] = useState<AppNotification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(initialUnreadCount);
   const [open, setOpen] = useState(false);
   const [ringing, setRinging] = useState(false);
   const [panelPos, setPanelPos] = useState<{
@@ -97,14 +102,12 @@ export function NotificationsBell({ userId }: { userId: string }) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const supabaseRef = useRef<ReturnType<typeof createClient> | null>(null);
-  const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const loadedRef = useRef(false);
 
   function getSupabase() {
     if (!supabaseRef.current) supabaseRef.current = createClient();
     return supabaseRef.current;
   }
-
-  const unreadCount = items.filter((n) => !n.read_at).length;
 
   const load = useCallback(async () => {
     const { data } = await getSupabase()
@@ -112,46 +115,60 @@ export function NotificationsBell({ userId }: { userId: string }) {
       .select("*")
       .order("created_at", { ascending: false })
       .limit(30);
-    if (data) setItems(data as AppNotification[]);
+    if (data) {
+      const next = data as AppNotification[];
+      setItems(next);
+      setUnreadCount(next.filter((n) => !n.read_at).length);
+      loadedRef.current = true;
+    }
   }, []);
 
   useEffect(() => {
-    void load();
+    let channel: ReturnType<ReturnType<typeof createClient>["channel"]> | null = null;
+    let ringTimer: ReturnType<typeof setTimeout> | null = null;
 
-    const supabase = getSupabase();
-    const channel = supabase
-      .channel(`notifications-${userId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "notifications",
-          filter: `user_id=eq.${userId}`,
-        },
-        (payload) => {
-          const n = payload.new as AppNotification;
-          setItems((prev) => [n, ...prev].slice(0, 30));
-          setRinging(true);
-          setTimeout(() => setRinging(false), 1200);
-          toast(n.title, { description: n.body ?? undefined });
-          // refresh() tüm sayfayı sunucuda yeniden çizer; art arda gelen
-          // bildirimlerde (örn. toplu ödev ataması) her biri için ayrı
-          // yenileme yapmamak adına 2 sn debounce edilir.
-          if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
-          refreshTimerRef.current = setTimeout(() => {
-            refreshTimerRef.current = null;
-            router.refresh();
-          }, 2000);
-        },
-      )
-      .subscribe();
+    const subscribe = () => {
+      const supabase = getSupabase();
+      channel = supabase
+        .channel(`notifications-${userId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "notifications",
+            filter: `user_id=eq.${userId}`,
+          },
+          (payload) => {
+            const n = payload.new as AppNotification;
+            if (loadedRef.current) {
+              setItems((prev) => [n, ...prev].slice(0, 30));
+            }
+            setUnreadCount((count) => count + 1);
+            setRinging(true);
+            if (ringTimer) clearTimeout(ringTimer);
+            ringTimer = setTimeout(() => setRinging(false), 1200);
+            toast(n.title, { description: n.body ?? undefined });
+          },
+        )
+        .subscribe();
+    };
+
+    let cancelStart: () => void;
+    if ("requestIdleCallback" in window) {
+      const id = window.requestIdleCallback(subscribe, { timeout: 1500 });
+      cancelStart = () => window.cancelIdleCallback(id);
+    } else {
+      const id = globalThis.setTimeout(subscribe, 800);
+      cancelStart = () => globalThis.clearTimeout(id);
+    }
 
     return () => {
-      void supabase.removeChannel(channel);
-      if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
+      cancelStart();
+      if (channel) void getSupabase().removeChannel(channel);
+      if (ringTimer) clearTimeout(ringTimer);
     };
-  }, [userId, load, router]);
+  }, [userId]);
 
   const updatePanelPos = useCallback(() => {
     const rect = buttonRef.current?.getBoundingClientRect();
@@ -188,6 +205,7 @@ export function NotificationsBell({ userId }: { userId: string }) {
     if (!items.some((n) => !n.read_at)) return;
     const now = new Date().toISOString();
     setItems((prev) => prev.map((n) => (n.read_at ? n : { ...n, read_at: now })));
+    setUnreadCount(0);
     await getSupabase()
       .from("notifications")
       .update({ read_at: now })
@@ -201,12 +219,16 @@ export function NotificationsBell({ userId }: { userId: string }) {
     if (!target || target.read_at) return;
     const now = new Date().toISOString();
     setItems((prev) => prev.map((n) => (n.id === id ? { ...n, read_at: now } : n)));
+    setUnreadCount((count) => Math.max(0, count - 1));
     await getSupabase().from("notifications").update({ read_at: now }).eq("id", id);
   }
 
   function toggle() {
     const next = !open;
-    if (next) updatePanelPos();
+    if (next) {
+      updatePanelPos();
+      if (!loadedRef.current) void load();
+    }
     setOpen(next);
   }
 
@@ -221,7 +243,7 @@ export function NotificationsBell({ userId }: { userId: string }) {
         }
         aria-expanded={open}
         className={cn(
-          "relative flex h-9 w-9 items-center justify-center rounded-full border bg-card/60 shadow-sm hover:bg-accent hover:text-accent-foreground active:scale-90",
+          "relative flex h-11 w-11 items-center justify-center rounded-full border bg-card/60 shadow-sm hover:bg-accent hover:text-accent-foreground active:scale-90",
           ringing && "animate-pop",
         )}
       >
@@ -257,12 +279,12 @@ export function NotificationsBell({ userId }: { userId: string }) {
                 <button
                   type="button"
                   onClick={() => void markAllRead()}
-                  className="text-[11px] font-medium text-primary hover:underline"
+                  className="flex min-h-11 items-center text-xs font-medium text-primary hover:underline"
                 >
                   Tümünü okundu say
                 </button>
               ) : (
-                <span className="text-[11px] text-muted-foreground">
+                <span className="text-xs text-muted-foreground">
                   Son {items.length} bildirim
                 </span>
               )}
@@ -298,7 +320,7 @@ export function NotificationsBell({ userId }: { userId: string }) {
                             {n.body}
                           </span>
                         )}
-                        <span className="mt-1 block text-[10px] uppercase tracking-wide text-muted-foreground/70">
+                        <span className="mt-1 block text-xs uppercase tracking-wide text-muted-foreground/70">
                           {timeAgo(n.created_at)}
                         </span>
                       </span>

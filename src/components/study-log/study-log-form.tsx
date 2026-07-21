@@ -141,7 +141,7 @@ export function StudyLogForm({
                 type="button"
                 onClick={() => setMinutes(String(p))}
                 className={cn(
-                  "rounded-full border px-2.5 py-0.5 text-xs font-medium transition-all active:scale-95",
+                  "min-h-11 rounded-full border px-3 py-1 text-xs font-medium transition-all active:scale-95",
                   minutes === String(p)
                     ? "gradient-surface border-transparent text-white shadow-sm shadow-primary/25"
                     : "border-input bg-background text-muted-foreground hover:bg-accent",

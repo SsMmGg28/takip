@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Coffee, Pause, Pencil, Play, RefreshCw, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { LINKS_BY_ROLE } from "@/components/dashboard-nav";
+import { LINKS_BY_ROLE } from "@/components/dashboard-navigation-config";
 import { useLocalStorageValue, useNow } from "@/components/dashboard/hooks";
 import type { WidgetProps } from "@/components/dashboard/types";
 
@@ -33,7 +33,7 @@ export function ClockWidget({ h }: WidgetProps) {
       </p>
       <p className="text-xs text-muted-foreground">{date}</p>
       {h >= 2 && (
-        <p className="mt-2 rounded-full bg-accent px-3 py-1 text-[11px] font-medium text-accent-foreground">
+        <p className="mt-2 rounded-full bg-accent px-3 py-1 text-xs font-medium text-accent-foreground">
           Yılın {Math.ceil((now.getMonth() + 1) / 3)}. çeyreği · {now.getFullYear()}
         </p>
       )}
@@ -96,7 +96,7 @@ export function QuoteWidget() {
           type="button"
           onClick={() => setOffset((o) => o + 1)}
           aria-label="Başka söz göster"
-          className="flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground hover:bg-accent hover:text-accent-foreground active:scale-90"
+          className="flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground hover:bg-accent hover:text-accent-foreground active:scale-90"
         >
           <RefreshCw className="h-3.5 w-3.5" />
         </button>
@@ -186,7 +186,7 @@ export function PomodoroWidget({ h }: WidgetProps) {
           <p className="text-xl font-bold tabular-nums">
             {String(mins).padStart(2, "0")}:{String(secs).padStart(2, "0")}
           </p>
-          <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
             {state.phase === "work" ? "Odaklan" : "Mola"}
           </p>
         </div>
@@ -197,7 +197,7 @@ export function PomodoroWidget({ h }: WidgetProps) {
           type="button"
           onClick={() => setRunning((r) => !r)}
           aria-label={running ? "Duraklat" : "Başlat"}
-          className="gradient-surface flex h-8 w-8 items-center justify-center rounded-full text-white shadow-md shadow-primary/25 active:scale-90"
+          className="gradient-surface flex h-11 w-11 items-center justify-center rounded-full text-white shadow-md shadow-primary/25 active:scale-90"
         >
           {running ? <Pause className="h-4 w-4" /> : <Play className="ml-0.5 h-4 w-4" />}
         </button>
@@ -205,7 +205,7 @@ export function PomodoroWidget({ h }: WidgetProps) {
           type="button"
           onClick={() => reset()}
           aria-label="Sıfırla"
-          className="flex h-8 w-8 items-center justify-center rounded-full border text-muted-foreground hover:bg-accent hover:text-accent-foreground active:scale-90"
+          className="flex h-11 w-11 items-center justify-center rounded-full border text-muted-foreground hover:bg-accent hover:text-accent-foreground active:scale-90"
         >
           <RotateCcw className="h-3.5 w-3.5" />
         </button>
@@ -223,7 +223,7 @@ export function PomodoroWidget({ h }: WidgetProps) {
                   reset(m);
                 }}
                 className={cn(
-                  "rounded-full px-2.5 py-1 text-[11px] font-medium",
+                  "rounded-full px-2.5 py-1 text-xs font-medium",
                   workMinutes === m
                     ? "bg-primary/15 text-primary"
                     : "text-muted-foreground hover:bg-accent",
@@ -233,7 +233,7 @@ export function PomodoroWidget({ h }: WidgetProps) {
               </button>
             ))}
           </div>
-          <p className="flex items-center gap-1 text-[11px] text-muted-foreground">
+          <p className="flex items-center gap-1 text-xs text-muted-foreground">
             <Coffee className="h-3 w-3" /> {state.cycles} tur tamamlandı
           </p>
         </>
@@ -259,7 +259,7 @@ export function NotesWidget({ data }: WidgetProps) {
         placeholder="Aklındakileri buraya yaz…"
         className="min-h-0 w-full flex-1 resize-none rounded-xl border bg-muted/30 p-3 text-sm leading-relaxed outline-none placeholder:text-muted-foreground/70 focus:border-ring"
       />
-      <p className="self-end text-[10px] text-muted-foreground/70">Bu cihazda saklanır</p>
+      <p className="self-end text-xs text-muted-foreground/70">Bu cihazda saklanır</p>
     </div>
   );
 }
@@ -343,7 +343,7 @@ export function CountdownWidget({ data }: WidgetProps) {
           setEditing(true);
         }}
         aria-label="Geri sayımı düzenle"
-        className="absolute right-0 top-0 flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+        className="absolute right-0 top-0 flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground hover:bg-accent hover:text-accent-foreground"
       >
         <Pencil className="h-3.5 w-3.5" />
       </button>

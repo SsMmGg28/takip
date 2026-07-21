@@ -48,3 +48,20 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy
           SUPABASE_SERVICE_ROLE_KEY: dummy
           NEXT_PUBLIC_AUTH_EMAIL_DOMAIN: takip.internal
+
+      - name: Bundle analizi
+        run: npm run analyze
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://dummy.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy
+          SUPABASE_SERVICE_ROLE_KEY: dummy
+          NEXT_PUBLIC_AUTH_EMAIL_DOMAIN: takip.internal
+
+      - name: Bundle raporunu sakla
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: next-bundle-analysis
+          path: .next/diagnostics/analyze
+          if-no-files-found: ignore
+          retention-days: 14

@@ -1,12 +1,13 @@
 import { requireRole } from "@/lib/auth";
 import { getDashboardData, getSavedLayout } from "@/lib/dashboard";
-import { CustomizableDashboard } from "@/components/dashboard/customizable-dashboard";
+import { DashboardHome } from "@/components/dashboard/dashboard-home";
 
 export const metadata = { title: "Öğretmen Paneli" };
 
 export default async function TeacherHomePage() {
   const profile = await requireRole(["teacher"]);
-  const [data, layout] = await Promise.all([getDashboardData(profile), getSavedLayout()]);
+  const layout = await getSavedLayout();
+  const data = await getDashboardData(profile, layout);
 
-  return <CustomizableDashboard data={data} initialLayout={layout} />;
+  return <DashboardHome data={data} initialLayout={layout} />;
 }
