@@ -221,7 +221,7 @@ varsayılan/sıra/gizleme/daraltma normalizasyonu `src/lib/dashboard-layout.ts` 
 | `POST /api/admin/manage-links`   | teacher                                             | service-role | parent-student link ekle/sil                               |
 | `POST /api/admin/delete-user`    | teacher; admin kuralları                            | service-role | sahibi silinecek kayıtları öğretmene devret, Auth user sil |
 | `GET /api/cron/reminders`        | `Authorization: Bearer CRON_SECRET`                 | service-role | yarınki ödev bildirimi; pazartesi program auto-repeat      |
-| `GET /api/dev/preview-login`     | production'da 404 + secret                          | SSR          | preview rol hesabıyla oturum cookie'si                     |
+| `GET /api/dev/preview-login`     | local dev/Vercel Preview + secret; production 404   | SSR          | preview rol hesabıyla oturum cookie'si                     |
 
 Client admin çağrılarının tek sarmalayıcısı `src/lib/admin-api.ts#postAdmin`.
 
@@ -372,13 +372,13 @@ Dashboard veya uygun Vercel env aracıyla doğrulanmalıdır.
 | `CRON_SECRET`                   | Hayır   | reminders route                           | cron 401 döner                  |
 | `GEMINI_API_KEY`                | Hayır   | `lib/ai/gemini.ts`                        | import UI manuel girişe düşer   |
 | `GEMINI_MODEL`                  | Hayır   | Gemini helper                             | `gemini-2.5-flash`              |
-| `DEV_PREVIEW_SECRET`            | Hayır   | preview-login                             | dev preview girişi kapanır      |
+| `DEV_PREVIEW_SECRET`            | Hayır   | local/Vercel Preview preview-login        | preview girişi kapanır          |
 | `DEV_PREVIEW_PASSWORD`          | Hayır   | preview-login + seed                      | preview hesabı akışı çalışmaz   |
 
 `NEXT_PUBLIC_*` değerler browser bundle'a girer. Service role, VAPID private,
 cron, Gemini ve preview sırları asla client component'e veya belgeye taşınmamalıdır.
-`DEV_PREVIEW_*` production'da tanımlanmamalı; route ayrıca `NODE_ENV=production`
-iken 404 verir.
+`DEV_PREVIEW_*` production kapsamına verilmemeli; route yalnız yerel development veya
+`VERCEL_ENV=preview` iken çalışır ve production'da 404 verir.
 
 ## Olay, bildirim ve cache bağlantıları
 
