@@ -192,8 +192,16 @@ export interface StudyScheduleEntry {
   start_time: string;
   end_time: string;
   activity_label: string;
+  /** Öğrencinin seçtiği ders; eski serbest metinli kayıtlarda null olabilir. */
+  subject: string | null;
+  /** Sistem kazanımı seçilmişse kodu ve görünen adı. */
+  kazanim_code: string | null;
+  kazanim_name: string | null;
   /** Kaydın ait olduğu haftanın Pazartesi tarihi (YYYY-MM-DD). */
   week_start: string;
+  /** Çalışma günlük kaydı oluşturulduğunda dolu olur. */
+  completed_at: string | null;
+  completion_log_id: string | null;
   updated_by: string;
   updated_at: string;
 }

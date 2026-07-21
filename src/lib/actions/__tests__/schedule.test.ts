@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createSupabaseMock, type SupabaseMockHandle } from "@/test/supabase-mock";
-import { currentWeekStart } from "@/lib/week";
+import { currentWeekStart, todayInIstanbul } from "@/lib/week";
 
 const mocks = vi.hoisted(() => ({
   adminHandle: null as unknown as SupabaseMockHandle,
@@ -19,7 +19,13 @@ vi.mock("@/lib/notifications", () => ({
 }));
 vi.mock("next/cache", () => ({ revalidatePath: mocks.revalidatePath }));
 
-import { createOwnScheduleEntry, setOwnScheduleAutoRepeat } from "@/lib/actions/schedule";
+import {
+  completeOwnScheduleEntry,
+  createOwnScheduleEntry,
+  deleteOwnScheduleEntry,
+  setOwnScheduleAutoRepeat,
+  updateOwnScheduleEntry,
+} from "@/lib/actions/schedule";
 
 beforeEach(() => {
   mocks.assertStudentAction.mockReset();
@@ -56,13 +62,17 @@ describe("setOwnScheduleAutoRepeat", () => {
 describe("createOwnScheduleEntry", () => {
   it("yalnız doğrulanmış öğrencinin kendi programına kayıt ekler", async () => {
     mocks.adminHandle = createSupabaseMock({
-      results: { study_schedule_entries: [{ data: [{ id: "entry-1" }] }] },
+      results: {
+        student_profiles: [{ data: { grade_level: 8 } }],
+        study_schedule_entries: [{ data: [{ id: "entry-1" }] }],
+      },
     });
     const formData = new FormData();
     formData.set("day_of_week", "2");
     formData.set("start_time", "14:00");
     formData.set("end_time", "15:00");
-    formData.set("activity_label", "Matematik - Kesirler");
+    formData.set("subject", "Matematik");
+    formData.set("kazanim_code", "M8-01");
     formData.set("week_start", currentWeekStart());
 
     await createOwnScheduleEntry(formData);
@@ -76,7 +86,10 @@ describe("createOwnScheduleEntry", () => {
       day_of_week: 2,
       start_time: "14:00",
       end_time: "15:00",
-      activity_label: "Matematik - Kesirler",
+      activity_label: "Matematik — Çarpanlar ve Katlar",
+      subject: "Matematik",
+      kazanim_code: "M8-01",
+      kazanim_name: "Çarpanlar ve Katlar",
       week_start: currentWeekStart(),
       updated_by: "student-1",
     });
@@ -89,5 +102,113 @@ describe("createOwnScheduleEntry", () => {
 
     await expect(createOwnScheduleEntry(new FormData())).rejects.toThrow("Yetkisiz.");
     expect(mocks.adminHandle.queries).toHaveLength(0);
+  });
+
+  it("öğrenci kendi kaydını düzenlerken sahiplik filtresi taşır", async () => {
+    mocks.adminHandle = createSupabaseMock({
+      results: {
+        study_schedule_entries: [
+          {
+            data: {
+              id: "entry-1",
+              week_start: currentWeekStart(),
+              completion_log_id: null,
+            },
+          },
+          {},
+        ],
+        student_profiles: [{ data: { grade_level: 8 } }],
+      },
+    });
+    const formData = new FormData();
+    formData.set("id", "entry-1");
+    formData.set("day_of_week", "1");
+    formData.set("start_time", "10:00");
+    formData.set("end_time", "11:00");
+    formData.set("subject", "Matematik");
+    formData.set("kazanim_code", "M8-02");
+    formData.set("week_start", currentWeekStart());
+
+    await updateOwnScheduleEntry(formData);
+
+    const updates = mocks.adminHandle.queries.filter(
+      (query) => query.table === "study_schedule_entries" && query.op === "update",
+    );
+    expect(updates).toHaveLength(1);
+    expect(updates[0]?.filters).toContainEqual(["eq", "student_id", "student-1"]);
+    expect(updates[0]?.values).toMatchObject({
+      subject: "Matematik",
+      kazanim_code: "M8-02",
+      kazanim_name: "Üslü İfadeler",
+      updated_by: "student-1",
+    });
+  });
+
+  it("öğrenci yalnız kendi kaydını siler", async () => {
+    mocks.adminHandle = createSupabaseMock({
+      results: {
+        study_schedule_entries: [
+          { data: { id: "entry-1", week_start: currentWeekStart() } },
+          {},
+        ],
+      },
+    });
+    const formData = new FormData();
+    formData.set("id", "entry-1");
+
+    await deleteOwnScheduleEntry(formData);
+
+    const deletion = mocks.adminHandle.queries.find(
+      (query) => query.table === "study_schedule_entries" && query.op === "delete",
+    );
+    expect(deletion?.filters).toContainEqual(["eq", "id", "entry-1"]);
+    expect(deletion?.filters).toContainEqual(["eq", "student_id", "student-1"]);
+  });
+
+  it("tamamlanan programı günlüğe yazar ve kayıtla ilişkilendirir", async () => {
+    mocks.adminHandle = createSupabaseMock({
+      results: {
+        study_schedule_entries: [
+          {
+            data: {
+              id: "entry-1",
+              week_start: currentWeekStart(),
+              start_time: "14:00",
+              end_time: "15:00",
+              subject: "Matematik",
+              kazanim_name: "Çarpanlar ve Katlar",
+              completed_at: null,
+            },
+          },
+          {},
+        ],
+        study_log: [{ data: { id: "log-1" } }],
+      },
+    });
+    const formData = new FormData();
+    formData.set("id", "entry-1");
+    formData.set("question_count", "18.6");
+
+    await completeOwnScheduleEntry(formData);
+
+    const log = mocks.adminHandle.queries.find((query) => query.table === "study_log");
+    expect(log?.op).toBe("insert");
+    expect(log?.values).toMatchObject({
+      student_id: "student-1",
+      log_date: todayInIstanbul(),
+      subject: "Matematik",
+      topic: "Çarpanlar ve Katlar",
+      minutes: 60,
+      question_count: 19,
+      marked_by: "student-1",
+    });
+    const completion = mocks.adminHandle.queries.find(
+      (query) => query.table === "study_schedule_entries" && query.op === "update",
+    );
+    expect(completion?.values).toMatchObject({
+      completion_log_id: "log-1",
+      updated_by: "student-1",
+    });
+    expect(mocks.revalidatePath).toHaveBeenCalledWith("/student/gunluk/dokum");
   });
 });

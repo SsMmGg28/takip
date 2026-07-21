@@ -149,8 +149,8 @@ demo izolasyonu için canlı şemada `profiles.is_demo` vardır.
 - `/student`: dashboard.
 - `/student/homework`: kendi ödevleri; öğrenci beyan action'ları rota yanındadır.
 - `/student/resources`, `/student/resources/[bookId]`: kitaplık ve test ilerlemesi.
-- `/student/calendar`, `/student/schedule`: takvim; haftalık programı görüntüleme ve
-  kendi adına kayıt ekleme.
+- `/student/calendar`, `/student/schedule`: takvim; haftalık programda ders/kazanım
+  seçerek kendi kaydını ekleme, düzenleme, silme ve günlüğe tamamlanmış çalışma yazma.
 - `/student/gunluk`, `/student/gunluk/dokum`: günlük kayıt, seri ve konu dökümü.
 - `/student/exams`, `/student/exams/[examId]`: deneme ve kazanım analizi.
 - `/student/announcements`, `/student/profile`.
@@ -178,7 +178,7 @@ widget id'leri `src/lib/dashboard-layout.ts` içindedir.
 | Kaynak        | role/resources, kitap ilerlemesi         | `books.ts`, `book-catalog.ts`, `resources-parse.ts`, `recommendations.ts` | `actions/resources.ts`                                | `resource_books`, `resource_book_sections`, `student_books`, `student_test_progress`                    |
 | Deneme        | role/exams                               | `exams.ts`, `exam-analysis.ts`, `exam-shared.ts`, `kazanim.ts`, `exams/*` | `actions/exams.ts`, `actions/exam-import.ts`          | `exams`, `exam_subjects`, `exam_kazanim_results`, `exam_edit_requests`, `student_profiles.target_score` |
 | Takvim        | role/calendar                            | `calendar.ts`                                                             | `teacher/calendar/actions.ts`                         | `calendar_events`, teslim tarihleri için `homework`                                                     |
-| Program       | role/schedule                            | `schedule.ts`, `week.ts`                                                  | `actions/schedule.ts`, cron                           | `study_schedule_entries`, `student_profiles.schedule_auto_repeat`                                       |
+| Program       | role/schedule                            | `schedule.ts`, `week.ts`                                                  | `actions/schedule.ts`, cron                           | `study_schedule_entries` (ders/kazanım/tamamlama), `student_profiles.schedule_auto_repeat`              |
 | Günlük        | student/gunluk, rapor/dashboard özetleri | `study-log.ts`, `study-log-fetch.ts`                                      | `actions/study-log.ts`                                | `study_log`                                                                                             |
 | Duyuru        | role/announcements                       | doğrudan SSR sorguları                                                    | `actions/announcements.ts`                            | `announcements`, `announcement_targets`, `announcement-files`                                           |
 | Bildirim/push | bell + push toggle + service worker      | `notifications.ts`, `push.ts`                                             | `actions/push.ts`; domain action'ları bildirim üretir | `notifications`, `push_subscriptions`                                                                   |
@@ -196,9 +196,10 @@ widget id'leri `src/lib/dashboard-layout.ts` içindedir.
 - `actions/resources.ts`: kitap/bölüm/onay/raf/test ilerlemesi.
 - `actions/exams.ts`: tam deneme CRUD, edit request review, hedef puan, analiz fetch.
 - `actions/exam-import.ts`: PDF/görsel doğrula → base64 → Gemini JSON → normalize et.
-- `actions/schedule.ts`: program CRUD/kopya/bildirim; öğrencinin kendi program kaydı
-  ve otomatik devam tercihi, doğrulanmış öğrenci kimliğiyle dar service-role
-  işlemleri üzerinden kaydedilir.
+- `actions/schedule.ts`: program CRUD/kopya/bildirim; öğrenci kendi güncel/gelecek
+  hafta kaydını ders/kazanım seçerek yönetir, tamamlayınca çalışma günlüğüne süre
+  (başlangıç-bitiş saatinden hesaplanır) ve isteğe bağlı soru kaydı ekler; bu dar
+  service-role işlemleri doğrulanmış öğrenci kimliğiyle yapılır.
 - `actions/study-log.ts`: günlük ekle/sil; öğrenci sahipliği veya öğretmen yetkisi.
 - `actions/announcements.ts`: hedefleri çöz, duyuru/ek yükle, bildirim ve push üret.
 - `actions/bug-reports.ts`: rapor aç/durum değiştir.
@@ -241,7 +242,9 @@ Client admin çağrılarının tek sarmalayıcısı `src/lib/admin-api.ts#postAd
 - Deneme: `exams -> profiles(student)`; `exam_subjects -> exams`;
   `exam_kazanim_results -> exam_subjects`; `exam_edit_requests -> exams + profiles`.
 - Program/takvim/günlük: `study_schedule_entries`, `calendar_events`, `study_log`
-  doğrudan öğrenci profile bağlanır.
+  doğrudan öğrenci profile bağlanır. Programdaki `subject`, `kazanim_*`,
+  `completed_at` ve `completion_log_id`, planı sistem kazanımı ve günlük kaydıyla
+  ilişkilendirir.
 - İletişim: `notifications` ve `push_subscriptions` kullanıcıya;
   `announcements` oluşturana, `announcement_targets` duyuru↔öğrenciye;
   `bug_reports` raporlayana bağlıdır.
@@ -275,8 +278,9 @@ gibi alanlar bu arayüzlerde eksik olabilir; `types.ts` şemanın eksiksiz kayna
 
 ### Migration gerçeği — kritik
 
-- Depoda `0001_initial_schema.sql` → `0019_perf_indexes.sql` sıralı dosyaları var;
-  `0007` sonrasında `0007b` gelir. README şu anda bunların elle, sırayla uygulanmasını söyler.
+- Depoda `0001_initial_schema.sql` → `0019_perf_indexes.sql` ve sonrasında
+  timestamp'li `20260721181041_schedule_student_planning.sql` var; `0007` sonrasında
+  `0007b` gelir. README şu anda bunların elle, sırayla uygulanmasını söyler.
 - Canlı migration history yalnız timestamp'li 17 kayıt gösterir; ilk kayıt
   `20260704064525_source_books_assignments_redesign` ile başlar ve ayrıca depoda
   aynı adlı dosyası bulunmayan `push_dashboard_reconcile` kaydı vardır.

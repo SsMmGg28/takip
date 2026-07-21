@@ -6,7 +6,7 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js";
  * - öğretmenin öğrenci/veli hesabı oluşturması
  * - öğretmenin bir kullanıcının şifresini sıfırlaması
  * - doğrulanmış öğrencinin yalnız kendi program otomatik-devam tercihini güncellemesi
- * - doğrulanmış öğrencinin yalnız kendi çalışma programına kayıt eklemesi
+ * - doğrulanmış öğrencinin yalnız kendi çalışma programını yönetip tamamlaması
  * Bu dosya hiçbir şekilde client bundle'a dahil edilmemeli ("server-only" bunu derleme zamanında garantiler).
  */
 export function createAdminClient() {
