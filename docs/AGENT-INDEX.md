@@ -213,15 +213,15 @@ varsayılan/sıra/gizleme/daraltma normalizasyonu `src/lib/dashboard-layout.ts` 
 
 ### Route Handler'lar
 
-| Uç                               | Yetki                                               | İstemci      | Ana etki                                                   |
-| -------------------------------- | --------------------------------------------------- | ------------ | ---------------------------------------------------------- |
-| `POST /api/admin/create-user`    | teacher; öğretmen oluşturmak için ayrıca `is_admin` | service-role | Auth user + profile + öğrenci profili/veli linki           |
-| `POST /api/admin/update-user`    | teacher                                             | service-role | profil ve öğrenci uzantısı                                 |
-| `POST /api/admin/reset-password` | teacher                                             | service-role | Auth password + zorunlu değişim                            |
-| `POST /api/admin/manage-links`   | teacher                                             | service-role | parent-student link ekle/sil                               |
-| `POST /api/admin/delete-user`    | teacher; admin kuralları                            | service-role | sahibi silinecek kayıtları öğretmene devret, Auth user sil |
-| `GET /api/cron/reminders`        | `Authorization: Bearer CRON_SECRET`                 | service-role | yarınki ödev bildirimi; pazartesi program auto-repeat      |
-| `GET /api/dev/preview-login`     | local dev/Vercel Preview + secret; production 404   | SSR/admin    | preview rol hesabını env şifresiyle eşitle + oturum cookie |
+| Uç                                | Yetki                                               | İstemci      | Ana etki                                                   |
+| --------------------------------- | --------------------------------------------------- | ------------ | ---------------------------------------------------------- |
+| `POST /api/admin/create-user`     | teacher; öğretmen oluşturmak için ayrıca `is_admin` | service-role | Auth user + profile + öğrenci profili/veli linki           |
+| `POST /api/admin/update-user`     | teacher                                             | service-role | profil ve öğrenci uzantısı                                 |
+| `POST /api/admin/reset-password`  | teacher                                             | service-role | Auth password + zorunlu değişim                            |
+| `POST /api/admin/manage-links`    | teacher                                             | service-role | parent-student link ekle/sil                               |
+| `POST /api/admin/delete-user`     | teacher; admin kuralları                            | service-role | sahibi silinecek kayıtları öğretmene devret, Auth user sil |
+| `GET /api/cron/reminders`         | `Authorization: Bearer CRON_SECRET`                 | service-role | yarınki ödev bildirimi; pazartesi program auto-repeat      |
+| `GET/POST /api/dev/preview-login` | local dev/Vercel Preview + secret; production 404   | SSR/admin    | güvenli rol formu; demo şifresini eşitle + oturum cookie   |
 
 Client admin çağrılarının tek sarmalayıcısı `src/lib/admin-api.ts#postAdmin`.
 
@@ -380,7 +380,8 @@ cron, Gemini ve preview sırları asla client component'e veya belgeye taşınma
 `DEV_PREVIEW_*` production kapsamına verilmemeli; route yalnız yerel development veya
 `VERCEL_ENV=preview` iken çalışır ve production'da 404 verir. Preview şifresi mevcut
 demo hesabıyla uyuşmazsa route yalnız tam `preview.<role>` kullanıcı adı, rol ve
-`is_demo=true` doğrulamasından sonra Auth şifresini env değeriyle eşitler.
+`is_demo=true` doğrulamasından sonra Auth şifresini env değeriyle eşitler. Secretsiz
+GET, anahtarı URL'ye koymadan POST gövdesiyle gönderen no-store rol formunu gösterir.
 
 ## Olay, bildirim ve cache bağlantıları
 
