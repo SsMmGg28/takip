@@ -166,7 +166,9 @@ async function completePreviewLogin(
 
   // signInWithPassword oturum çerezlerini cookies() üzerinden set eder; redirect
   // yanıtı bu çerezleri taşır → RLS ile demo veri görünür.
-  return NextResponse.redirect(new URL(`/${roleValue}`, request.url));
+  // Form POST'undan sonra 303, tarayıcının hedef dashboard'u GET ile açmasını
+  // sağlar. Varsayılan 307 POST'u korur ve /student gibi sayfalarda 405 üretir.
+  return NextResponse.redirect(new URL(`/${roleValue}`, request.url), 303);
 }
 
 function previewRouteGate() {

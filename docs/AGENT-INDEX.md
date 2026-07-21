@@ -381,7 +381,8 @@ cron, Gemini ve preview sırları asla client component'e veya belgeye taşınma
 `VERCEL_ENV=preview` iken çalışır ve production'da 404 verir. Preview şifresi mevcut
 demo hesabıyla uyuşmazsa route yalnız tam `preview.<role>` kullanıcı adı, rol ve
 `is_demo=true` doğrulamasından sonra Auth şifresini env değeriyle eşitler. Secretsiz
-GET, anahtarı URL'ye koymadan POST gövdesiyle gönderen no-store rol formunu gösterir.
+GET, anahtarı URL'ye koymadan POST gövdesiyle gönderen no-store rol formunu gösterir;
+başarılı form POST'u rol dashboard'una `303` ile GET yönlendirmesi yapar.
 
 ## Olay, bildirim ve cache bağlantıları
 
