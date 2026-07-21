@@ -120,7 +120,7 @@ export default async function TeacherStudentDetailPage({
         title={student.full_name}
         description={`${grade ? `${grade}. sınıf — ` : ""}ödev, deneme ve kitap ilerlemesinin tek ekran özeti.`}
         action={
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto">
             <Link
               href="/teacher/students"
               className="text-sm text-muted-foreground hover:underline"

@@ -236,7 +236,7 @@ const COMMON_FEATURES = [
     icon: BellRing,
     title: "Bildirim seçenekleri",
     description:
-      "Yeni kayıtları uygulama içi bildirimlerden; desteklenen cihazlarda ise Web Push üzerinden takip edebilirsin.",
+      "Yeni kayıtları uygulama içi bildirimlerden; desteklenen cihazlarda ise Profilim sayfasındaki Telefon Bildirimleri düğmesinden Web Push ile takip edebilirsin.",
     color: "var(--success)",
   },
 ];
