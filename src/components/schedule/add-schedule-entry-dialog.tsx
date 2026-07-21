@@ -19,26 +19,28 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { createScheduleEntry } from "@/lib/actions/schedule";
+import { createOwnScheduleEntry, createScheduleEntry } from "@/lib/actions/schedule";
 import { DAY_LABELS } from "@/lib/schedule";
 import type { StudyScheduleEntry } from "@/lib/types";
 
 /**
  * Programa etkinlik ekleme diyaloğu. `entries` (görüntülenen haftanın mevcut
  * kayıtları) verilirse, seçilen gün/saat aralığı mevcut bir etkinlikle
- * çakışıyorsa engellemeyen bir uyarı gösterilir — öğretmen öğrencinin mevcut
- * programını görerek çakışmadan kaçınabilir.
+ * çakışıyorsa engellemeyen bir uyarı gösterilir. `forCurrentStudent` ile
+ * öğrenci kendi programına ekleme yapar; öğrenci kimliği istemciden alınmaz.
  */
 export function AddScheduleEntryDialog({
   studentId,
   redirectPath,
   weekStart,
   entries = [],
+  forCurrentStudent = false,
 }: {
-  studentId: string;
+  studentId?: string;
   redirectPath: string;
   weekStart: string;
   entries?: StudyScheduleEntry[];
+  forCurrentStudent?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [dayOfWeek, setDayOfWeek] = useState("0");
@@ -66,14 +68,20 @@ export function AddScheduleEntryDialog({
         </DialogHeader>
         <form
           action={async (formData) => {
-            await createScheduleEntry(formData);
+            if (forCurrentStudent) {
+              await createOwnScheduleEntry(formData);
+            } else {
+              await createScheduleEntry(formData);
+            }
             setOpen(false);
             setStartTime("");
             setEndTime("");
           }}
           className="flex flex-col gap-4"
         >
-          <input type="hidden" name="student_id" value={studentId} />
+          {!forCurrentStudent && (
+            <input type="hidden" name="student_id" value={studentId} />
+          )}
           <input type="hidden" name="redirect_path" value={redirectPath} />
           <input type="hidden" name="day_of_week" value={dayOfWeek} />
           <input type="hidden" name="week_start" value={weekStart} />

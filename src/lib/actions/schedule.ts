@@ -34,21 +34,34 @@ function revalidateSchedulePaths(studentId: string) {
   revalidatePath(`/teacher/schedule/${studentId}`);
 }
 
+function readScheduleEntryForm(formData: FormData) {
+  const dayOfWeek = Number(formData.get("day_of_week"));
+  const startTime = String(formData.get("start_time") ?? "");
+  const endTime = String(formData.get("end_time") ?? "");
+  const activityLabel = String(formData.get("activity_label") ?? "").trim();
+  const weekStart = parseWeekParam(String(formData.get("week_start") ?? ""));
+
+  if (!activityLabel || !startTime || !endTime) throw new Error("Eksik bilgi.");
+  if (!Number.isInteger(dayOfWeek) || dayOfWeek < 0 || dayOfWeek > 6) {
+    throw new Error("Geçerli bir gün seçmelisin.");
+  }
+  if (endTime <= startTime) {
+    throw new Error("Bitiş saati başlangıç saatinden sonra olmalı.");
+  }
+  if (weekStart < currentWeekStart()) {
+    throw new Error("Geçmiş haftanın programı düzenlenemez; arşiv salt okunur.");
+  }
+
+  return { dayOfWeek, startTime, endTime, activityLabel, weekStart };
+}
+
 export async function createScheduleEntry(formData: FormData) {
   const userId = await requireEditorRole();
   const supabase = await createClient();
 
   const studentId = String(formData.get("student_id"));
-  const dayOfWeek = Number(formData.get("day_of_week"));
-  const startTime = String(formData.get("start_time"));
-  const endTime = String(formData.get("end_time"));
-  const activityLabel = String(formData.get("activity_label") ?? "").trim();
-  const weekStart = parseWeekParam(String(formData.get("week_start") ?? ""));
-
-  if (!activityLabel || !startTime || !endTime) throw new Error("Eksik bilgi.");
-  if (weekStart < currentWeekStart()) {
-    throw new Error("Geçmiş haftanın programı düzenlenemez; arşiv salt okunur.");
-  }
+  const { dayOfWeek, startTime, endTime, activityLabel, weekStart } =
+    readScheduleEntryForm(formData);
 
   const { error } = await supabase.from("study_schedule_entries").insert({
     student_id: studentId,
@@ -62,6 +75,29 @@ export async function createScheduleEntry(formData: FormData) {
   if (error) throw new Error(error.message);
 
   revalidateSchedulePaths(studentId);
+}
+
+/** Öğrenci yalnız kendi programına, mevcut veya gelecek hafta için kayıt ekler. */
+export async function createOwnScheduleEntry(formData: FormData) {
+  const student = await assertStudentAction();
+  const { dayOfWeek, startTime, endTime, activityLabel, weekStart } =
+    readScheduleEntryForm(formData);
+  const admin = createAdminClient();
+
+  // İstemciden öğrenci kimliği alınmaz; service-role yalnız doğrulanmış oturum
+  // sahibinin kaydını oluşturmak için kullanılır.
+  const { error } = await admin.from("study_schedule_entries").insert({
+    student_id: student.id,
+    day_of_week: dayOfWeek,
+    start_time: startTime,
+    end_time: endTime,
+    activity_label: activityLabel,
+    week_start: weekStart,
+    updated_by: student.id,
+  });
+  if (error) throw new Error(error.message);
+
+  revalidateSchedulePaths(student.id);
 }
 
 export async function deleteScheduleEntry(formData: FormData) {

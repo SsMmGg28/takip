@@ -149,7 +149,8 @@ demo izolasyonu için canlı şemada `profiles.is_demo` vardır.
 - `/student`: dashboard.
 - `/student/homework`: kendi ödevleri; öğrenci beyan action'ları rota yanındadır.
 - `/student/resources`, `/student/resources/[bookId]`: kitaplık ve test ilerlemesi.
-- `/student/calendar`, `/student/schedule`: takvim ve haftalık program.
+- `/student/calendar`, `/student/schedule`: takvim; haftalık programı görüntüleme ve
+  kendi adına kayıt ekleme.
 - `/student/gunluk`, `/student/gunluk/dokum`: günlük kayıt, seri ve konu dökümü.
 - `/student/exams`, `/student/exams/[examId]`: deneme ve kazanım analizi.
 - `/student/announcements`, `/student/profile`.
@@ -195,9 +196,9 @@ widget id'leri `src/lib/dashboard-layout.ts` içindedir.
 - `actions/resources.ts`: kitap/bölüm/onay/raf/test ilerlemesi.
 - `actions/exams.ts`: tam deneme CRUD, edit request review, hedef puan, analiz fetch.
 - `actions/exam-import.ts`: PDF/görsel doğrula → base64 → Gemini JSON → normalize et.
-- `actions/schedule.ts`: program CRUD/kopya/bildirim; öğrencinin kendi otomatik devam
-  tercihi, doğrulanmış öğrenci kimliğiyle dar bir service-role güncellemesi üzerinden
-  kaydedilir.
+- `actions/schedule.ts`: program CRUD/kopya/bildirim; öğrencinin kendi program kaydı
+  ve otomatik devam tercihi, doğrulanmış öğrenci kimliğiyle dar service-role
+  işlemleri üzerinden kaydedilir.
 - `actions/study-log.ts`: günlük ekle/sil; öğrenci sahipliği veya öğretmen yetkisi.
 - `actions/announcements.ts`: hedefleri çöz, duyuru/ek yükle, bildirim ve push üret.
 - `actions/bug-reports.ts`: rapor aç/durum değiştir.

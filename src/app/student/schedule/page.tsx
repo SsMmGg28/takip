@@ -1,6 +1,7 @@
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/page-header";
+import { AddScheduleEntryDialog } from "@/components/schedule/add-schedule-entry-dialog";
 import { WeekSwitcher } from "@/components/schedule/week-switcher";
 import { WeeklySchedule } from "@/components/schedule/weekly-schedule";
 import { currentWeekStart, parseWeekParam } from "@/lib/week";
@@ -33,23 +34,34 @@ export default async function StudentSchedulePage({
   const archiveWeeks = Array.from(
     new Set((weekRows ?? []).map((r) => r.week_start as string)),
   );
+  const entryList = (entries as StudyScheduleEntry[]) ?? [];
+  const isPast = week < currentWeekStart();
+  const redirectPath = `/student/schedule${
+    week === currentWeekStart() ? "" : `?week=${week}`
+  }`;
 
   return (
     <>
       <PageHeader
         title="Çalışma Programım"
-        description="Öğretmenin ve velinin senin için hazırladığı haftalık program; geçmiş haftaları arşivden inceleyebilirsin."
+        description="Haftalık programını görüntüle, kendi çalışma kaydını ekle ve geçmiş haftaları arşivden incele."
+        action={
+          !isPast ? (
+            <AddScheduleEntryDialog
+              forCurrentStudent
+              redirectPath={redirectPath}
+              weekStart={week}
+              entries={entryList}
+            />
+          ) : undefined
+        }
       />
       <WeekSwitcher
         basePath="/student/schedule"
         weekStart={week}
         archiveWeeks={archiveWeeks}
       />
-      <WeeklySchedule
-        entries={(entries as StudyScheduleEntry[]) ?? []}
-        redirectPath="/student/schedule"
-        readOnly
-      />
+      <WeeklySchedule entries={entryList} redirectPath={redirectPath} readOnly />
     </>
   );
 }
