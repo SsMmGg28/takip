@@ -19,7 +19,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookCard } from "@/components/resources/book-card";
 import { HomeworkStatusBadge } from "@/components/homework/homework-status-badge";
 import { SubjectFilterCharts } from "@/components/exams/subject-filter-charts";
-import { AutoRepeatToggle } from "@/components/schedule/schedule-toolbar-buttons";
 import { StudentNotesCard } from "@/components/teacher/student-notes-card";
 import { StudyLogSummaryCard } from "@/components/study-log/study-log-summary-card";
 import { getStudentShelf } from "@/lib/books";
@@ -51,7 +50,7 @@ export default async function TeacherStudentDetailPage({
     supabase.from("profiles").select("*").eq("id", studentId).single(),
     supabase
       .from("student_profiles")
-      .select("grade_level, notes, target_score, schedule_auto_repeat")
+      .select("grade_level, notes, target_score")
       .eq("id", studentId)
       .single(),
     getStudentShelf(studentId),
@@ -286,13 +285,6 @@ export default async function TeacherStudentDetailPage({
             )}
           </CardContent>
         </Card>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-3">
-        <AutoRepeatToggle
-          studentId={studentId}
-          initialEnabled={Boolean(studentProfile?.schedule_auto_repeat)}
-        />
       </div>
 
       <StudyLogSummaryCard summary={studySummary} />

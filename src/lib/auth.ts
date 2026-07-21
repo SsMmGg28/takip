@@ -42,3 +42,12 @@ export async function assertTeacherAction(): Promise<Profile> {
     throw new Error("Bu işlemi yalnızca öğretmen yapabilir.");
   return profile;
 }
+
+/** Öğrenciye ait server action'ları yalnız hesabın sahibi çalıştırabilir. */
+export async function assertStudentAction(): Promise<Profile> {
+  const profile = await getCurrentProfile();
+  if (!profile) throw new Error("Yetkisiz.");
+  if (profile.role !== "student")
+    throw new Error("Bu işlemi yalnızca öğrenci hesabı yapabilir.");
+  return profile;
+}

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BellRing, Bug, KeyRound, UserRound } from "lucide-react";
+import { BellRing, Bug, CalendarClock, KeyRound, UserRound } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +8,7 @@ import { BugReportDialog } from "@/components/bug-report-dialog";
 import { EditProfileForm } from "@/components/profile/edit-profile-form";
 import { ChangePasswordForm } from "@/components/profile/change-password-form";
 import { PushNotificationToggle } from "@/components/push-manager";
+import { AutoRepeatToggle } from "@/components/schedule/schedule-toolbar-buttons";
 import type { Profile, Role } from "@/lib/types";
 
 const ROLE_LABELS: Record<Role, string> = {
@@ -38,14 +39,16 @@ export async function ProfileView({
   extra?: React.ReactNode;
 }) {
   let gradeLevel: number | null = null;
+  let scheduleAutoRepeat = false;
   if (profile.role === "student") {
     const supabase = await createClient();
     const { data } = await supabase
       .from("student_profiles")
-      .select("grade_level")
+      .select("grade_level, schedule_auto_repeat")
       .eq("id", profile.id)
       .single();
     gradeLevel = data?.grade_level ?? null;
+    scheduleAutoRepeat = Boolean(data?.schedule_auto_repeat);
   }
 
   return (
@@ -106,6 +109,26 @@ export async function ProfileView({
           </CardContent>
         </Card>
       </div>
+
+      {profile.role === "student" && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <span className="gradient-surface flex h-8 w-8 items-center justify-center rounded-lg text-white">
+                <CalendarClock className="h-4 w-4" />
+              </span>
+              Çalışma Programım
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Açık olduğunda önceki haftanın çalışma programı yeni haftaya otomatik
+              aktarılır. Kapalıysa yeni hafta boş başlar.
+            </p>
+            <AutoRepeatToggle initialEnabled={scheduleAutoRepeat} />
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>

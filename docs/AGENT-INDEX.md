@@ -1,6 +1,6 @@
 # Ders Takip — yapay zeka ajanı proje indeksi
 
-> Zorunlu başlangıç belgesi. Son yerel doğrulama: **2026-07-20**. Canlı Supabase
+> Zorunlu başlangıç belgesi. Son yerel doğrulama: **2026-07-21**. Canlı Supabase
 > ve Vercel anlık görüntüsü: **2026-07-20, Europe/Istanbul**. Gizli değer içermez.
 
 Bu belge, bir ajanın bütün depoyu tekrar taramadan doğru dosyaya ve doğru güvenlik
@@ -195,7 +195,9 @@ widget id'leri `src/lib/dashboard-layout.ts` içindedir.
 - `actions/resources.ts`: kitap/bölüm/onay/raf/test ilerlemesi.
 - `actions/exams.ts`: tam deneme CRUD, edit request review, hedef puan, analiz fetch.
 - `actions/exam-import.ts`: PDF/görsel doğrula → base64 → Gemini JSON → normalize et.
-- `actions/schedule.ts`: program CRUD/kopya/auto-repeat/bildirim.
+- `actions/schedule.ts`: program CRUD/kopya/bildirim; öğrencinin kendi otomatik devam
+  tercihi, doğrulanmış öğrenci kimliğiyle dar bir service-role güncellemesi üzerinden
+  kaydedilir.
 - `actions/study-log.ts`: günlük ekle/sil; öğrenci sahipliği veya öğretmen yetkisi.
 - `actions/announcements.ts`: hedefleri çöz, duyuru/ek yükle, bildirim ve push üret.
 - `actions/bug-reports.ts`: rapor aç/durum değiştir.

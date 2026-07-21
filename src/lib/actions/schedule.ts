@@ -1,6 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { assertStudentAction } from "@/lib/auth";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { getParentIdsByStudent, notifyUsers } from "@/lib/notifications";
 import { currentWeekStart, formatWeekRange, parseWeekParam } from "@/lib/week";
@@ -166,20 +168,21 @@ export async function notifyScheduleAssigned(formData: FormData) {
   ]);
 }
 
-/** Öğrenci başına "program her hafta otomatik devam etsin" ayarı (öğretmen). */
-export async function setScheduleAutoRepeat(formData: FormData) {
-  const supabase = await createClient();
-  const studentId = String(formData.get("student_id"));
-  const enabled = String(formData.get("enabled")) === "true";
+/** Öğrenci kendi haftalık programının otomatik devam tercihini günceller. */
+export async function setOwnScheduleAutoRepeat(enabled: boolean) {
+  const student = await assertStudentAction();
+  const admin = createAdminClient();
 
-  // RLS (student_profiles_write_teacher) yalnızca öğretmene izin verir.
-  const { data: updated, error } = await supabase
+  // İstemciden öğrenci kimliği alınmaz: yalnız doğrulanmış oturum sahibinin
+  // ayarı, dar bir service-role güncellemesiyle değiştirilebilir.
+  const { data: updated, error } = await admin
     .from("student_profiles")
     .update({ schedule_auto_repeat: enabled })
-    .eq("id", studentId)
+    .eq("id", student.id)
     .select("id");
   if (error) throw new Error(error.message);
-  if (!updated?.length) throw new Error("Bu ayarı yalnızca öğretmen değiştirebilir.");
+  if (!updated?.length) throw new Error("Otomatik devam ayarı güncellenemedi.");
 
-  revalidateSchedulePaths(studentId);
+  revalidateSchedulePaths(student.id);
+  revalidatePath("/student/profile");
 }
