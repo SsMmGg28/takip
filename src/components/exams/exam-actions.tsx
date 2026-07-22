@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Loader2, MessageSquarePlus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -19,7 +18,6 @@ import type { ExamEditRequestStatus } from "@/lib/types";
 
 /** Silme butonu (öğretmen her zaman; veli yalnızca onaylı taleple). */
 export function DeleteExamButton({ examId }: { examId: string }) {
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -33,7 +31,6 @@ export function DeleteExamButton({ examId }: { examId: string }) {
     }
     toast.success("Deneme silindi.");
     setOpen(false);
-    router.refresh();
   }
 
   return (
@@ -71,7 +68,6 @@ export function DeleteExamButton({ examId }: { examId: string }) {
 
 /** Veli: öğretmene düzenleme talebi gönderme. */
 export function RequestEditButton({ examId }: { examId: string }) {
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
@@ -88,7 +84,6 @@ export function RequestEditButton({ examId }: { examId: string }) {
     toast.success("Düzenleme talebi öğretmene iletildi.");
     setOpen(false);
     setReason("");
-    router.refresh();
   }
 
   return (
@@ -133,7 +128,6 @@ export function EditRequestStatusBadge({ status }: { status: ExamEditRequestStat
 
 /** Öğretmen: bekleyen talebi onayla/reddet. */
 export function ReviewRequestButtons({ requestId }: { requestId: string }) {
-  const router = useRouter();
   const [loading, setLoading] = useState<"approve" | "reject" | null>(null);
 
   async function review(approve: boolean) {
@@ -145,7 +139,6 @@ export function ReviewRequestButtons({ requestId }: { requestId: string }) {
       return;
     }
     toast.success(approve ? "Talep onaylandı." : "Talep reddedildi.");
-    router.refresh();
   }
 
   return (

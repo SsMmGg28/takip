@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { refresh } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 
 /** Öğretmenin öğrenci hakkındaki özel notunu kaydeder (yalnızca öğretmen görür). */
@@ -21,5 +21,5 @@ export async function updateStudentNotes(formData: FormData) {
   if (error) throw new Error(error.message);
   if (!updated?.length) throw new Error("Notu yalnızca öğretmen düzenleyebilir.");
 
-  revalidatePath(`/teacher/students/${studentId}`);
+  refresh();
 }

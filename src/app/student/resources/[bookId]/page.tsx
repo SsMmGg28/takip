@@ -25,7 +25,6 @@ export default async function StudentBookPage({
 
   const { book, sections, completedBySection, totalTests, completedCount } = data;
   const percent = totalTests === 0 ? 0 : Math.round((completedCount / totalTests) * 100);
-  const redirectPath = `/student/resources/${bookId}`;
 
   return (
     <>
@@ -62,7 +61,6 @@ export default async function StudentBookPage({
                     sectionId={s.id}
                     testCount={s.test_count}
                     completed={done}
-                    redirectPath={redirectPath}
                   />
                 </CardContent>
               </Card>

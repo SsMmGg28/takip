@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { refresh } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getTeacherIds, notifyUsers } from "@/lib/notifications";
 import type { ActionResult } from "@/lib/actions/exams";
@@ -39,7 +39,7 @@ export async function createBugReport(formData: FormData): Promise<ActionResult>
     link: "/teacher/reports",
   });
 
-  revalidatePath("/teacher/reports");
+  refresh();
   return { ok: true };
 }
 
@@ -60,6 +60,6 @@ export async function setBugReportStatus(formData: FormData): Promise<ActionResu
   if (error) return { ok: false, error: error.message };
   if (!updated?.length) return { ok: false, error: "Rapor bulunamadı veya yetkin yok." };
 
-  revalidatePath("/teacher/reports");
+  refresh();
   return { ok: true };
 }

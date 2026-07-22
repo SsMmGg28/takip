@@ -10,7 +10,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => mocks.handle.client,
 }));
-vi.mock("next/cache", () => ({ revalidatePath: vi.fn(), updateTag: vi.fn() }));
+vi.mock("next/cache", () => ({ refresh: vi.fn(), updateTag: vi.fn() }));
 vi.mock("@/lib/auth", () => ({ assertTeacherAction: mocks.assertTeacherAction }));
 vi.mock("@/lib/notifications", () => ({
   notifyUsers: mocks.notifyUsers,

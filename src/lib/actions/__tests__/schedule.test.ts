@@ -6,7 +6,7 @@ const mocks = vi.hoisted(() => ({
   adminHandle: null as unknown as SupabaseMockHandle,
   serverHandle: null as unknown as SupabaseMockHandle,
   assertStudentAction: vi.fn(),
-  revalidatePath: vi.fn(),
+  refresh: vi.fn(),
 }));
 
 vi.mock("@/lib/auth", () => ({ assertStudentAction: mocks.assertStudentAction }));
@@ -20,7 +20,7 @@ vi.mock("@/lib/notifications", () => ({
   getParentIdsByStudent: vi.fn(),
   notifyUsers: vi.fn(),
 }));
-vi.mock("next/cache", () => ({ revalidatePath: mocks.revalidatePath }));
+vi.mock("next/cache", () => ({ refresh: mocks.refresh }));
 
 import {
   completeOwnScheduleEntry,
@@ -34,7 +34,7 @@ import {
 beforeEach(() => {
   mocks.assertStudentAction.mockReset();
   mocks.assertStudentAction.mockResolvedValue({ id: "student-1", role: "student" });
-  mocks.revalidatePath.mockClear();
+  mocks.refresh.mockClear();
   mocks.serverHandle = createSupabaseMock();
 });
 
@@ -49,7 +49,7 @@ describe("undoOwnScheduleCompletion", () => {
     expect(mocks.serverHandle.rpcCalls).toEqual([
       { name: "undo_own_schedule_completion", args: { p_entry_id: "entry-1" } },
     ]);
-    expect(mocks.revalidatePath).toHaveBeenCalledWith("/student/gunluk/dokum");
+    expect(mocks.refresh).toHaveBeenCalled();
   });
 
   it("ikinci geri alma veya gün/sahiplik hatasını kullanıcıya taşır", async () => {
@@ -86,7 +86,7 @@ describe("setOwnScheduleAutoRepeat", () => {
     expect(update?.op).toBe("update");
     expect(update?.values).toEqual({ schedule_auto_repeat: true });
     expect(update?.filters).toContainEqual(["eq", "id", "student-1"]);
-    expect(mocks.revalidatePath).toHaveBeenCalledWith("/student/profile");
+    expect(mocks.refresh).toHaveBeenCalled();
   });
 
   it("öğrenci yetkisi yoksa service-role sorgusu çalıştırmaz", async () => {
@@ -132,7 +132,7 @@ describe("createOwnScheduleEntry", () => {
       week_start: currentWeekStart(),
       updated_by: "student-1",
     });
-    expect(mocks.revalidatePath).toHaveBeenCalledWith("/student/schedule");
+    expect(mocks.refresh).toHaveBeenCalled();
   });
 
   it("öğrenci yetkisi yoksa program kaydı oluşturmaz", async () => {
@@ -248,6 +248,6 @@ describe("createOwnScheduleEntry", () => {
       completion_log_id: "log-1",
       updated_by: "student-1",
     });
-    expect(mocks.revalidatePath).toHaveBeenCalledWith("/student/gunluk/dokum");
+    expect(mocks.refresh).toHaveBeenCalled();
   });
 });

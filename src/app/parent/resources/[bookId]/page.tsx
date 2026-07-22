@@ -31,7 +31,6 @@ export default async function ParentBookProgressPage({
 
   const { book, sections, completedBySection, totalTests, completedCount } = data;
   const percent = totalTests === 0 ? 0 : Math.round((completedCount / totalTests) * 100);
-  const redirectPath = `/parent/resources/${bookId}?student=${activeStudent.id}`;
 
   return (
     <>
@@ -68,7 +67,6 @@ export default async function ParentBookProgressPage({
                     sectionId={s.id}
                     testCount={s.test_count}
                     completed={done}
-                    redirectPath={redirectPath}
                   />
                 </CardContent>
               </Card>

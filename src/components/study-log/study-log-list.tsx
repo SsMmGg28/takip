@@ -1,7 +1,6 @@
 "use client";
 
 import { useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { Clock, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { deleteStudyLog } from "@/lib/actions/study-log";
@@ -19,7 +18,6 @@ function dayLabel(ymd: string, today: string, yesterday: string): string {
 }
 
 function DeleteButton({ id }: { id: string }) {
-  const router = useRouter();
   const [pending, startTransition] = useTransition();
   return (
     <button
@@ -32,7 +30,6 @@ function DeleteButton({ id }: { id: string }) {
         startTransition(async () => {
           try {
             await deleteStudyLog(fd);
-            router.refresh();
           } catch (e) {
             toast.error(e instanceof Error ? e.message : "Silinemedi.");
           }

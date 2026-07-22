@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import {
   AlertCircle,
@@ -1126,7 +1125,6 @@ export function DashboardHomeClient({
   data: DashboardData;
   initialLayout: StoredLayoutV2;
 }) {
-  const router = useRouter();
   const [layout, setLayout] = useState(initialLayout);
   const [pending, startTransition] = useTransition();
   function toggleSection(id: DashboardSectionId) {
@@ -1151,7 +1149,6 @@ export function DashboardHomeClient({
     startTransition(async () => {
       try {
         await saveDashboardLayout(next);
-        router.refresh();
       } catch (error) {
         toast.error(error instanceof Error ? error.message : "Çocuk seçilemedi.");
       }

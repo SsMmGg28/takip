@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { refresh } from "next/cache";
 import { assertStudentAction } from "@/lib/auth";
 import { assertDashboardLayout } from "@/lib/dashboard-layout";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -39,7 +39,7 @@ export async function saveDashboardLayout(layout: StoredLayoutV2) {
     updated_at: new Date().toISOString(),
   });
   if (error) throw new Error("Yerleşim kaydedilemedi.");
-  revalidatePath(`/${role}`);
+  refresh();
 }
 
 export async function setDailyGoal(formData: FormData) {
@@ -61,8 +61,5 @@ export async function setDailyGoal(formData: FormData) {
     .select("id");
   if (error) throw new Error(error.message);
   if (!data?.length) throw new Error("Günlük hedef güncellenemedi.");
-  revalidatePath("/student");
-  revalidatePath("/student/profile");
-  revalidatePath("/teacher");
-  revalidatePath("/parent");
+  refresh();
 }

@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { refresh } from "next/cache";
 import { assertStudentAction } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -34,11 +34,9 @@ async function requireEditorRole(): Promise<string> {
   return userData.user.id;
 }
 
-function revalidateSchedulePaths(studentId: string) {
-  revalidatePath("/student/schedule");
-  revalidatePath("/parent/schedule");
-  revalidatePath(`/teacher/schedule/${studentId}`);
-}
+// Mutasyon sonrası yalnız mevcut görünüm tazelenir (refresh); diğer sayfalar
+// dinamik olduğundan bir sonraki gezinmede zaten güncel gelir. Path bazlı
+// revalidation, client router cache'ini topluca boşaltıp gezinmeyi yavaşlatıyordu.
 
 function readScheduleTimingForm(formData: FormData) {
   const dayOfWeek = Number(formData.get("day_of_week"));
@@ -148,8 +146,7 @@ export async function createScheduleEntry(formData: FormData) {
     updated_by: userId,
   });
   if (error) throw new Error(error.message);
-
-  revalidateSchedulePaths(studentId);
+  refresh();
 }
 
 /** Öğretmen veya bağlı veli, erişebildiği mevcut/gelecek program kaydını düzenler. */
@@ -178,7 +175,7 @@ export async function updateScheduleEntry(formData: FormData) {
     })
     .eq("id", entry.id);
   if (error) throw new Error(error.message);
-  revalidateSchedulePaths(entry.student_id);
+  refresh();
 }
 
 /** Öğrenci yalnız kendi programına, mevcut veya gelecek hafta için kayıt ekler. */
@@ -211,8 +208,7 @@ export async function createOwnScheduleEntry(formData: FormData) {
     updated_by: student.id,
   });
   if (error) throw new Error(error.message);
-
-  revalidateSchedulePaths(student.id);
+  refresh();
 }
 
 /** Öğrenci yalnız kendi mevcut/gelecek haftadaki program kaydını düzenler. */
@@ -259,12 +255,9 @@ export async function updateOwnScheduleEntry(formData: FormData) {
       .eq("id", entry.completion_log_id)
       .eq("student_id", student.id);
     if (logError) throw new Error(logError.message);
-    revalidatePath("/student");
-    revalidatePath("/student/gunluk");
-    revalidatePath("/student/gunluk/dokum");
   }
 
-  revalidateSchedulePaths(student.id);
+  refresh();
 }
 
 /** Öğrenci kendi mevcut/gelecek haftadaki program kaydını siler. */
@@ -291,8 +284,7 @@ export async function deleteOwnScheduleEntry(formData: FormData) {
     .eq("id", entry.id)
     .eq("student_id", student.id);
   if (error) throw new Error(error.message);
-
-  revalidateSchedulePaths(student.id);
+  refresh();
 }
 
 /** Tamamlanan planı çalışma günlüğüne aktarır; böylece seri ve döküm güncellenir. */
@@ -353,15 +345,12 @@ export async function completeOwnScheduleEntry(formData: FormData) {
     .eq("student_id", student.id);
   if (error) throw new Error(error.message);
 
-  revalidateSchedulePaths(student.id);
-  revalidatePath("/student");
-  revalidatePath("/student/gunluk");
-  revalidatePath("/student/gunluk/dokum");
+  refresh();
 }
 
 /** Aynı İstanbul gününde tamamlanan programı ve bağlı günlüğü tek transaction ile geri alır. */
 export async function undoOwnScheduleCompletion(formData: FormData) {
-  const student = await assertStudentAction();
+  await assertStudentAction();
   const entryId = String(formData.get("id") ?? "");
   if (!entryId) throw new Error("Program kaydı bulunamadı.");
 
@@ -371,10 +360,7 @@ export async function undoOwnScheduleCompletion(formData: FormData) {
   });
   if (error) throw new Error(error.message);
 
-  revalidateSchedulePaths(student.id);
-  revalidatePath("/student");
-  revalidatePath("/student/gunluk");
-  revalidatePath("/student/gunluk/dokum");
+  refresh();
 }
 
 export async function deleteScheduleEntry(formData: FormData) {
@@ -394,8 +380,7 @@ export async function deleteScheduleEntry(formData: FormData) {
 
   const { error } = await supabase.from("study_schedule_entries").delete().eq("id", id);
   if (error) throw new Error(error.message);
-
-  revalidateSchedulePaths(entry.student_id);
+  refresh();
 }
 
 /**
@@ -441,8 +426,7 @@ export async function copyWeekToCurrent(formData: FormData) {
     })),
   );
   if (insertError) throw new Error(insertError.message);
-
-  revalidateSchedulePaths(studentId);
+  refresh();
 }
 
 /** Öğretmen/veli programı hazırlayınca öğrenci + veliye tek bildirim gönderir. */
@@ -499,6 +483,5 @@ export async function setOwnScheduleAutoRepeat(enabled: boolean) {
   if (error) throw new Error(error.message);
   if (!updated?.length) throw new Error("Otomatik devam ayarı güncellenemedi.");
 
-  revalidateSchedulePaths(student.id);
-  revalidatePath("/student/profile");
+  refresh();
 }
