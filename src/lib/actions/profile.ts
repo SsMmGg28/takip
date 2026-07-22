@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { refresh } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionResult } from "@/lib/actions/exams";
 
@@ -21,6 +21,6 @@ export async function updateOwnProfile(formData: FormData): Promise<ActionResult
     .eq("id", userData.user.id);
   if (error) return { ok: false, error: error.message };
 
-  revalidatePath("/", "layout");
+  refresh();
   return { ok: true };
 }

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -28,7 +27,6 @@ export function StudyLogForm({
   /** Ders adı → o dersin konu/ünite listesi (kitap kataloğundan; boşsa konu seçimi kapalı). */
   topicsBySubject: Record<string, { code: string; name: string }[]>;
 }) {
-  const router = useRouter();
   const [subject, setSubject] = useState("");
   const [topic, setTopic] = useState("");
   const [minutes, setMinutes] = useState("");
@@ -54,7 +52,6 @@ export function StudyLogForm({
           await addStudyLog(formData);
           toast.success("Çalışma kaydedildi. 🔥");
           reset();
-          router.refresh();
         } catch (e) {
           toast.error(e instanceof Error ? e.message : "Bir hata oluştu.");
         } finally {

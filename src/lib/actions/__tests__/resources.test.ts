@@ -12,7 +12,7 @@ vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => mocks.handle.client,
 }));
 vi.mock("next/cache", () => ({
-  revalidatePath: vi.fn(),
+  refresh: vi.fn(),
   updateTag: mocks.updateTag,
 }));
 vi.mock("@/lib/auth", () => ({ assertTeacherAction: mocks.assertTeacherAction }));

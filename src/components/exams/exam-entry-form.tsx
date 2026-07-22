@@ -207,7 +207,6 @@ export function ExamEntryForm({
     }
     toast.success(examId ? "Deneme güncellendi." : "Deneme kaydedildi.");
     router.push(backHref);
-    router.refresh();
   }
 
   return (

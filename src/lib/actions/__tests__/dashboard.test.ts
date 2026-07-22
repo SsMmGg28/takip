@@ -4,20 +4,20 @@ import { createSupabaseMock, type SupabaseMockHandle } from "@/test/supabase-moc
 const mocks = vi.hoisted(() => ({
   admin: null as unknown as SupabaseMockHandle,
   assertStudentAction: vi.fn(),
-  revalidatePath: vi.fn(),
+  refresh: vi.fn(),
 }));
 
 vi.mock("@/lib/auth", () => ({ assertStudentAction: mocks.assertStudentAction }));
 vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: () => mocks.admin.client }));
 vi.mock("@/lib/supabase/server", () => ({ createClient: vi.fn() }));
-vi.mock("next/cache", () => ({ revalidatePath: mocks.revalidatePath }));
+vi.mock("next/cache", () => ({ refresh: mocks.refresh }));
 
 import { setDailyGoal } from "@/lib/actions/dashboard";
 
 beforeEach(() => {
   mocks.assertStudentAction.mockReset();
   mocks.assertStudentAction.mockResolvedValue({ id: "student-1", role: "student" });
-  mocks.revalidatePath.mockClear();
+  mocks.refresh.mockClear();
 });
 
 describe("setDailyGoal", () => {

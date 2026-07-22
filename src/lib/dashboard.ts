@@ -270,6 +270,18 @@ async function getStudentData(profile: Profile): Promise<DashboardData> {
 
 async function getTeacherData(profile: Profile): Promise<DashboardData> {
   const supabase = await createClient();
+  // Öğrenci listesine ihtiyaç duymayan sorgular onunla eşzamanlı başlar;
+  // Promise.resolve, Supabase builder'ının isteğini hemen tetikler.
+  const eventsPromise = Promise.resolve(
+    supabase
+      .from("calendar_events")
+      .select("id, title, start_at, type")
+      .gte("start_at", new Date(new Date().setHours(0, 0, 0, 0)).toISOString())
+      .order("start_at")
+      .limit(10),
+  );
+  const pendingBooksPromise = getPendingBooks();
+  const booksPromise = getApprovedBooks();
   const students = await getAccessibleStudentsWithGrades(profile);
   const ids = students.map((student) => student.id);
   const fourteenDaysAgo = new Date(Date.now() - 14 * 86_400_000).toISOString();
@@ -314,14 +326,9 @@ async function getTeacherData(profile: Profile): Promise<DashboardData> {
           .in("student_id", ids)
           .order("exam_date", { ascending: false })
       : Promise.resolve({ data: [] }),
-    supabase
-      .from("calendar_events")
-      .select("id, title, start_at, type")
-      .gte("start_at", new Date(new Date().setHours(0, 0, 0, 0)).toISOString())
-      .order("start_at")
-      .limit(10),
-    getPendingBooks(),
-    getApprovedBooks(),
+    eventsPromise,
+    pendingBooksPromise,
+    booksPromise,
     ids.length
       ? supabase
           .from("student_profiles")
@@ -513,11 +520,15 @@ async function getParentData(
   storedLayout: StoredLayout | null,
 ): Promise<ParentDashboardData> {
   const supabase = await createClient();
+  // Çocuk listesine bağlı olmayan duyuru sorgusu onunla eşzamanlı başlar.
+  const announcementsPromise = unreadAnnouncements();
   const children = await getAccessibleStudentsWithGrades(profile);
   const ids = children.map((child) => child.id);
   const layout = normalizeDashboardLayout("parent", storedLayout, ids);
   const selectedStudentId = layout.selectedStudentId ?? ids[0] ?? null;
-  if (!ids.length)
+  if (!ids.length) {
+    // Erken dönüşte beklenmeyen promise'in yakalanmamış hataya dönüşmesini önle.
+    announcementsPromise.catch(() => undefined);
     return {
       role: "parent",
       firstName: firstName(profile.full_name),
@@ -540,6 +551,7 @@ async function getParentData(
       weeklyStory: [],
       upcomingEvents: [],
     };
+  }
   const weekStart = currentWeekStart();
   const [
     homeworkResult,
@@ -588,7 +600,7 @@ async function getParentData(
       .select("student_id, minutes, question_count")
       .in("student_id", ids)
       .eq("log_date", todayInIstanbul()),
-    unreadAnnouncements(),
+    announcementsPromise,
     getStudentCalendarItems(selectedStudentId!),
   ]);
   const homeworkRows = (homeworkResult.data as HomeworkRow[] | null) ?? [];

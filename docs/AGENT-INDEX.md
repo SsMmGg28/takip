@@ -1,6 +1,6 @@
 # Ders Takip — yapay zeka ajanı proje indeksi
 
-> Zorunlu başlangıç belgesi. Son yerel doğrulama: **2026-07-21**. Canlı Supabase
+> Zorunlu başlangıç belgesi. Son yerel doğrulama: **2026-07-22**. Canlı Supabase
 > ve Vercel anlık görüntüsü: **2026-07-21, Europe/Istanbul**. Gizli değer içermez.
 
 Bu belge, bir ajanın bütün depoyu tekrar taramadan doğru dosyaya ve doğru güvenlik
@@ -394,7 +394,20 @@ başarılı form POST'u rol dashboard'una `303` ile GET yönlendirmesi yapar.
   `getTeacherIds` ile çözülür. Demo/gerçek kullanıcı izolasyonunu koru.
 - Dashboard verisi `src/lib/dashboard.ts`; kişisel düzen `dashboard_layouts`.
 - Katalog okumaları `src/lib/books.ts` içindeki `"use cache"` ve `book-catalog`
-  tag'iyle ilişkilidir. Kaynak mutasyonlarında ilgili tag/path invalidation'ını ara.
+  tag'iyle ilişkilidir. Katalog mutasyonları `updateTag(BOOK_CATALOG_TAG)` çağırır.
+- **Invalidation sözleşmesi (2026-07-22):** Server Action mutasyonları
+  `revalidatePath` KULLANMAZ — bu sürümde action içi `revalidatePath`, ziyaret
+  edilmiş tüm sayfaların client cache'ini boşaltıp gezinmeyi yavaşlatıyor. Bunun
+  yerine aksiyon sonunda `next/cache`'ten `refresh()` çağrılır (yalnız mevcut
+  görünümü tazeler); diğer sayfalar dinamik olduğundan sonraki gezinmede zaten
+  taze render edilir. Öğrenci test/ödev işaretleme aksiyonları
+  (`student/homework/actions.ts#setStudentTestMark`, `resources.ts#toggleTestProgress`)
+  hiç invalidation yapmaz: istemci optimistic yerel state tutar ve öğe başına
+  in-flight kilidi kullanır (`student-mark-panel.tsx`, `test-grid.tsx`).
+  `/api/admin/*` çağıran diyaloglar istisnadır; action olmadıkları için
+  `router.refresh()` ile tazelemeye devam ederler.
+- Tüm detay/dinamik rotalarda `loading.tsx` iskeleti vardır (2026-07-22'de
+  eklendi); yeni rota açarken `src/components/skeletons.tsx` desenini kullan.
 - Cache Components açık olduğundan cookies/params/searchParams kullanan runtime
   veri Suspense sınırları içinde kalmalıdır. Bu sürümün yerel Next docs'unu okumadan
   eski caching API varsayımı yapma.

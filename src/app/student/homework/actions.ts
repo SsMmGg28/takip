@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Homework } from "@/lib/types";
@@ -30,11 +29,10 @@ async function requireOwnUncheckedHomework(homeworkId: string): Promise<Homework
   return hw as Homework;
 }
 
-function revalidateStudentHomeworkPaths(studentId: string) {
-  revalidatePath("/student/homework");
-  revalidatePath("/student");
-  revalidatePath(`/teacher/homework/${studentId}`);
-}
+// Bilinçli olarak revalidate edilmez: panel optimistic yerel state tutar ve
+// etkilenen sayfalar dinamik olduğundan bir sonraki gezinmede zaten taze render
+// edilir. Tık başına revalidation, client router cache'ini boşaltıp hem bu
+// paneli hem sonraki tüm gezinmeleri yavaşlatıyordu.
 
 /** Öğrencinin "bu testi yaptım" beyanını açar/kapatır. */
 export async function setStudentTestMark(formData: FormData) {
@@ -43,7 +41,7 @@ export async function setStudentTestMark(formData: FormData) {
   const testNumber = Number(formData.get("test_number"));
   const marked = String(formData.get("marked")) === "true";
 
-  const hw = await requireOwnUncheckedHomework(homeworkId);
+  await requireOwnUncheckedHomework(homeworkId);
 
   const admin = createAdminClient();
   const { error } = await admin
@@ -53,8 +51,6 @@ export async function setStudentTestMark(formData: FormData) {
     .eq("section_id", sectionId)
     .eq("test_number", testNumber);
   if (error) throw new Error(error.message);
-
-  revalidateStudentHomeworkPaths(hw.student_id);
 }
 
 /** Testsiz ödevde öğrencinin "tamamladım" beyanını açar/kapatır. */
@@ -62,7 +58,7 @@ export async function setStudentHomeworkDone(formData: FormData) {
   const homeworkId = String(formData.get("homework_id"));
   const done = String(formData.get("done")) === "true";
 
-  const hw = await requireOwnUncheckedHomework(homeworkId);
+  await requireOwnUncheckedHomework(homeworkId);
 
   const admin = createAdminClient();
   const { error } = await admin
@@ -70,6 +66,4 @@ export async function setStudentHomeworkDone(formData: FormData) {
     .update({ student_marked_done_at: done ? new Date().toISOString() : null })
     .eq("id", homeworkId);
   if (error) throw new Error(error.message);
-
-  revalidateStudentHomeworkPaths(hw.student_id);
 }
