@@ -7,6 +7,7 @@ import { SignOutButton } from "@/components/sign-out-button";
 import { Brand } from "@/components/brand";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { NoFlashThemeColorScript, ThemeColorSync } from "@/components/theme-color-sync";
 import { requireRole } from "@/lib/auth";
 import { getAccessibleStudentsWithGrades, getStudentGrade } from "@/lib/students";
 import { examsEnabledForGrade } from "@/lib/kazanim";
@@ -59,6 +60,8 @@ export async function DashboardShell({
 
   return (
     <div className="relative min-h-screen">
+      <NoFlashThemeColorScript color={profile.theme_color} />
+      <ThemeColorSync color={profile.theme_color} />
       <ServiceWorkerRegistrar />
       {/* Dekoratif arka plan ışıltıları */}
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">

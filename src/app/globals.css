@@ -60,6 +60,120 @@
   --warning: oklch(0.8 0.14 80);
 }
 
+/* ─── Seçilebilir aksan tema renkleri ───────────────────────────────────────
+   Kullanıcının profilinden seçtiği renk `<html data-color="...">` ile uygulanır
+   (kaynak: profiles.theme_color, cihazlar arası senkron). `blue` varsayılandır ve
+   ayrı blok gerektirmez. Her renk için mevcut mavideki aynı token yapısı korunur:
+   --primary-foreground açık temada beyaz, brand gradyanı beyaz metne yetecek kadar
+   koyu; karanlık tema tonları ayrı verilir ki kontrast bozulmasın.
+
+   Özgüllük/kaynak sırası: :root[data-color] (0,2,0) açık :root'u (0,1,0) geçer;
+   .dark[data-color] blokları :root[data-color]'dan SONRA yazıldığından karanlık
+   temada karanlık tonlar kazanır. Tümü @media screen içinde: @media print bloğu
+   (aşağıda) tema ne olursa olsun raporu mavi/nötr basmaya devam etsin. */
+@media screen {
+  /* Yeşil (zümrüt) */
+  :root[data-color="green"] {
+    --primary: oklch(0.55 0.14 152);
+    --primary-foreground: oklch(0.99 0 0);
+    --accent: oklch(0.93 0.045 152);
+    --accent-foreground: oklch(0.38 0.09 152);
+    --ring: oklch(0.6 0.13 152);
+    --brand-from: oklch(0.52 0.14 158);
+    --brand-via: oklch(0.6 0.13 150);
+    --brand-to: oklch(0.7 0.12 172);
+    --glow: oklch(0.55 0.14 152 / 22%);
+  }
+
+  /* Mor (menekşe) */
+  :root[data-color="purple"] {
+    --primary: oklch(0.52 0.2 295);
+    --primary-foreground: oklch(0.99 0 0);
+    --accent: oklch(0.94 0.05 295);
+    --accent-foreground: oklch(0.4 0.13 295);
+    --ring: oklch(0.56 0.18 295);
+    --brand-from: oklch(0.5 0.21 300);
+    --brand-via: oklch(0.56 0.19 288);
+    --brand-to: oklch(0.64 0.16 272);
+    --glow: oklch(0.52 0.2 295 / 22%);
+  }
+
+  /* Gül (pembe-kırmızı) */
+  :root[data-color="rose"] {
+    --primary: oklch(0.55 0.19 12);
+    --primary-foreground: oklch(0.99 0 0);
+    --accent: oklch(0.94 0.04 12);
+    --accent-foreground: oklch(0.4 0.14 12);
+    --ring: oklch(0.6 0.18 12);
+    --brand-from: oklch(0.55 0.2 8);
+    --brand-via: oklch(0.6 0.18 358);
+    --brand-to: oklch(0.66 0.15 340);
+    --glow: oklch(0.55 0.19 12 / 22%);
+  }
+
+  /* Turuncu (açık temada koyu ton: beyaz metin kontrastı için) */
+  :root[data-color="orange"] {
+    --primary: oklch(0.55 0.15 48);
+    --primary-foreground: oklch(0.99 0 0);
+    --accent: oklch(0.93 0.05 58);
+    --accent-foreground: oklch(0.42 0.1 45);
+    --ring: oklch(0.6 0.14 48);
+    --brand-from: oklch(0.53 0.16 38);
+    --brand-via: oklch(0.6 0.14 52);
+    --brand-to: oklch(0.66 0.13 68);
+    --glow: oklch(0.55 0.15 48 / 22%);
+  }
+
+  /* Karanlık tema tonları — daha parlak/açık; :root[data-color] bloklarından sonra */
+  .dark[data-color="green"] {
+    --primary: oklch(0.72 0.14 152);
+    --primary-foreground: oklch(0.16 0.04 152);
+    --accent: oklch(0.3 0.055 152);
+    --accent-foreground: oklch(0.9 0.05 150);
+    --ring: oklch(0.68 0.13 152);
+    --brand-from: oklch(0.66 0.14 158);
+    --brand-via: oklch(0.72 0.13 150);
+    --brand-to: oklch(0.78 0.12 172);
+    --glow: oklch(0.68 0.14 152 / 30%);
+  }
+
+  .dark[data-color="purple"] {
+    --primary: oklch(0.68 0.17 295);
+    --primary-foreground: oklch(0.15 0.05 295);
+    --accent: oklch(0.32 0.07 295);
+    --accent-foreground: oklch(0.9 0.06 292);
+    --ring: oklch(0.66 0.16 295);
+    --brand-from: oklch(0.64 0.18 300);
+    --brand-via: oklch(0.7 0.16 288);
+    --brand-to: oklch(0.74 0.14 272);
+    --glow: oklch(0.66 0.18 295 / 30%);
+  }
+
+  .dark[data-color="rose"] {
+    --primary: oklch(0.7 0.16 12);
+    --primary-foreground: oklch(0.16 0.05 12);
+    --accent: oklch(0.32 0.07 12);
+    --accent-foreground: oklch(0.9 0.05 10);
+    --ring: oklch(0.66 0.15 12);
+    --brand-from: oklch(0.66 0.17 8);
+    --brand-via: oklch(0.7 0.15 358);
+    --brand-to: oklch(0.74 0.13 340);
+    --glow: oklch(0.68 0.16 12 / 30%);
+  }
+
+  .dark[data-color="orange"] {
+    --primary: oklch(0.72 0.15 55);
+    --primary-foreground: oklch(0.16 0.04 48);
+    --accent: oklch(0.33 0.06 48);
+    --accent-foreground: oklch(0.9 0.06 60);
+    --ring: oklch(0.68 0.14 55);
+    --brand-from: oklch(0.66 0.16 40);
+    --brand-via: oklch(0.72 0.14 55);
+    --brand-to: oklch(0.78 0.12 72);
+    --glow: oklch(0.7 0.15 55 / 30%);
+  }
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

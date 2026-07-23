@@ -1,3 +1,5 @@
+import type { ThemeColor } from "@/lib/theme-colors";
+
 export type Role = "teacher" | "student" | "parent";
 
 export interface Profile {
@@ -9,6 +11,8 @@ export interface Profile {
   must_change_password: boolean;
   /** Yönetici bayrağı: role='teacher' hesaba ek yetkiler verir; yalnızca service-role değiştirebilir. */
   is_admin?: boolean;
+  /** Kullanıcının seçtiği aksan tema rengi; cihazlar arası senkron için DB'de tutulur. */
+  theme_color: ThemeColor;
   created_at: string;
 }
 
