@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BellRing, Bug, CalendarClock, KeyRound, UserRound } from "lucide-react";
+import { BellRing, Bug, CalendarClock, KeyRound, Palette, UserRound } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/page-header";
 import { BugReportDialog } from "@/components/bug-report-dialog";
 import { EditProfileForm } from "@/components/profile/edit-profile-form";
 import { ChangePasswordForm } from "@/components/profile/change-password-form";
+import { ThemeColorPicker } from "@/components/profile/theme-color-picker";
 import { PushNotificationToggle } from "@/components/push-manager";
 import { AutoRepeatToggle } from "@/components/schedule/schedule-toolbar-buttons";
 import type { Profile, Role } from "@/lib/types";
@@ -109,6 +110,25 @@ export async function ProfileView({
           </CardContent>
         </Card>
       </div>
+
+      {/* Tema rengi: seçim DB'de tutulur, tüm cihazlarda senkron olur */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <span className="gradient-surface flex h-8 w-8 items-center justify-center rounded-lg text-white">
+              <Palette className="h-4 w-4" />
+            </span>
+            Tema Rengi
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Arayüzün vurgu rengini seç. Seçimin hesabına kaydedilir ve tüm cihazlarında
+            geçerli olur.
+          </p>
+          <ThemeColorPicker initialColor={profile.theme_color} />
+        </CardContent>
+      </Card>
 
       {profile.role === "student" && (
         <Card>

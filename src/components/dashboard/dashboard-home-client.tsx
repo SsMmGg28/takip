@@ -718,6 +718,7 @@ function TeacherSection({
             username: "",
             phone: null,
             must_change_password: false,
+            theme_color: "blue",
             created_at: "",
           }))}
         />

@@ -1,6 +1,6 @@
 # Ders Takip — yapay zeka ajanı proje indeksi
 
-> Zorunlu başlangıç belgesi. Son yerel doğrulama: **2026-07-22**. Canlı Supabase
+> Zorunlu başlangıç belgesi. Son yerel doğrulama: **2026-07-23**. Canlı Supabase
 > ve Vercel anlık görüntüsü: **2026-07-21, Europe/Istanbul**. Gizli değer içermez.
 
 Bu belge, bir ajanın bütün depoyu tekrar taramadan doğru dosyaya ve doğru güvenlik
@@ -195,7 +195,8 @@ varsayılan/sıra/gizleme/daraltma normalizasyonu `src/lib/dashboard-layout.ts` 
 ### Paylaşılan Server Action dosyaları
 
 - `actions/account.ts`: ilk şifreyi tamamla ve `must_change_password=false` yap.
-- `actions/profile.ts`: kendi profilini güncelle.
+- `actions/profile.ts`: kendi profilini güncelle (`updateOwnProfile`) ve kendi aksan
+  tema rengini değiştir (`updateOwnThemeColor`; izinli küme `src/lib/theme-colors.ts`).
 - `actions/dashboard.ts`: rol beyaz listeli layout v2 upsert'i, veli seçili çocuk
   erişim kontrolü ve yalnız doğrulanmış öğrencinin günlük hedef güncellemesi.
 - `actions/resources.ts`: kitap/bölüm/onay/raf/test ilerlemesi.
@@ -259,6 +260,13 @@ Client admin çağrılarının tek sarmalayıcısı `src/lib/admin-api.ts#postAd
   tercihini taşır. v1 satırları silinmez, okurken geçersiz sayılıp varsayılan v2 gösterilir.
 - `student_profiles.daily_goal_minutes` (1–1440) ve `daily_goal_questions` (1–2000)
   birlikte nullable/doludur; hedef geçmişi yoktur, bugünkü ilerleme `study_log` toplamıdır.
+- `profiles.theme_color` (text, default `blue`, CHECK: `blue|green|purple|rose|orange`):
+  kullanıcının aksan tema rengi; light/dark ekseninden bağımsız ikinci eksen. DB'de
+  tutulduğundan cihazlar arası senkron. Renk tonları `globals.css`'te
+  `:root[data-color="..."]` / `.dark[data-color="..."]` (yalnız `@media screen`) ile;
+  `<html data-color>` özniteliği giriş sonrası `DashboardShell` içinde
+  `theme-color-sync.tsx` (no-flash inline script + client sync) tarafından uygulanır.
+  Ayrıcalıklı alan değildir; `0007b` guard ve self-update RLS'i değiştirmeye izin verir.
 - `exam_topics` canlıda durur fakat uygulama kodu kullanmaz; güncel kazanım sistemi
   `exam_kazanim_results` kullanır. Silmeden önce veri/bağımlılık doğrula.
 
@@ -292,9 +300,12 @@ gibi alanlar bu arayüzlerde eksik olabilir; `types.ts` şemanın eksiksiz kayna
 ### Migration gerçeği — kritik
 
 - Depoda `0001_initial_schema.sql` → `0019_perf_indexes.sql` ve sonrasında
-  timestamp'li `20260721181041_schedule_student_planning.sql` ile
-  `20260721221500_dashboard_daily_goals.sql` var; `0007` sonrasında `0007b` gelir.
+  timestamp'li `20260721181041_schedule_student_planning.sql`,
+  `20260721221500_dashboard_daily_goals.sql` ve
+  `20260723120000_profile_theme_color.sql` var; `0007` sonrasında `0007b` gelir.
   README şu anda migration'ların elle, sırayla uygulanmasını söyler.
+- `20260723120000_profile_theme_color.sql` yalnız yerelde eklendi; `profiles`'a
+  `theme_color` kolonu + CHECK ekler, canlıya henüz uygulanmadı (elle/onaylı uygulanacak).
 - Canlı migration history yalnız timestamp'li 17 kayıt gösterir; ilk kayıt
   `20260704064525_source_books_assignments_redesign` ile başlar ve ayrıca depoda
   aynı adlı dosyası bulunmayan `push_dashboard_reconcile` kaydı vardır.
