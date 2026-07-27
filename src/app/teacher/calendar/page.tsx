@@ -1,3 +1,4 @@
+import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/page-header";
 import { CalendarView } from "@/components/calendar/calendar-view";
@@ -11,7 +12,9 @@ export const metadata = { title: "Takvim" };
 export default async function TeacherCalendarPage() {
   const supabase = await createClient();
 
-  const [{ data: students }, { data: events }, { data: homework }] = await Promise.all([
+  // Sayfa düzeyi rol koruması sorgularla aynı dalgada çözülür (savunma derinliği).
+  const [, { data: students }, { data: events }, { data: homework }] = await Promise.all([
+    requireRole(["teacher"]),
     supabase.from("profiles").select("*").eq("role", "student").order("full_name"),
     supabase.from("calendar_events").select("*").order("start_at", { ascending: true }),
     supabase

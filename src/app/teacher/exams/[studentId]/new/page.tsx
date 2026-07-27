@@ -5,6 +5,7 @@ import { ExamImportPanel } from "@/components/exams/exam-import-panel";
 import { getStudentGrade } from "@/lib/students";
 import { examsEnabledForGrade } from "@/lib/kazanim";
 import { isGeminiConfigured } from "@/lib/ai/gemini";
+import { requireRole } from "@/lib/auth";
 
 export const metadata = { title: "Yeni Deneme" };
 
@@ -14,6 +15,8 @@ export default async function TeacherNewExamPage({
   params: Promise<{ studentId: string }>;
 }) {
   const { studentId } = await params;
+  // Sayfa düzeyi rol koruması (savunma derinliği); header adasıyla tekilleşir.
+  await requireRole(["teacher"]);
   const supabase = await createClient();
 
   const { data: student } = await supabase

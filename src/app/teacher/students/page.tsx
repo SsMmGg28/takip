@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TableSkeleton } from "@/components/skeletons";
+import { requireRole } from "@/lib/auth";
 import { CreateAccountDialog } from "@/components/teacher/create-account-dialog";
 import { DeleteUserButton } from "@/components/teacher/delete-user-button";
 import { EditUserDialog } from "@/components/teacher/edit-user-dialog";
@@ -123,8 +124,10 @@ export default async function TeacherStudentsPage({
     .replace(/[,%()]/g, "")
     .slice(0, 80);
   const page = Math.max(1, Number.parseInt(params.page ?? "1", 10) || 1);
-  // await YOK: listeler Suspense içinde akar.
+  // await YOK: listeler Suspense içinde akar (sorgular zaten RLS kapsamındadır).
   const data = loadStudentsPageData(q, page);
+  // Sayfa düzeyi rol koruması: yanlış rol, içerik akmaya başlamadan yönlendirilir.
+  await requireRole(["teacher"]);
 
   return (
     <>

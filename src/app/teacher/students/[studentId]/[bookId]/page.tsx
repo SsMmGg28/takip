@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
 import { TestGrid } from "@/components/resources/test-grid";
 import { getStudentProgressForBook } from "@/lib/books";
+import { requireRole } from "@/lib/auth";
 
 export const metadata = { title: "Kitap İlerlemesi" };
 
@@ -15,6 +16,8 @@ export default async function TeacherStudentBookProgressPage({
   params: Promise<{ studentId: string; bookId: string }>;
 }) {
   const { studentId, bookId } = await params;
+  // Sayfa düzeyi rol koruması (savunma derinliği); header adasıyla tekilleşir.
+  await requireRole(["teacher"]);
   const supabase = await createClient();
 
   const { data: student } = await supabase

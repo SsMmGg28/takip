@@ -1,6 +1,6 @@
 # Ders Takip — yapay zeka ajanı proje indeksi
 
-> Zorunlu başlangıç belgesi. Son yerel doğrulama: **2026-07-23**. Canlı Supabase
+> Zorunlu başlangıç belgesi. Son yerel doğrulama: **2026-07-27**. Canlı Supabase
 > ve Vercel anlık görüntüsü: **2026-07-21, Europe/Istanbul**. Gizli değer içermez.
 
 Bu belge, bir ajanın bütün depoyu tekrar taramadan doğru dosyaya ve doğru güvenlik
@@ -86,7 +86,7 @@ flowchart LR
 | `src/app/api/cron/reminders/`        | Vercel cron; hatırlatma + program auto-repeat                       |
 | `src/app/api/dev/preview-login/`     | Yalnız development preview otomatik girişi                          |
 | `src/components/`                    | Paylaşılan ve domain UI; `ui/` düşük seviye primitives              |
-| `src/components/dashboard/`          | Widget registry, veri widget'ları ve özelleştirilebilir düzen       |
+| `src/components/dashboard/`          | Rol başına bölünmüş dashboard chunk'ları + ortak çerçeve ve düzen   |
 | `src/lib/`                           | Okuma modelleri, saf domain mantığı, tipler, auth ve entegrasyonlar |
 | `src/lib/actions/`                   | Paylaşılan Server Action mutasyonları                               |
 | `src/lib/supabase/`                  | Browser, SSR, middleware ve service-role istemcileri                |
@@ -101,8 +101,13 @@ flowchart LR
 
 1. `src/proxy.ts`, `src/lib/supabase/middleware.ts` üzerinden Supabase oturum
    cookie'lerini yeniler. `/`, `/login` açıktır; API rotaları kendi kontrolünü yapar.
-2. Rol layout'u `DashboardShellGate` içinde `requireRole([role])` uygular. Sayfalar
-   çoğunlukla aynı kontrolü tekrar ederek savunma derinliği sağlar.
+2. Rol layout'ları statik kabuk çizer (`DashboardChrome`,
+   `src/components/dashboard-shell.tsx`): header/menü PPR statik kabuğunda anında
+   boyanır; `requireRole([role])` kabuğun `HeaderUserArea` Suspense adasında
+   çalışır ve stream içinde redirect eder. Bu koruma sayfa içeriğiyle PARALEL
+   aktığı için **her rol sayfası kendi `requireRole` çağrısını yapar** (2026-07-27
+   itibarıyla tüm teacher/student/parent sayfalarında mevcut) — yeni sayfa
+   açarken bunu atlama.
 3. `src/lib/auth.ts#getCurrentProfile`, `auth.getClaims()` ile kullanıcı id'sini
    alır ve `profiles` satırını okur. React `cache()` aynı istekte tekrar sorguyu önler.
 4. Sayfa koruması: `requireRole`; öğretmen action koruması:
@@ -167,7 +172,11 @@ demo izolasyonu için canlı şemada `profiles.is_demo` vardır.
   `/[examId]/edit`: RLS ve edit-request akışıyla bağlı öğrenci denemeleri.
 - `/parent/announcements`, `/parent/profile`.
 
-Navigasyonun tek ana kaydı `src/components/dashboard-nav.tsx#LINKS_BY_ROLE`;
+Navigasyonun tek ana kaydı
+`src/components/dashboard-navigation-config.ts#LINKS_BY_ROLE`; aktif link
+vurgusu `useSelectedLayoutSegment`'ten türetilir (usePathname, cacheComponents'ta
+dinamik paramlı rotalarda nav'ı statik kabuktan düşürür) ve vurgusuz nav
+fallback'i statik kabukta, vurgulu `*Active` varyantları Suspense içinde çizilir.
 dashboard bölüm kimlikleri ve rol beyaz listesi `src/lib/dashboard-types.ts`, v2
 varsayılan/sıra/gizleme/daraltma normalizasyonu `src/lib/dashboard-layout.ts` içindedir.
 Öncelik ve radar kuralları saf/testlenebilir `src/lib/dashboard-priority.ts` modülündedir.
@@ -349,9 +358,12 @@ gibi alanlar bu arayüzlerde eksik olabilir; `types.ts` şemanın eksiksiz kayna
 
 ### Cron ve build
 
-- `vercel.json`: `GET /api/cron/reminders`, cron `0 6 * * *` (UTC).
+- `vercel.json`: `GET /api/cron/reminders`, cron `0 6 * * *` (UTC); fonksiyonlar
+  Supabase'e (eu-west-1) yakınlık için `regions: ["dub1"]` ile sabitlendi.
 - `CRON_SECRET`, Vercel'in gönderdiği bearer token ile route'ta doğrulanır.
-- `next.config.ts`: Cache Components açık; `/sw.js` için no-cache header.
+- `next.config.ts`: Cache Components açık; `/sw.js` için no-cache header;
+  `experimental.optimizePackageImports: ["radix-ui"]` (lucide-react/recharts bu
+  sürümde varsayılan optimize).
 - `src/app/layout.tsx`: `@vercel/speed-insights/next` her sayfada.
 - CI build'i sahte Supabase env ile çalışır ve gerçek DB'ye ağ çağrısı yapmamalıdır.
 
@@ -422,6 +434,17 @@ başarılı form POST'u rol dashboard'una `303` ile GET yönlendirmesi yapar.
 - Cache Components açık olduğundan cookies/params/searchParams kullanan runtime
   veri Suspense sınırları içinde kalmalıdır. Bu sürümün yerel Next docs'unu okumadan
   eski caching API varsayımı yapma.
+- **Cache kapsamı kararı (2026-07-27):** kullanıcıdan bağımsız tek DB verisi
+  onaylı katalogdur ve zaten `"use cache"`'lidir (`books.ts`). `getPendingBooks`
+  (veli kendi eklediklerini RLS ile görür) ve `calendar_events` (öğrenciye bağlı
+  satırlar + genel satırlar karışık) KULLANICIYA ÖZGÜDÜR — bunları admin client +
+  paylaşımlı cache'e taşıma; veri sızdırır.
+- **Gezinme hızının omurgası (2026-07-27):** sayfalar bağımsız sorguları tek
+  `Promise.all`'da toplar, ağır veriyi await etmeden Suspense'e promise olarak
+  geçirir (ev desenleri: `student/homework` `HomeworkResults`,
+  `dashboard-home.tsx` `DashboardHomeStream`). Dashboard client'ı rol başına
+  chunk'lara bölünmüştür (`dashboard-home-{student,teacher,parent}.tsx` +
+  `dashboard-home-shared.tsx`); ağır diyaloglar `next/dynamic` iledir.
 
 ## Dış entegrasyonlar
 
@@ -468,9 +491,9 @@ npm run build
   de kullanır. Yeni kullanımı eklerken bu indeks ve dosya açıklamasını güncelle.
 - `proxy.ts` yalnız session/erken yönlendirme katmanıdır; nihai authorization
   sayfa/action/API + RLS'te tekrar doğrulanmalıdır.
-- `/teacher/calendar`, `/teacher/schedule*`, `/teacher/students*` bazı dosyalarda
-  doğrudan `requireRole` görünmese bile öğretmen layout'u tarafından korunur.
-  Taşıma/refactor sırasında layout korumasını kaybetme.
+- 2026-07-27 itibarıyla TÜM rol sayfaları kendi `requireRole` çağrısını yapar;
+  layout'taki koruma (HeaderUserArea) sayfa içeriğiyle paralel aktığından tek
+  başına bloklayıcı değildir. Yeni rol sayfasında `requireRole`'ü atlama.
 - Vercel Node 24 ile CI Node 20 farklıdır.
 - Supabase advisor uyarıları çözülmüş sayılmamalı; bu indeks yalnız kaydeder.
 - `supabase/config.toml` seed olarak `supabase/seed.sql` bekliyor, fakat bu dosya
