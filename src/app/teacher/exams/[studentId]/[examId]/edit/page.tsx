@@ -4,6 +4,7 @@ import { ExamEntryForm } from "@/components/exams/exam-entry-form";
 import { getExamDetails, toFormInitial } from "@/lib/exams";
 import { getStudentGrade } from "@/lib/students";
 import { examsEnabledForGrade } from "@/lib/kazanim";
+import { requireRole } from "@/lib/auth";
 
 export const metadata = { title: "Deneme Düzenle" };
 
@@ -13,6 +14,8 @@ export default async function TeacherExamEditPage({
   params: Promise<{ studentId: string; examId: string }>;
 }) {
   const { studentId, examId } = await params;
+  // Sayfa düzeyi rol koruması (savunma derinliği); header adasıyla tekilleşir.
+  await requireRole(["teacher"]);
   const details = await getExamDetails(examId);
   if (!details || details.exam.student_id !== studentId) notFound();
 

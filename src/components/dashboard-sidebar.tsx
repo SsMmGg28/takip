@@ -29,16 +29,21 @@ function readCollapsed() {
  * Masaüstü/tablet yan menüsü: üstteki sayfalar dikey, açılıp kapanabilen bir
  * panelde. Daraltılmış durumda yalnız ikonlar görünür; tercih localStorage'da
  * saklanır. Mobil (sm altı) alt bar değişmedi — bu bileşen orada çizilmez.
+ *
+ * `isActive` verilmezse vurgu çizilmez: router durumu okumayan bu hâl statik
+ * kabuğun Suspense fallback'inde kullanılır; vurgulu hâl `DashboardSidebarActive`
+ * üzerinden Suspense içinde akar.
  */
 export function DashboardSidebar({
   role,
   showExams,
+  isActive,
 }: {
   role: Role;
   showExams: boolean;
+  isActive?: (href: string) => boolean;
 }) {
   const links = getLinks(role, showExams);
-  const isActive = useActiveCheck(role);
   const collapsed = useSyncExternalStore(subscribeCollapsed, readCollapsed, () => false);
 
   function toggle() {
@@ -56,7 +61,7 @@ export function DashboardSidebar({
       <nav className="sticky top-24 flex flex-col gap-1" aria-label="Ana menü">
         {links.map((link) => {
           const Icon = link.icon;
-          const active = isActive(link.href);
+          const active = isActive?.(link.href) ?? false;
           return (
             <Link
               key={link.href}
@@ -98,4 +103,16 @@ export function DashboardSidebar({
       </nav>
     </aside>
   );
+}
+
+/** Rota vurgulu varyant: router durumu okuduğundan Suspense içinde çizilir. */
+export function DashboardSidebarActive({
+  role,
+  showExams,
+}: {
+  role: Role;
+  showExams: boolean;
+}) {
+  const isActive = useActiveCheck(role);
+  return <DashboardSidebar role={role} showExams={showExams} isActive={isActive} />;
 }

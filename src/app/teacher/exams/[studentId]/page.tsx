@@ -14,6 +14,7 @@ import { getKazanimRecommendations } from "@/lib/recommendations";
 import { getApprovedBooks } from "@/lib/books";
 import { getStudentExamInfo } from "@/lib/students";
 import { examsEnabledForGrade } from "@/lib/kazanim";
+import { requireRole } from "@/lib/auth";
 
 export const metadata = { title: "Denemeler" };
 
@@ -23,6 +24,8 @@ export default async function TeacherStudentExamsPage({
   params: Promise<{ studentId: string }>;
 }) {
   const { studentId } = await params;
+  // Sayfa düzeyi rol koruması (savunma derinliği); header adasıyla tekilleşir.
+  await requireRole(["teacher"]);
   const supabase = await createClient();
 
   const { data: student } = await supabase
