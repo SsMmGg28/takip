@@ -1,12 +1,8 @@
-import { Suspense } from "react";
-import { DashboardShellGate, ShellSkeleton } from "@/components/dashboard-shell";
+import { DashboardChrome } from "@/components/dashboard-shell";
 
-// Cache Components: requireRole (runtime API) Suspense içinde akar; layout'un
-// kendisi statik kabukta kalır.
+// Statik kabuk: header/menü PPR kabuğunda anında boyanır. Kullanıcıya bağlı
+// parçalar (rol koruması dahil) kabuk içindeki Suspense adalarında, sayfa
+// içeriği kendi loading.tsx sınırında akar.
 export default function ParentLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <Suspense fallback={<ShellSkeleton />}>
-      <DashboardShellGate role="parent">{children}</DashboardShellGate>
-    </Suspense>
-  );
+  return <DashboardChrome role="parent">{children}</DashboardChrome>;
 }

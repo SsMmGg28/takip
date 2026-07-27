@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { useSelectedLayoutSegment } from "next/navigation";
 import {
   BookOpen,
   Calendar,
@@ -112,15 +112,22 @@ export const LINKS_BY_ROLE: Record<Role, NavLinkDef[]> = {
   ],
 };
 
+/** "Deneme" linki; görünürlüğü sınıf düzeyi bağlamına bağlı tek menü öğesidir. */
+export function isExamsLink(href: string) {
+  return href.endsWith("/exams");
+}
+
 export function getLinks(role: Role, showExams: boolean) {
-  return LINKS_BY_ROLE[role].filter((link) => showExams || !link.href.endsWith("/exams"));
+  return LINKS_BY_ROLE[role].filter((link) => showExams || !isExamsLink(link.href));
 }
 
 export function useActiveCheck(role: Role) {
-  const pathname = usePathname();
+  // usePathname, cacheComponents'ta dinamik paramlı rotalarda Suspense ister ve
+  // nav'ı statik kabuktan düşürür; rol layout'u altındaki ilk segment ise her
+  // rota için statik bilinir. Tüm nav linkleri `/rol/bölüm` biçiminde tek
+  // segmentli olduğundan vurgu segmentten birebir türetilir.
+  const segment = useSelectedLayoutSegment();
   const roleRoot = `/${role}`;
   return (href: string) =>
-    href === roleRoot
-      ? pathname === roleRoot
-      : pathname === href || pathname.startsWith(href + "/");
+    href === roleRoot ? segment === null : href === `${roleRoot}/${segment}`;
 }

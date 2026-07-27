@@ -77,15 +77,20 @@ function usePinnedHrefs(
  * Mobil navigasyon: altta 4 özelleştirilebilir sabit buton + ortada menü
  * butonu. Menüye basınca sabit olmayan ekranların butonlarını gösteren yüzen
  * bir ada animasyonla açılır. sm ve üzeri ekranlarda gizli.
+ *
+ * `isActive` verilmezse vurgu çizilmez: router durumu okumayan bu hâl statik
+ * kabuğun Suspense fallback'inde kullanılır; vurgulu hâl `MobileNavActive`
+ * üzerinden Suspense içinde akar.
  */
 export function MobileNav({
   role,
   showExams = true,
+  isActive,
 }: {
   role: Role;
   showExams?: boolean;
+  isActive?: (href: string) => boolean;
 }) {
-  const isActive = useActiveCheck(role);
   const links = getLinks(role, showExams);
   const [pinned, setPinned] = usePinnedHrefs(role, links);
   const [open, setOpen] = useState(false);
@@ -123,7 +128,7 @@ export function MobileNav({
   const rightLinks = pinnedLinks.slice(half);
 
   function renderBarItem(link: NavLinkDef) {
-    const active = isActive(link.href);
+    const active = isActive?.(link.href) ?? false;
     const Icon = link.icon;
     return (
       <div key={link.href} className="relative flex min-w-0 flex-1 justify-center">
@@ -219,30 +224,27 @@ export function MobileNav({
             ) : (
               <div className="stagger grid grid-cols-3 gap-2">
                 {islandLinks.map((link) => {
-                  const active = isActive(link.href);
+                  const active = isActive?.(link.href) ?? false;
                   const Icon = link.icon;
-                  if (editing) {
-                    return (
-                      <button
-                        key={link.href}
-                        type="button"
-                        onClick={() => pin(link.href)}
-                        className="flex flex-col items-center gap-1.5 rounded-2xl border border-dashed bg-muted/40 px-2 py-3 text-center"
-                        aria-label={`${link.label} bara sabitle`}
-                      >
-                        <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-accent text-accent-foreground">
-                          <Icon className="h-5 w-5" />
-                          <span className="gradient-surface absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full text-white">
-                            <Pin className="h-2.5 w-2.5" />
-                          </span>
+                  return editing ? (
+                    <button
+                      key={link.href}
+                      type="button"
+                      onClick={() => pin(link.href)}
+                      className="flex flex-col items-center gap-1.5 rounded-2xl border border-dashed bg-muted/40 px-2 py-3 text-center"
+                      aria-label={`${link.label} bara sabitle`}
+                    >
+                      <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-accent text-accent-foreground">
+                        <Icon className="h-5 w-5" />
+                        <span className="gradient-surface absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full text-white">
+                          <Pin className="h-2.5 w-2.5" />
                         </span>
-                        <span className="text-xs font-medium leading-tight">
-                          {link.shortLabel ?? link.label}
-                        </span>
-                      </button>
-                    );
-                  }
-                  return (
+                      </span>
+                      <span className="text-xs font-medium leading-tight">
+                        {link.shortLabel ?? link.label}
+                      </span>
+                    </button>
+                  ) : (
                     <Link
                       key={link.href}
                       href={link.href}
@@ -305,4 +307,10 @@ export function MobileNav({
       </nav>
     </>
   );
+}
+
+/** Rota vurgulu varyant: router durumu okuduğundan Suspense içinde çizilir. */
+export function MobileNavActive({ role, showExams }: { role: Role; showExams: boolean }) {
+  const isActive = useActiveCheck(role);
+  return <MobileNav role={role} showExams={showExams} isActive={isActive} />;
 }
