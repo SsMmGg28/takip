@@ -3,6 +3,11 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // Cache Components: statik kabuk + Suspense akışı (PPR) ve "use cache".
   cacheComponents: true,
+  experimental: {
+    // Şemsiye radix-ui paketi varsayılan optimize listesinde değil;
+    // (lucide-react ve recharts bu sürümde varsayılan olarak optimize).
+    optimizePackageImports: ["radix-ui"],
+  },
   async headers() {
     return [
       {
