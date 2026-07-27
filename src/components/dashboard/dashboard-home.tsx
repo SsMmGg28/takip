@@ -13,3 +13,18 @@ export function DashboardHome({
   const layout = normalizeDashboardLayout(data.role, initialLayout, studentIds);
   return <DashboardHomeClient data={data} initialLayout={layout} />;
 }
+
+/**
+ * Dashboard sayfalarının akış sarmalayıcısı: sayfa veriyi await etmeden promise
+ * olarak geçirir, veri burada Suspense sınırının içinde çözülür (ev deseni:
+ * student/homework sayfasındaki HomeworkResults).
+ */
+export async function DashboardHomeStream({
+  data,
+  initialLayout,
+}: {
+  data: Promise<DashboardData>;
+  initialLayout: StoredLayout | null;
+}) {
+  return <DashboardHome data={await data} initialLayout={initialLayout} />;
+}

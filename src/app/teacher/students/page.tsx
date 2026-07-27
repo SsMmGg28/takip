@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
@@ -15,6 +16,8 @@ import { PageHeader } from "@/components/page-header";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/empty-state";
+import { Skeleton } from "@/components/ui/skeleton";
+import { TableSkeleton } from "@/components/skeletons";
 import { CreateAccountDialog } from "@/components/teacher/create-account-dialog";
 import { DeleteUserButton } from "@/components/teacher/delete-user-button";
 import { EditUserDialog } from "@/components/teacher/edit-user-dialog";
@@ -26,18 +29,13 @@ export const metadata = { title: "Öğrenciler" };
 
 const PAGE_SIZE = 25;
 
-export default async function TeacherStudentsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ q?: string; page?: string }>;
-}) {
+/**
+ * Liste ve hesap diyaloğu verisi: üç paralel sorgu + velilere bağlı link
+ * sorgusu. Sayfa bunu await etmeden Suspense'e akıtır; başlık ve arama formu
+ * sorguları beklemeden boyanır.
+ */
+async function loadStudentsPageData(q: string, page: number) {
   const supabase = await createClient();
-  const params = await searchParams;
-  const q = (params.q ?? "")
-    .trim()
-    .replace(/[,%()]/g, "")
-    .slice(0, 80);
-  const page = Math.max(1, Number.parseInt(params.page ?? "1", 10) || 1);
   const from = (page - 1) * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
 
@@ -73,7 +71,8 @@ export default async function TeacherStudentsPage({
       .order("full_name"),
   ]);
 
-  const parentIds = ((parents as Profile[] | null) ?? []).map((parent) => parent.id);
+  const parentList = (parents as Profile[] | null) ?? [];
+  const parentIds = parentList.map((parent) => parent.id);
   const { data: links } = parentIds.length
     ? await supabase.from("parent_student_links").select("*").in("parent_id", parentIds)
     : { data: [] };
@@ -100,12 +99,43 @@ export default async function TeacherStudentsPage({
     Math.ceil(Math.max(studentCount ?? 0, parentCount ?? 0) / PAGE_SIZE),
   );
 
+  return {
+    studentList,
+    parentList,
+    links: links ?? [],
+    accountStudentOptions,
+    studentNameById,
+    studentOptions,
+    totalPages,
+  };
+}
+
+type StudentsPageData = Awaited<ReturnType<typeof loadStudentsPageData>>;
+
+export default async function TeacherStudentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; page?: string }>;
+}) {
+  const params = await searchParams;
+  const q = (params.q ?? "")
+    .trim()
+    .replace(/[,%()]/g, "")
+    .slice(0, 80);
+  const page = Math.max(1, Number.parseInt(params.page ?? "1", 10) || 1);
+  // await YOK: listeler Suspense içinde akar.
+  const data = loadStudentsPageData(q, page);
+
   return (
     <>
       <PageHeader
         title="Öğrenciler ve Veliler"
         description="Hesap oluştur, düzenle, şifre sıfırla; veli-çocuk bağlantılarını yönet."
-        action={<CreateAccountDialog students={accountStudentOptions} />}
+        action={
+          <Suspense fallback={<Skeleton className="h-9 w-40 rounded-md" />}>
+            <CreateAccountAction data={data} />
+          </Suspense>
+        }
       />
 
       <form className="flex flex-col gap-2 rounded-2xl border bg-card p-3 sm:flex-row">
@@ -126,6 +156,31 @@ export default async function TeacherStudentsPage({
         )}
       </form>
 
+      <Suspense fallback={<TableSkeleton rows={8} />}>
+        <StudentsAndParents data={data} q={q} page={page} />
+      </Suspense>
+    </>
+  );
+}
+
+async function CreateAccountAction({ data }: { data: Promise<StudentsPageData> }) {
+  return <CreateAccountDialog students={(await data).accountStudentOptions} />;
+}
+
+async function StudentsAndParents({
+  data,
+  q,
+  page,
+}: {
+  data: Promise<StudentsPageData>;
+  q: string;
+  page: number;
+}) {
+  const { studentList, parentList, links, studentNameById, studentOptions, totalPages } =
+    await data;
+
+  return (
+    <>
       <section className="space-y-3">
         <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
           Öğrenciler
@@ -209,7 +264,7 @@ export default async function TeacherStudentsPage({
         <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
           Veliler
         </h2>
-        {parents?.length ? (
+        {parentList.length ? (
           <Card className="overflow-hidden p-0">
             <div className="sm:overflow-x-auto">
               <Table>
@@ -223,8 +278,8 @@ export default async function TeacherStudentsPage({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {parents.map((p: Profile) => {
-                    const linkedStudents = (links ?? [])
+                  {parentList.map((p: Profile) => {
+                    const linkedStudents = links
                       .filter((l) => l.parent_id === p.id)
                       .map((l) => ({
                         id: l.student_id as string,
