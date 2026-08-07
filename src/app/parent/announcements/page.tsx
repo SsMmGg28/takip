@@ -26,15 +26,17 @@ export default async function AnnouncementsPage() {
         description="Öğretmenin paylaştığı duyurular ve belgeler."
       />
 
-      {list.length === 0 ? (
-        <EmptyState icon={Megaphone} title="Henüz duyuru yok" />
-      ) : (
-        <div className="stagger space-y-3">
-          {list.map((a) => (
-            <AnnouncementCard key={a.id} announcement={a} />
-          ))}
-        </div>
-      )}
+      <div data-guide-anchor="announcements-list">
+        {list.length === 0 ? (
+          <EmptyState icon={Megaphone} title="Henüz duyuru yok" />
+        ) : (
+          <div className="stagger space-y-3">
+            {list.map((a) => (
+              <AnnouncementCard key={a.id} announcement={a} />
+            ))}
+          </div>
+        )}
+      </div>
     </>
   );
 }

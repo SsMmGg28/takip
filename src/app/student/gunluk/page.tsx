@@ -116,7 +116,7 @@ export default async function StudentJournalPage() {
       </div>
 
       {/* Bugün ne çalıştın? */}
-      <section className="space-y-3">
+      <section data-guide-anchor="study-log-form" className="space-y-3">
         <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
           Bugün ne çalıştın?
         </h2>

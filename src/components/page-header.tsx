@@ -8,7 +8,10 @@ export function PageHeader({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="animate-slide-in-left flex flex-wrap items-start justify-between gap-3 pb-1">
+    <div
+      data-guide-anchor="page-header"
+      className="animate-slide-in-left flex flex-wrap items-start justify-between gap-3 pb-1"
+    >
       <div className="relative">
         <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{title}</h1>
         {description && (

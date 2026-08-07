@@ -229,7 +229,10 @@ export function CustomizableDashboard({
         </div>
       )}
 
-      <div className="animate-fade-up grid auto-rows-[8.5rem] grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+      <div
+        data-guide-anchor="dashboard-widgets"
+        className="animate-fade-up grid auto-rows-[8.5rem] grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4"
+      >
         {items.map((item) => {
           const def = WIDGET_BY_ID.get(item.id);
           if (!def) return null;

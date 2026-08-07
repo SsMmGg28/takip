@@ -107,7 +107,7 @@ export async function ProfileView({
       </div>
 
       {/* Destek: sorun bildirimi öğretmen + yöneticiye anında düşer */}
-      <Card>
+      <Card data-guide-anchor="support-card">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <span className="gradient-surface flex h-8 w-8 items-center justify-center rounded-lg text-white">

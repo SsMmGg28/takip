@@ -7,7 +7,9 @@ import { SignOutButton } from "@/components/sign-out-button";
 import { Brand } from "@/components/brand";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { GuideHelpButton, GuideProvider } from "@/components/guides/guide-provider";
 import { requireRole } from "@/lib/auth";
+import { getGuideProgress } from "@/lib/guides-progress";
 import { getAccessibleStudentsWithGrades, getStudentGrade } from "@/lib/students";
 import { examsEnabledForGrade } from "@/lib/kazanim";
 import type { Profile, Role } from "@/lib/types";
@@ -46,9 +48,12 @@ export async function DashboardShell({
   profile: Profile;
   children: React.ReactNode;
 }) {
-  const showExams = await shouldShowExams(role, profile);
+  const [showExams, guideProgress] = await Promise.all([
+    shouldShowExams(role, profile),
+    role === "teacher" ? Promise.resolve([]) : getGuideProgress(profile.id),
+  ]);
 
-  return (
+  const shell = (
     <div className="relative min-h-screen">
       <ServiceWorkerRegistrar />
       {/* Dekoratif arka plan ışıltıları */}
@@ -81,7 +86,10 @@ export async function DashboardShell({
                 </span>
               </span>
             </Link>
-            <NotificationsBell userId={profile.id} />
+            {role !== "teacher" && <GuideHelpButton />}
+            <span data-guide-anchor="notifications">
+              <NotificationsBell userId={profile.id} />
+            </span>
             <ThemeToggle />
             <SignOutButton />
           </div>
@@ -91,13 +99,23 @@ export async function DashboardShell({
       {/* sm+ ekranda içerik, açılıp kapanabilen yan menüyle yan yana akar */}
       <div className="mx-auto flex w-full max-w-7xl sm:gap-4 sm:px-6 sm:pt-6">
         <DashboardSidebar role={role} showExams={showExams} />
-        <main className="animate-fade-up min-w-0 flex-1 space-y-6 p-4 pb-28 sm:p-0 sm:pb-10">
+        <main
+          data-guide-anchor="dashboard-content"
+          className="animate-fade-up min-w-0 flex-1 space-y-6 p-4 pb-28 sm:p-0 sm:pb-10"
+        >
           {children}
         </main>
       </div>
 
       <MobileNav role={role} showExams={showExams} />
     </div>
+  );
+
+  if (role === "teacher") return shell;
+  return (
+    <GuideProvider role={role} showExams={showExams} initialProgress={guideProgress}>
+      {shell}
+    </GuideProvider>
   );
 }
 

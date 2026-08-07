@@ -40,16 +40,18 @@ export default async function StudentSchedulePage({
         title="Çalışma Programım"
         description="Öğretmenin ve velinin senin için hazırladığı haftalık program; geçmiş haftaları arşivden inceleyebilirsin."
       />
-      <WeekSwitcher
-        basePath="/student/schedule"
-        weekStart={week}
-        archiveWeeks={archiveWeeks}
-      />
-      <WeeklySchedule
-        entries={(entries as StudyScheduleEntry[]) ?? []}
-        redirectPath="/student/schedule"
-        readOnly
-      />
+      <div data-guide-anchor="weekly-schedule" className="space-y-6">
+        <WeekSwitcher
+          basePath="/student/schedule"
+          weekStart={week}
+          archiveWeeks={archiveWeeks}
+        />
+        <WeeklySchedule
+          entries={(entries as StudyScheduleEntry[]) ?? []}
+          redirectPath="/student/schedule"
+          readOnly
+        />
+      </div>
     </>
   );
 }

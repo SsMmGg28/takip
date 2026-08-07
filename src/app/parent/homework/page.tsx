@@ -32,7 +32,7 @@ export default async function ParentHomeworkPage() {
     <>
       <PageHeader title="Ödevler" description="Çocuğunun ödevlerinin tamamı." />
 
-      <div className="space-y-8">
+      <div data-guide-anchor="homework-list" className="space-y-8">
         {results.map(({ student, items, sectionById }) => (
           <section key={student.id} className="space-y-3">
             {students.length > 1 && (

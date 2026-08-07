@@ -33,7 +33,9 @@ export default async function ParentCalendarPage() {
         title="Takvim"
         description="Tüm dersler, ödev teslim tarihleri ve hatırlatmalar."
       />
-      <CalendarView items={allItems} />
+      <div data-guide-anchor="calendar-content">
+        <CalendarView items={allItems} />
+      </div>
     </>
   );
 }

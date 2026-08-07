@@ -15,7 +15,9 @@ export default async function StudentCalendarPage() {
         title="Takvim"
         description="Dersler, ödev teslim tarihleri ve hatırlatmalar."
       />
-      <CalendarView items={items} />
+      <div data-guide-anchor="calendar-content">
+        <CalendarView items={items} />
+      </div>
     </>
   );
 }

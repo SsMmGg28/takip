@@ -22,19 +22,21 @@ export default async function ParentExamsPage() {
         title="Deneme Analizi"
         description="Analiz görmek veya deneme eklemek için öğrenci seç."
       />
-      {eligible.length ? (
-        <StudentPickerGrid
-          students={eligible}
-          hrefPrefix="/parent/exams"
-          ctaLabel="Denemeleri görüntüle"
-        />
-      ) : (
-        <EmptyState
-          icon={GraduationCap}
-          title="Deneme takibi aktif değil"
-          description="Deneme takibi yalnızca 7. ve 8. sınıf öğrencileri için aktiftir."
-        />
-      )}
+      <div data-guide-anchor="exam-analysis">
+        {eligible.length ? (
+          <StudentPickerGrid
+            students={eligible}
+            hrefPrefix="/parent/exams"
+            ctaLabel="Denemeleri görüntüle"
+          />
+        ) : (
+          <EmptyState
+            icon={GraduationCap}
+            title="Deneme takibi aktif değil"
+            description="Deneme takibi yalnızca 7. ve 8. sınıf öğrencileri için aktiftir."
+          />
+        )}
+      </div>
     </>
   );
 }

@@ -48,6 +48,7 @@ export function DashboardSidebar({
 
   return (
     <aside
+      data-guide-anchor="desktop-navigation"
       className={cn(
         "hidden shrink-0 transition-[width] duration-200 sm:block",
         collapsed ? "w-16" : "w-56",

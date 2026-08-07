@@ -80,7 +80,7 @@ export default async function ParentResourcesPage({
       )}
 
       {/* Çocuğun kitaplığı */}
-      <section className="space-y-3">
+      <section data-guide-anchor="resource-library" className="space-y-3">
         <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
           {activeStudent.full_name} — Kitaplığı ({shelf.length})
         </h2>
@@ -152,7 +152,7 @@ export default async function ParentResourcesPage({
       )}
 
       {/* Kütüphane */}
-      <section className="space-y-3">
+      <section data-guide-anchor="resource-catalog" className="space-y-3">
         <h2 className="flex items-center gap-2 text-sm font-medium uppercase tracking-wide text-muted-foreground">
           <Library className="h-4 w-4" />
           Kütüphane ({library.length})

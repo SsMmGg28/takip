@@ -19,35 +19,37 @@ export default async function StudentResourcesPage() {
         description="Velinin senin için seçtiği kaynak kitaplar. Bir kitabı aç, çözdüğün testleri işaretle."
       />
 
-      {shelf.length === 0 ? (
-        <EmptyState
-          icon={BookOpen}
-          title="Kitaplığın henüz boş"
-          description="Velin kütüphaneden kitap eklediğinde burada görünecek."
-        />
-      ) : (
-        <BookFilters
-          showDifficulty
-          books={shelf.map((b) => ({
-            id: b.id,
-            grade: b.grade_level,
-            subject: b.subject,
-            difficulty: b.difficulty,
-            node: (
-              <BookCard
-                href={`/student/resources/${b.id}`}
-                name={b.name}
-                subject={b.subject}
-                grade={b.grade_level}
-                difficulty={b.difficulty}
-                sectionCount={b.sections.length}
-                testCount={b.totalTests}
-                completedCount={b.completedCount}
-              />
-            ),
-          }))}
-        />
-      )}
+      <div data-guide-anchor="resource-library">
+        {shelf.length === 0 ? (
+          <EmptyState
+            icon={BookOpen}
+            title="Kitaplığın henüz boş"
+            description="Velin kütüphaneden kitap eklediğinde burada görünecek."
+          />
+        ) : (
+          <BookFilters
+            showDifficulty
+            books={shelf.map((b) => ({
+              id: b.id,
+              grade: b.grade_level,
+              subject: b.subject,
+              difficulty: b.difficulty,
+              node: (
+                <BookCard
+                  href={`/student/resources/${b.id}`}
+                  name={b.name}
+                  subject={b.subject}
+                  grade={b.grade_level}
+                  difficulty={b.difficulty}
+                  sectionCount={b.sections.length}
+                  testCount={b.totalTests}
+                  completedCount={b.completedCount}
+                />
+              ),
+            }))}
+          />
+        )}
+      </div>
     </>
   );
 }

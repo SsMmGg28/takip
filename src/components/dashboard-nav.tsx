@@ -402,7 +402,10 @@ export function MobileNav({
       )}
 
       {/* Alt bar */}
-      <nav className="glass animate-rise fixed inset-x-0 bottom-0 z-40 border-t pb-[env(safe-area-inset-bottom)] sm:hidden">
+      <nav
+        data-guide-anchor="mobile-navigation"
+        className="glass animate-rise fixed inset-x-0 bottom-0 z-40 border-t pb-[env(safe-area-inset-bottom)] sm:hidden"
+      >
         <div className="flex items-stretch justify-around gap-0.5 px-1 py-1.5">
           {leftLinks.map(renderBarItem)}
 

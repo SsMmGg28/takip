@@ -69,41 +69,45 @@ export default async function ParentSchedulePage({
         description="Haftalık programı düzenleyebilir, geçmiş haftaları arşivden görüp tek tıkla geri getirebilirsin."
       />
 
-      <WeekSwitcher
-        basePath="/parent/schedule"
-        weekStart={week}
-        archiveWeeks={archiveWeeks}
-      />
+      <div data-guide-anchor="weekly-schedule" className="space-y-6">
+        <WeekSwitcher
+          basePath="/parent/schedule"
+          weekStart={week}
+          archiveWeeks={archiveWeeks}
+        />
 
-      <div className="flex flex-col gap-8">
-        {perStudent.map(({ student, entries }) => (
-          <section key={student.id} className="flex flex-col gap-2">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              {students.length > 1 ? (
-                <h2 className="font-medium text-muted-foreground">{student.full_name}</h2>
-              ) : (
-                <span />
-              )}
-              {isPast ? (
-                entries.length > 0 && (
-                  <CopyWeekButton studentId={student.id} fromWeek={week} />
-                )
-              ) : (
-                <AddScheduleEntryDialog
-                  studentId={student.id}
-                  redirectPath={redirectPath}
-                  weekStart={week}
-                  entries={entries}
-                />
-              )}
-            </div>
-            <WeeklySchedule
-              entries={entries}
-              redirectPath={redirectPath}
-              readOnly={isPast}
-            />
-          </section>
-        ))}
+        <div className="flex flex-col gap-8">
+          {perStudent.map(({ student, entries }) => (
+            <section key={student.id} className="flex flex-col gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                {students.length > 1 ? (
+                  <h2 className="font-medium text-muted-foreground">
+                    {student.full_name}
+                  </h2>
+                ) : (
+                  <span />
+                )}
+                {isPast ? (
+                  entries.length > 0 && (
+                    <CopyWeekButton studentId={student.id} fromWeek={week} />
+                  )
+                ) : (
+                  <AddScheduleEntryDialog
+                    studentId={student.id}
+                    redirectPath={redirectPath}
+                    weekStart={week}
+                    entries={entries}
+                  />
+                )}
+              </div>
+              <WeeklySchedule
+                entries={entries}
+                redirectPath={redirectPath}
+                readOnly={isPast}
+              />
+            </section>
+          ))}
+        </div>
       </div>
     </>
   );

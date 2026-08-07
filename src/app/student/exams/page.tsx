@@ -36,20 +36,22 @@ export default async function StudentExamsPage() {
         description="Net ve puan gelişimin, kazanım analizin ve geçmiş denemelerin."
       />
 
-      <ExamAnalysisSection
-        overview={overview}
-        studentId={profile.id}
-        targetScore={targetScore}
-      />
-
-      <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-semibold">Geçmiş Denemelerim</h2>
-        <ExamList
-          exams={overview.exams}
-          detailHrefPrefix="/student/exams"
-          role="student"
+      <div data-guide-anchor="exam-analysis" className="space-y-6">
+        <ExamAnalysisSection
+          overview={overview}
+          studentId={profile.id}
+          targetScore={targetScore}
         />
-      </section>
+
+        <section className="flex flex-col gap-3">
+          <h2 className="text-lg font-semibold">Geçmiş Denemelerim</h2>
+          <ExamList
+            exams={overview.exams}
+            detailHrefPrefix="/student/exams"
+            role="student"
+          />
+        </section>
+      </div>
     </>
   );
 }
