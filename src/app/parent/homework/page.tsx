@@ -21,7 +21,7 @@ export default async function ParentHomeworkPage({
   if (students.length === 0) {
     return (
       <>
-        <PageHeader title="Ödevler" />
+        <PageHeader guideAnchor="page-homework" title="Ödevler" />
         <EmptyState title="Henüz bir öğrenciyle eşleştirilmedin" />
       </>
     );
@@ -36,7 +36,11 @@ export default async function ParentHomeworkPage({
 
   return (
     <>
-      <PageHeader title="Ödevler" description="Çocuğunun ödevlerinin tamamı." />
+      <PageHeader
+        guideAnchor="page-homework"
+        title="Ödevler"
+        description="Çocuğunun ödevlerinin tamamı."
+      />
 
       <nav
         className="grid grid-cols-2 gap-2 rounded-2xl bg-muted/50 p-1"

@@ -30,7 +30,7 @@ export default async function ParentResourcesPage({
   if (students.length === 0) {
     return (
       <>
-        <PageHeader title="Kaynaklar" />
+        <PageHeader guideAnchor="page-resources" title="Kaynaklar" />
         <EmptyState title="Henüz bir öğrenciyle eşleştirilmedin" />
       </>
     );
@@ -52,6 +52,7 @@ export default async function ParentResourcesPage({
   return (
     <>
       <PageHeader
+        guideAnchor="page-resources"
         title="Kaynaklar"
         description={`Kütüphaneden ${activeStudent.full_name} için kitap seç; olmayan kitabı ekle, öğretmen onaylayınca kitaplığa atayabilirsin.`}
         action={<AddBookDialog role="parent" />}

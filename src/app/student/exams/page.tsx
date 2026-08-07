@@ -21,7 +21,7 @@ export default async function StudentExamsPage() {
   if (!examsEnabledForGrade(grade)) {
     return (
       <>
-        <PageHeader title="Deneme Analizim" />
+        <PageHeader guideAnchor="page-exams" title="Deneme Analizim" />
         <EmptyState
           icon={GraduationCap}
           title="Deneme takibi sınıf düzeyinde kapalı"
@@ -36,6 +36,7 @@ export default async function StudentExamsPage() {
   return (
     <>
       <PageHeader
+        guideAnchor="page-exams"
         title="Deneme Analizim"
         description="Net ve puan gelişimin, kazanım analizin ve geçmiş denemelerin."
       />

@@ -55,6 +55,7 @@ export default async function StudentSchedulePage({
   return (
     <>
       <PageHeader
+        guideAnchor="page-schedule"
         title="Çalışma Programım"
         description="Ders ve kazanım seçerek programını düzenle; tamamladığın çalışmayı süreyle günlüğüne ekle."
         action={

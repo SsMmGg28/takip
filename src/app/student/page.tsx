@@ -16,8 +16,10 @@ export default async function StudentHomePage() {
   const data = getDashboardData(profile, layout);
 
   return (
-    <Suspense fallback={<DashboardLoading />}>
-      <DashboardHomeStream data={data} initialLayout={layout} />
-    </Suspense>
+    <div data-guide-anchor="dashboard-main">
+      <Suspense fallback={<DashboardLoading />}>
+        <DashboardHomeStream data={data} initialLayout={layout} />
+      </Suspense>
+    </div>
   );
 }

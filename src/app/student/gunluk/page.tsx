@@ -36,6 +36,7 @@ export default async function StudentJournalPage() {
   return (
     <>
       <PageHeader
+        guideAnchor="page-journal"
         title="Çalışma Günlüğü"
         description="Her gün ne çalıştığını kaydet; serini büyüt. Düzenli çalışan kazanır! 🔥"
         action={

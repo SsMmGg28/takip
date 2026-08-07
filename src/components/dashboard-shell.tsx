@@ -6,6 +6,7 @@ import { NotificationsBell } from "@/components/notifications-bell";
 import { ServiceWorkerRegistrar } from "@/components/push-manager";
 import { SignOutButton } from "@/components/sign-out-button";
 import { Brand } from "@/components/brand";
+import { GuideRuntime } from "@/components/guides/guide-runtime";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { NoFlashThemeColorScript, ThemeColorSync } from "@/components/theme-color-sync";
@@ -156,6 +157,11 @@ export function DashboardChrome({
             <Suspense fallback={<HeaderUserSkeleton />}>
               <HeaderUserArea role={role} />
             </Suspense>
+            {role !== "teacher" && (
+              <Suspense fallback={<Skeleton className="h-10 w-10 rounded-full" />}>
+                <GuideRuntime role={role} />
+              </Suspense>
+            )}
             <ThemeToggle />
             <SignOutButton />
           </div>

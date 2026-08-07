@@ -12,6 +12,7 @@ export default async function StudentCalendarPage() {
   return (
     <>
       <PageHeader
+        guideAnchor="page-calendar"
         title="Takvim"
         description="Dersler, ödev teslim tarihleri ve hatırlatmalar."
       />

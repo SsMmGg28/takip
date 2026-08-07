@@ -8,7 +8,7 @@ export type MockResult = { data?: unknown; error?: MockError };
 
 export interface RecordedQuery {
   table: string;
-  op: "select" | "insert" | "update" | "delete" | null;
+  op: "select" | "insert" | "upsert" | "update" | "delete" | null;
   /** insert/update payload'ı */
   values?: unknown;
   /** eq/in/order/select... çağrıları, sırasıyla */
@@ -92,6 +92,12 @@ export function createSupabaseMock(
     builder.insert = (values: unknown) => {
       record.op = "insert";
       record.values = values;
+      return builder;
+    };
+    builder.upsert = (values: unknown, options?: unknown) => {
+      record.op = "upsert";
+      record.values = values;
+      record.filters.push(["upsert-options", options]);
       return builder;
     };
     builder.update = (values: unknown) => {
