@@ -183,21 +183,22 @@ varsayılan/sıra/gizleme/daraltma normalizasyonu `src/lib/dashboard-layout.ts` 
 
 ## Domain bağlantı matrisi
 
-| Domain        | Ana UI / giriş                           | Okuma ve saf mantık                                                                  | Mutasyon                                              | Supabase nesneleri                                                                                      |
-| ------------- | ---------------------------------------- | ------------------------------------------------------------------------------------ | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| Kimlik/hesap  | login, set-password, teacher/students    | `auth.ts`, `students.ts`, `username.ts`, `password.ts`                               | `actions/account.ts`, admin API'leri                  | Auth users, `profiles`, `student_profiles`, `parent_student_links`                                      |
-| Dashboard     | rol kökleri, `components/dashboard/*`    | `dashboard.ts`, `dashboard-types.ts`, `dashboard-layout.ts`, `dashboard-priority.ts` | `actions/dashboard.ts`, role action'ları              | Birçok domain tablosu, `dashboard_layouts`, `notifications`, `student_profiles.daily_goal_*`            |
-| Ödev          | teacher/student/parent homework          | `homework-fetch.ts`, `homework.ts`, `homework-parse.ts`                              | teacher ve student rota `actions.ts`                  | `homework`, `homework_tests`, `resource_*`, `student_test_progress`, `homework-attachments`             |
-| Kaynak        | role/resources, kitap ilerlemesi         | `books.ts`, `book-catalog.ts`, `resources-parse.ts`, `recommendations.ts`            | `actions/resources.ts`                                | `resource_books`, `resource_book_sections`, `student_books`, `student_test_progress`                    |
-| Deneme        | role/exams                               | `exams.ts`, `exam-analysis.ts`, `exam-shared.ts`, `kazanim.ts`, `exams/*`            | `actions/exams.ts`, `actions/exam-import.ts`          | `exams`, `exam_subjects`, `exam_kazanim_results`, `exam_edit_requests`, `student_profiles.target_score` |
-| Takvim        | role/calendar                            | `calendar.ts`                                                                        | `teacher/calendar/actions.ts`                         | `calendar_events`, teslim tarihleri için `homework`                                                     |
-| Program       | role/schedule                            | `schedule.ts`, `week.ts`                                                             | `actions/schedule.ts`, cron                           | `study_schedule_entries` (ders/kazanım/tamamlama), `student_profiles.schedule_auto_repeat`              |
-| Günlük        | student/gunluk, rapor/dashboard özetleri | `study-log.ts`, `study-log-fetch.ts`                                                 | `actions/study-log.ts`                                | `study_log`                                                                                             |
-| Duyuru        | role/announcements                       | doğrudan SSR sorguları                                                               | `actions/announcements.ts`                            | `announcements`, `announcement_targets`, `announcement-files`                                           |
-| Bildirim/push | bell + push toggle + service worker      | `notifications.ts`, `push.ts`                                                        | `actions/push.ts`; domain action'ları bildirim üretir | `notifications`, `push_subscriptions`                                                                   |
-| Rapor         | `/rapor/[studentId]`                     | `report.ts`, `components/report/*`                                                   | yok                                                   | `profiles`, `homework`, `exams` ve ilişkileri                                                           |
-| Hata raporu   | global dialog, teacher/reports           | doğrudan SSR                                                                         | `actions/bug-reports.ts`                              | `bug_reports`, öğretmen bildirimleri                                                                    |
-| AI import     | exam import panel                        | `ai/gemini.ts`, `exams/import-normalize.ts`                                          | `actions/exam-import.ts`                              | Kaydetme öncesi dış Gemini çağrısı; dosya kalıcı saklanmaz                                              |
+| Domain        | Ana UI / giriş                              | Okuma ve saf mantık                                                                  | Mutasyon                                              | Supabase nesneleri                                                                                      |
+| ------------- | ------------------------------------------- | ------------------------------------------------------------------------------------ | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Kimlik/hesap  | login, set-password, teacher/students       | `auth.ts`, `students.ts`, `username.ts`, `password.ts`                               | `actions/account.ts`, admin API'leri                  | Auth users, `profiles`, `student_profiles`, `parent_student_links`                                      |
+| Dashboard     | rol kökleri, `components/dashboard/*`       | `dashboard.ts`, `dashboard-types.ts`, `dashboard-layout.ts`, `dashboard-priority.ts` | `actions/dashboard.ts`, role action'ları              | Birçok domain tablosu, `dashboard_layouts`, `notifications`, `student_profiles.daily_goal_*`            |
+| Ödev          | teacher/student/parent homework             | `homework-fetch.ts`, `homework.ts`, `homework-parse.ts`                              | teacher ve student rota `actions.ts`                  | `homework`, `homework_tests`, `resource_*`, `student_test_progress`, `homework-attachments`             |
+| Kaynak        | role/resources, kitap ilerlemesi            | `books.ts`, `book-catalog.ts`, `resources-parse.ts`, `recommendations.ts`            | `actions/resources.ts`                                | `resource_books`, `resource_book_sections`, `student_books`, `student_test_progress`                    |
+| Deneme        | role/exams                                  | `exams.ts`, `exam-analysis.ts`, `exam-shared.ts`, `kazanim.ts`, `exams/*`            | `actions/exams.ts`, `actions/exam-import.ts`          | `exams`, `exam_subjects`, `exam_kazanim_results`, `exam_edit_requests`, `student_profiles.target_score` |
+| Takvim        | role/calendar                               | `calendar.ts`                                                                        | `teacher/calendar/actions.ts`                         | `calendar_events`, teslim tarihleri için `homework`                                                     |
+| Program       | role/schedule                               | `schedule.ts`, `week.ts`                                                             | `actions/schedule.ts`, cron                           | `study_schedule_entries` (ders/kazanım/tamamlama), `student_profiles.schedule_auto_repeat`              |
+| Günlük        | student/gunluk, rapor/dashboard özetleri    | `study-log.ts`, `study-log-fetch.ts`                                                 | `actions/study-log.ts`                                | `study_log`                                                                                             |
+| Rehber        | panel Yardım düğmesi + gerçek ekran turları | `guides.ts`, `components/guides/*`                                                   | `actions/guides.ts`                                   | `user_guide_progress`                                                                                   |
+| Duyuru        | role/announcements                          | doğrudan SSR sorguları                                                               | `actions/announcements.ts`                            | `announcements`, `announcement_targets`, `announcement-files`                                           |
+| Bildirim/push | bell + push toggle + service worker         | `notifications.ts`, `push.ts`                                                        | `actions/push.ts`; domain action'ları bildirim üretir | `notifications`, `push_subscriptions`                                                                   |
+| Rapor         | `/rapor/[studentId]`                        | `report.ts`, `components/report/*`                                                   | yok                                                   | `profiles`, `homework`, `exams` ve ilişkileri                                                           |
+| Hata raporu   | global dialog, teacher/reports              | doğrudan SSR                                                                         | `actions/bug-reports.ts`                              | `bug_reports`, öğretmen bildirimleri                                                                    |
+| AI import     | exam import panel                           | `ai/gemini.ts`, `exams/import-normalize.ts`                                          | `actions/exam-import.ts`                              | Kaydetme öncesi dış Gemini çağrısı; dosya kalıcı saklanmaz                                              |
 
 ## Server Action ve API yüzeyi
 
@@ -208,6 +209,8 @@ varsayılan/sıra/gizleme/daraltma normalizasyonu `src/lib/dashboard-layout.ts` 
   tema rengini değiştir (`updateOwnThemeColor`; izinli küme `src/lib/theme-colors.ts`).
 - `actions/dashboard.ts`: rol beyaz listeli layout v2 upsert'i, veli seçili çocuk
   erişim kontrolü ve yalnız doğrulanmış öğrencinin günlük hedef güncellemesi.
+- `actions/guides.ts`: oturum kimliğini sunucuda çözer; kod tanımındaki rehber
+  kimliği/sürümü ve rolü doğrulayıp kullanıcının ilerlemesini upsert eder.
 - `actions/resources.ts`: kitap/bölüm/onay/raf/test ilerlemesi.
 - `actions/exams.ts`: tam deneme CRUD, edit request review, hedef puan, analiz fetch.
 - `actions/exam-import.ts`: PDF/görsel doğrula → base64 → Gemini JSON → normalize et.
@@ -267,6 +270,10 @@ Client admin çağrılarının tek sarmalayıcısı `src/lib/admin-api.ts#postAd
 - Kullanıcı tercihi: `dashboard_layouts.user_id` hem PK hem `profiles` FK'sidir.
   Layout JSON v2; sıralı bölüm/daraltma, gizlenen bölümler ve veli seçili çocuk
   tercihini taşır. v1 satırları silinmez, okurken geçersiz sayılıp varsayılan v2 gösterilir.
+- `user_guide_progress(user_id, guide_id)` birleşik PK'dir; öğrenci/veli
+  rehberlerinin son görülen sürümünü ve `completed|skipped` sonucunu tutar. Hızlı
+  Başlangıç rehberleri v2'dir; yalnız gerçek kullanıcı kapatma, atlama veya
+  tamamlama etkileşimi ilerleme yazar, React Activity yaşam döngüsü temizliği yazmaz.
 - `student_profiles.daily_goal_minutes` (1–1440) ve `daily_goal_questions` (1–2000)
   birlikte nullable/doludur; hedef geçmişi yoktur, bugünkü ilerleme `study_log` toplamıdır.
 - `profiles.theme_color` (text, default `blue`, CHECK: `blue|green|purple|rose|orange`):
@@ -474,6 +481,8 @@ npm run build
 
 - Vitest config: `vitest.config.ts`; testler `src/lib/**/__tests__`,
   `src/lib/exams/__tests__`, route action testleri.
+- Rehber testleri rol/sınıf filtreleme, ilk gösterim, atlama/tamamlama ve sürüm
+  yükseltme kurallarını kapsar.
 - `src/test/supabase-mock.ts` filtreleri gerçek DB gibi uygulamaz; sonuçları tablo
   başına queue eder. Testte dönen veriden çok kaydedilen sorgu şeklini de assert et.
 - E2E ve otomatik RLS politika testleri yok. Yetki veya RLS değişiminde unit test

@@ -41,12 +41,32 @@ describe("rehber seçimi", () => {
 
   it("oturumda yalnız en yüksek öncelikli yeni otomatik rehberi seçer", () => {
     const guides = getGuidesForContext({ role: "parent", examsEnabled: true });
+    const quickStart = getGuideById("parent-quick-start")!;
     expect(getHighestPriorityAutoGuide(guides, [])?.id).toBe("parent-quick-start");
     expect(
       getHighestPriorityAutoGuide(guides, [
         { guideId: "parent-quick-start", version: 1, outcome: "completed" },
       ]),
+    )?.toMatchObject({ id: quickStart.id, version: quickStart.version });
+    expect(
+      getHighestPriorityAutoGuide(guides, [
+        {
+          guideId: "parent-quick-start",
+          version: quickStart.version,
+          outcome: "skipped",
+        },
+      ]),
     ).toBeUndefined();
+  });
+
+  it("hatalı kapanıştan etkilenmiş hızlı başlangıç v1 kayıtlarını yeniden açar", () => {
+    for (const guideId of ["student-quick-start", "parent-quick-start"]) {
+      const guide = getGuideById(guideId)!;
+      expect(guide.version).toBe(2);
+      expect(
+        guideNeedsAttention(guide, [{ guideId, version: 1, outcome: "skipped" }]),
+      ).toBe(true);
+    }
   });
 
   it("tüm gerçek ekran turlarında rolün kendi rotasını kullanır", () => {

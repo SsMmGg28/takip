@@ -59,7 +59,7 @@ const parentRoot = "/parent";
 export const GUIDE_DEFINITIONS: readonly GuideDefinition[] = [
   {
     id: "student-quick-start",
-    version: 1,
+    version: 2,
     roles: ["student"],
     title: "Öğrenci Hızlı Başlangıç",
     summary: "Panelini, ödevlerini, kitaplığını ve çalışma akışını kısa sürede tanı.",
@@ -287,7 +287,7 @@ export const GUIDE_DEFINITIONS: readonly GuideDefinition[] = [
   },
   {
     id: "parent-quick-start",
-    version: 1,
+    version: 2,
     roles: ["parent"],
     title: "Veli Hızlı Başlangıç",
     summary: "Çocuğunuzun ödev, kaynak ve çalışma gelişimini kısa sürede tanıyın.",

@@ -9,8 +9,11 @@ import { Button } from "@/components/ui/button";
 
 function Dialog({
   onOpenChange,
+  closeOnUnmount = true,
   ...props
-}: React.ComponentProps<typeof DialogPrimitive.Root>) {
+}: React.ComponentProps<typeof DialogPrimitive.Root> & {
+  closeOnUnmount?: boolean;
+}) {
   // Cache Components'ta rotalar Activity ile "hidden" moda alınır, unmount
   // edilmez; state korunduğundan başka sayfaya gidip dönünce diyalog açık
   // kalırdı. Rota gizlenirken (effect cleanup) diyaloğu kapatıyoruz. Callback
@@ -19,7 +22,10 @@ function Dialog({
   React.useEffect(() => {
     onOpenChangeRef.current = onOpenChange;
   });
-  React.useEffect(() => () => onOpenChangeRef.current?.(false), []);
+  React.useEffect(() => {
+    if (!closeOnUnmount) return;
+    return () => onOpenChangeRef.current?.(false);
+  }, [closeOnUnmount]);
   return (
     <DialogPrimitive.Root data-slot="dialog" onOpenChange={onOpenChange} {...props} />
   );

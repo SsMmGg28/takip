@@ -236,8 +236,9 @@ export function GuideProvider({
       <Dialog
         open={view?.kind === "center"}
         onOpenChange={(open) => !open && setView(null)}
+        closeOnUnmount={false}
       >
-        <DialogContent className="inset-0 max-h-[100dvh] rounded-none p-0 sm:inset-x-auto sm:bottom-auto sm:left-1/2 sm:top-1/2 sm:h-[min(760px,calc(100dvh-3rem))] sm:max-w-4xl sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-3xl">
+        <DialogContent className="inset-0 h-[100dvh] max-h-[100dvh] grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden rounded-none p-0 sm:inset-x-auto sm:bottom-auto sm:left-1/2 sm:top-1/2 sm:h-[min(760px,calc(100dvh-3rem))] sm:max-w-4xl sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-3xl">
           <DialogHeader className="border-b p-5 pr-16 sm:p-6">
             <DialogTitle className="flex items-center gap-2 text-xl sm:text-2xl">
               <span className="gradient-surface flex h-9 w-9 items-center justify-center rounded-xl text-white">
@@ -249,13 +250,13 @@ export function GuideProvider({
               Hareketli özeti izle veya özelliği gerçek ekran üzerinde adım adım gör.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-3 overflow-y-auto p-4 sm:grid-cols-2 sm:p-6">
+          <div className="grid min-h-0 auto-rows-max content-start gap-3 overflow-y-auto overscroll-contain p-4 sm:grid-cols-2 sm:p-6">
             {guides.map((guide) => {
               const seen = progress.find((entry) => entry.guideId === guide.id);
               const isCurrentVersion = seen?.version === guide.version;
               return (
                 <Card key={guide.id} className="overflow-hidden">
-                  <CardContent className="flex h-full flex-col gap-3 p-4">
+                  <CardContent className="flex flex-col gap-3 p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <h3 className="font-semibold">{guide.title}</h3>
@@ -297,13 +298,14 @@ export function GuideProvider({
       <Dialog
         open={view?.kind === "guide"}
         onOpenChange={(open) => !open && closeGuide("skipped")}
+        closeOnUnmount={false}
       >
         <DialogContent
           showCloseButton
-          className="inset-0 max-h-[100dvh] rounded-none p-0 sm:inset-x-auto sm:bottom-auto sm:left-1/2 sm:top-1/2 sm:h-[min(760px,calc(100dvh-3rem))] sm:max-w-5xl sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-3xl"
+          className="inset-0 h-[100dvh] max-h-[100dvh] gap-0 overflow-hidden rounded-none p-0 sm:inset-x-auto sm:bottom-auto sm:left-1/2 sm:top-1/2 sm:h-[min(760px,calc(100dvh-3rem))] sm:max-w-5xl sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-3xl"
         >
           {activeGuide && activeScene && view?.kind === "guide" && (
-            <div className="flex min-h-full flex-col">
+            <div className="flex h-full min-h-0 flex-col">
               <div className="flex items-center justify-between gap-4 border-b px-4 py-3 pr-16 sm:px-6">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-wide text-primary">

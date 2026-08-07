@@ -10,7 +10,7 @@ const schemaMigration = readFileSync(
     ),
   ),
   "utf8",
-);
+).replaceAll("\r\n", "\n");
 const grantsMigration = readFileSync(
   fileURLToPath(
     new URL(
@@ -19,7 +19,7 @@ const grantsMigration = readFileSync(
     ),
   ),
   "utf8",
-);
+).replaceAll("\r\n", "\n");
 
 describe("rehber ilerleme migration'ları", () => {
   it("hesap + rehber birleşik anahtarını ve sürüm/sonuç kontrollerini kurar", () => {
