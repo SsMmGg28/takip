@@ -10,6 +10,9 @@ vi.mock("@/lib/supabase/server", () => ({
 }));
 
 import { saveGuideProgress } from "@/lib/actions/guides";
+import { getGuideById } from "@/lib/guides";
+
+const studentQuickStartVersion = getGuideById("student-quick-start")!.version;
 
 beforeEach(() => {
   mocks.handle = createSupabaseMock();
@@ -28,7 +31,7 @@ describe("saveGuideProgress", () => {
     await expect(
       saveGuideProgress({
         guideId: "student-quick-start",
-        version: 1,
+        version: studentQuickStartVersion,
         outcome: "completed",
       }),
     ).resolves.toEqual({ success: true });
@@ -40,7 +43,7 @@ describe("saveGuideProgress", () => {
     expect(query?.values).toMatchObject({
       user_id: "student-1",
       guide_id: "student-quick-start",
-      version: 1,
+      version: studentQuickStartVersion,
       outcome: "completed",
     });
     expect(query?.filters).toContainEqual([
@@ -54,7 +57,7 @@ describe("saveGuideProgress", () => {
     await expect(
       saveGuideProgress({
         guideId: "student-quick-start",
-        version: 1,
+        version: studentQuickStartVersion,
         outcome: "completed",
       }),
     ).rejects.toThrow("Yetkisiz");
@@ -84,7 +87,7 @@ describe("saveGuideProgress", () => {
     await expect(
       saveGuideProgress({
         guideId: "student-quick-start",
-        version: 1,
+        version: studentQuickStartVersion,
         outcome: "skipped",
       }),
     ).rejects.toThrow("uygun değil");
