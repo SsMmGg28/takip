@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { CheckCircle2, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -15,7 +14,6 @@ export function BugReportStatusButton({
   reportId: string;
   status: "open" | "resolved";
 }) {
-  const router = useRouter();
   const [pending, setPending] = useState(false);
   const next = status === "open" ? "resolved" : "open";
 
@@ -33,7 +31,6 @@ export function BugReportStatusButton({
       toast.success(
         next === "resolved" ? "Çözüldü olarak işaretlendi." : "Yeniden açıldı.",
       );
-      router.refresh();
     } finally {
       setPending(false);
     }

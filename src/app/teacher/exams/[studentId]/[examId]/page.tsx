@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ExamDetail } from "@/components/exams/exam-detail";
 import { DeleteExamButton } from "@/components/exams/exam-actions";
 import { getExamDetails } from "@/lib/exams";
+import { requireRole } from "@/lib/auth";
 
 export const metadata = { title: "Deneme Detayı" };
 
@@ -15,6 +16,8 @@ export default async function TeacherExamDetailPage({
   params: Promise<{ studentId: string; examId: string }>;
 }) {
   const { studentId, examId } = await params;
+  // Sayfa düzeyi rol koruması (savunma derinliği); header adasıyla tekilleşir.
+  await requireRole(["teacher"]);
   const details = await getExamDetails(examId);
   if (!details || details.exam.student_id !== studentId) notFound();
 

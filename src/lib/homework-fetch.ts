@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import type { CursorPage } from "@/lib/pagination";
 import type {
   Homework,
   HomeworkTest,
@@ -17,6 +18,11 @@ export interface HomeworkListContext {
   items: HomeworkBundle[];
   sectionById: Map<string, ResourceBookSection>;
 }
+
+export interface HomeworkCursorContext
+  extends
+    HomeworkListContext,
+    Pick<CursorPage<HomeworkBundle>, "nextCursor" | "hasMore"> {}
 
 async function buildContext(list: Homework[]): Promise<HomeworkListContext> {
   const supabase = await createClient();
@@ -72,16 +78,43 @@ async function buildContext(list: Homework[]): Promise<HomeworkListContext> {
 
 export async function getHomeworkForStudent(
   studentId: string,
-): Promise<HomeworkListContext> {
+  options: {
+    view?: "active" | "archive";
+    cursor?: string;
+    limit?: number;
+  } = {},
+): Promise<HomeworkCursorContext> {
   const supabase = await createClient();
+  const limit = Math.min(50, Math.max(1, options.limit ?? 20));
+  const cursor =
+    options.cursor && !Number.isNaN(Date.parse(options.cursor))
+      ? options.cursor
+      : undefined;
 
-  const { data: homework } = await supabase
+  let query = supabase
     .from("homework")
     .select("*")
     .eq("student_id", studentId)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(limit + 1);
 
-  return buildContext((homework as Homework[] | null) ?? []);
+  query =
+    options.view === "archive"
+      ? query.eq("status", "completed")
+      : query.in("status", ["assigned", "incomplete", "overdue"]);
+  if (cursor) query = query.lt("created_at", cursor);
+
+  const { data: homework } = await query;
+  const rows = (homework as Homework[] | null) ?? [];
+  const hasMore = rows.length > limit;
+  const visible = rows.slice(0, limit);
+  const context = await buildContext(visible);
+
+  return {
+    ...context,
+    hasMore,
+    nextCursor: hasMore ? (visible.at(-1)?.created_at ?? null) : null,
+  };
 }
 
 // ── Öğretmen: toplu gönderim grupları ──────────────────────────────────────

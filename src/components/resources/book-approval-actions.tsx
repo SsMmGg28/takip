@@ -17,6 +17,9 @@ export function BookApprovalActions({
   const [pending, startTransition] = useTransition();
 
   function run(action: (fd: FormData) => Promise<void>, successMessage: string) {
+    if (!window.confirm(`“${bookName}” için bu işlemi kesinleştirmek istiyor musunuz?`)) {
+      return;
+    }
     const fd = new FormData();
     fd.set("id", bookId);
     startTransition(async () => {

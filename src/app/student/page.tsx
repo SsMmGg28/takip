@@ -1,16 +1,25 @@
+import { Suspense } from "react";
 import { requireRole } from "@/lib/auth";
 import { getDashboardData, getSavedLayout } from "@/lib/dashboard";
-import { CustomizableDashboard } from "@/components/dashboard/customizable-dashboard";
+import { DashboardHomeStream } from "@/components/dashboard/dashboard-home";
+import { DashboardLoading } from "@/components/dashboard-loading";
 
 export const metadata = { title: "Öğrenci Paneli" };
 
 export default async function StudentHomePage() {
-  const profile = await requireRole(["student"]);
-  const [data, layout] = await Promise.all([getDashboardData(profile), getSavedLayout()]);
+  // Rol koruması ve kayıtlı düzen birbirinden bağımsız: tek dalgada çözülür.
+  const [profile, layout] = await Promise.all([
+    requireRole(["student"]),
+    getSavedLayout(),
+  ]);
+  // await YOK: dashboard verisi Suspense içinde akar.
+  const data = getDashboardData(profile, layout);
 
   return (
     <div data-guide-anchor="dashboard-main">
-      <CustomizableDashboard data={data} initialLayout={layout} />
+      <Suspense fallback={<DashboardLoading />}>
+        <DashboardHomeStream data={data} initialLayout={layout} />
+      </Suspense>
     </div>
   );
 }

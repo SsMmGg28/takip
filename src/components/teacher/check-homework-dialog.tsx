@@ -84,6 +84,7 @@ export function CheckHomeworkDialog({
   }
 
   async function submit(manualResult?: "completed" | "incomplete") {
+    if (!window.confirm("Ödev kontrolünü kesinleştirmek istiyor musunuz?")) return;
     const fd = new FormData();
     fd.set("id", homeworkId);
     if (manualResult) fd.set("result", manualResult);

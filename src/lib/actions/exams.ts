@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { refresh } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getKazanimAnalysis } from "@/lib/exam-analysis";
 import { getTeacherIds, notifyUsers } from "@/lib/notifications";
@@ -37,9 +37,9 @@ export interface ActionResult {
 }
 
 function revalidateExamPages() {
-  revalidatePath("/teacher/exams", "layout");
-  revalidatePath("/student/exams", "layout");
-  revalidatePath("/parent/exams", "layout");
+  // Yalnız mevcut görünüm tazelenir; layout kapsamlı path revalidation tüm
+  // client router cache'ini boşaltıp gezinmeyi yavaşlatıyordu.
+  refresh();
 }
 
 function isCount(value: unknown): value is number {

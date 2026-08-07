@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,7 +15,6 @@ export function EditProfileForm({
   initialFullName: string;
   initialPhone: string | null;
 }) {
-  const router = useRouter();
   const [fullName, setFullName] = useState(initialFullName);
   const [phone, setPhone] = useState(initialPhone ?? "");
   const [saving, setSaving] = useState(false);
@@ -34,7 +32,6 @@ export function EditProfileForm({
         return;
       }
       toast.success("Bilgilerin güncellendi.");
-      router.refresh();
     } finally {
       setSaving(false);
     }

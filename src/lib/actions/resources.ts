@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath, updateTag } from "next/cache";
+import { refresh, updateTag } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { assertTeacherAction } from "@/lib/auth";
 import { BOOK_CATALOG_TAG } from "@/lib/books";
@@ -19,9 +19,10 @@ type DbClient = Awaited<ReturnType<typeof createClient>>;
 function revalidateResourcePaths() {
   // Onaylı katalog cache'i ("use cache" + BOOK_CATALOG_TAG) anında tazelensin.
   updateTag(BOOK_CATALOG_TAG);
-  revalidatePath("/teacher/resources");
-  revalidatePath("/parent/resources");
-  revalidatePath("/student/resources");
+  // Yalnız mevcut görünüm tazelenir; diğer rol sayfaları dinamik olduğundan
+  // sonraki gezinmede güncel gelir. Path bazlı revalidation client router
+  // cache'ini topluca boşaltıp gezinmeyi yavaşlatıyordu.
+  refresh();
 }
 
 /**
@@ -249,7 +250,6 @@ export async function updateBookWithSections(formData: FormData) {
   await syncSections(supabase, id, parseSections(formData));
 
   revalidateResourcePaths();
-  revalidatePath(`/teacher/resources/${id}`);
 }
 
 export async function deleteBook(formData: FormData) {
@@ -309,23 +309,26 @@ export async function toggleTestProgress(formData: FormData) {
   const sectionId = String(formData.get("section_id"));
   const testNumber = Number(formData.get("test_number"));
   const isDone = formData.get("is_done") === "true";
-  const redirectPath = String(formData.get("redirect_path") ?? "");
 
+  // Bilinçli olarak revalidate edilmez: TestGrid optimistic yerel state tutar
+  // ve sayfa dinamik olduğundan bir sonraki gezinmede zaten taze render edilir.
+  // Hata fırlatılır ki istemci optimistic durumu geri alabilsin.
   if (isDone) {
-    await supabase
+    const { error } = await supabase
       .from("student_test_progress")
       .delete()
       .eq("student_id", studentId)
       .eq("section_id", sectionId)
       .eq("test_number", testNumber);
+    if (error) throw new Error(error.message);
   } else {
-    await supabase.from("student_test_progress").insert({
+    const { error } = await supabase.from("student_test_progress").insert({
       student_id: studentId,
       section_id: sectionId,
       test_number: testNumber,
       marked_by: userData.user.id,
     });
+    // Aynı test zaten işaretliyse (unique ihlali, 23505) sessizce geç
+    if (error && error.code !== "23505") throw new Error(error.message);
   }
-
-  if (redirectPath) revalidatePath(redirectPath);
 }

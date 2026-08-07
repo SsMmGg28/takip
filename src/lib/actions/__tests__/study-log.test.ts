@@ -3,14 +3,14 @@ import { createSupabaseMock, type SupabaseMockHandle } from "@/test/supabase-moc
 
 const mocks = vi.hoisted(() => ({
   handle: null as unknown as SupabaseMockHandle,
-  revalidatePath: vi.fn(),
+  refresh: vi.fn(),
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => mocks.handle.client,
 }));
 vi.mock("next/cache", () => ({
-  revalidatePath: mocks.revalidatePath,
+  refresh: mocks.refresh,
   updateTag: vi.fn(),
 }));
 
@@ -26,7 +26,7 @@ const student = { id: "student-1" };
 const studentProfile = { data: { role: "student" } };
 
 beforeEach(() => {
-  mocks.revalidatePath.mockReset();
+  mocks.refresh.mockReset();
 });
 
 describe("addStudyLog", () => {
@@ -102,8 +102,7 @@ describe("addStudyLog", () => {
       question_count: 20,
       log_date: "2026-07-15",
     });
-    expect(mocks.revalidatePath).toHaveBeenCalledWith("/student");
-    expect(mocks.revalidatePath).toHaveBeenCalledWith("/student/gunluk");
+    expect(mocks.refresh).toHaveBeenCalled();
   });
 
   it("geçersiz tarih bugüne düşer", async () => {
@@ -160,6 +159,6 @@ describe("deleteStudyLog", () => {
     await expect(deleteStudyLog(form({ id: "baskasinin" }))).rejects.toThrow(
       "Kayıt bulunamadı veya silme yetkin yok.",
     );
-    expect(mocks.revalidatePath).not.toHaveBeenCalled();
+    expect(mocks.refresh).not.toHaveBeenCalled();
   });
 });

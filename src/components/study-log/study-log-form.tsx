@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -28,7 +27,6 @@ export function StudyLogForm({
   /** Ders adı → o dersin konu/ünite listesi (kitap kataloğundan; boşsa konu seçimi kapalı). */
   topicsBySubject: Record<string, { code: string; name: string }[]>;
 }) {
-  const router = useRouter();
   const [subject, setSubject] = useState("");
   const [topic, setTopic] = useState("");
   const [minutes, setMinutes] = useState("");
@@ -54,7 +52,6 @@ export function StudyLogForm({
           await addStudyLog(formData);
           toast.success("Çalışma kaydedildi. 🔥");
           reset();
-          router.refresh();
         } catch (e) {
           toast.error(e instanceof Error ? e.message : "Bir hata oluştu.");
         } finally {
@@ -141,7 +138,7 @@ export function StudyLogForm({
                 type="button"
                 onClick={() => setMinutes(String(p))}
                 className={cn(
-                  "rounded-full border px-2.5 py-0.5 text-xs font-medium transition-all active:scale-95",
+                  "min-h-11 rounded-full border px-3 py-1 text-xs font-medium transition-all active:scale-95",
                   minutes === String(p)
                     ? "gradient-surface border-transparent text-white shadow-sm shadow-primary/25"
                     : "border-input bg-background text-muted-foreground hover:bg-accent",

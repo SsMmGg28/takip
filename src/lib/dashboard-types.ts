@@ -1,14 +1,27 @@
-import type { AppNotification, HomeworkStatus, Role } from "@/lib/types";
+import type { HomeworkStatus, Role } from "@/lib/types";
 
-// Anasayfa widget'larının sunucudan aldığı veri sözleşmesi. Her rol aynı
-// şekli doldurur; rolüne uymayan alanlar boş dizi kalır.
+export type PriorityTone = "urgent" | "warning" | "info" | "success";
+export type PriorityKind =
+  "schedule" | "homework" | "announcement" | "goal" | "approval" | "report" | "success";
 
-export interface DashboardStat {
-  label: string;
-  value: number | string;
-  hint?: string;
-  /** Verilirse istatistik kutusu ilgili sayfaya tıklanabilir link olur. */
+export interface PriorityItem {
+  id: string;
+  kind: PriorityKind;
+  tone: PriorityTone;
+  title: string;
+  detail: string;
   href?: string;
+  studentName?: string;
+  startsAt?: string;
+  sortRank: number;
+}
+
+export interface DailyGoalSummary {
+  minutesGoal: number | null;
+  questionsGoal: number | null;
+  minutesDone: number;
+  questionsDone: number;
+  completed: boolean;
 }
 
 export interface HomeworkItem {
@@ -17,15 +30,29 @@ export interface HomeworkItem {
   dueDate: string | null;
   status: HomeworkStatus;
   studentName?: string;
+  studentMarkedDone?: boolean;
+  checkedAt?: string | null;
+  feedback?: string | null;
+  tests?: Array<{
+    sectionId: string;
+    sectionName: string;
+    testNumber: number;
+    studentMarked: boolean;
+    completed: boolean;
+  }>;
 }
 
 export interface ScheduleItem {
   id: string;
-  day: number; // 0 = Pazartesi … 6 = Pazar
-  start: string; // "HH:MM"
+  studentId?: string;
+  day: number;
+  start: string;
   end: string;
   label: string;
+  subject?: string | null;
   studentName?: string;
+  completedAt?: string | null;
+  canUndo?: boolean;
 }
 
 export interface EventItem {
@@ -44,77 +71,112 @@ export interface ExamItem {
   studentName?: string;
 }
 
-export interface BookItem {
-  id: string;
-  name: string;
-  done: number;
-  total: number;
-  studentName?: string;
-}
-
 export interface PendingBookItem {
   id: string;
   name: string;
   subject: string | null;
 }
 
-export interface PersonItem {
-  id: string;
-  name: string;
-  grade: number | null;
-}
-
-/** Velinin haftalık özet widget'ı için çocuk başına bu haftanın dökümü. */
 export interface WeeklySummaryChild {
   studentId: string;
   studentName: string;
   completedHomework: number;
   incompleteHomework: number;
   testsSolved: number;
-  /** Son iki denemenin toplam net farkı (tek deneme varsa null). */
   netChange: number | null;
-  /** Bu hafta çalışma günlüğü girilen gün sayısı (0-7). */
   studyDays: number;
+  goal: DailyGoalSummary;
 }
 
-/** Öğrenci anasayfasındaki çalışma serisi (streak) widget'ı verisi. */
-export interface StudyStreakInfo {
-  current: number;
-  best: number;
-  todayMinutes: number;
-  weekDays: number;
-}
+export type RadarReason =
+  "overdue_homework" | "missing_checks" | "inactive_study" | "net_drop";
 
-// ── Yerleşim ────────────────────────────────────────────────────────────────
-
-/** Kullanıcının kaydedilen yerleşimindeki tek widget. */
-export interface LayoutItem {
+export interface TeacherRadarSignal {
   id: string;
-  w: number;
-  h: number;
+  studentId: string;
+  studentName: string;
+  reason: RadarReason;
+  explanation: string;
+  href: string;
 }
 
-export interface StoredLayout {
-  version: number;
-  items: LayoutItem[];
-  /** Kullanıcının bilinçli olarak çıkardığı widget'lar (yeni eklenenlerden ayırt etmek için). */
-  removed: string[];
+export interface ParentChildContext {
+  id: string;
+  name: string;
+  grade: number | null;
+  urgentCount: number;
+  goal: DailyGoalSummary;
 }
 
-export interface DashboardData {
-  role: Role;
+export const DASHBOARD_SECTION_IDS = {
+  student: ["today-flow", "homework-plan", "progress", "pomodoro", "countdown"],
+  teacher: ["action-queue", "quick-create", "student-radar", "today-calendar"],
+  parent: ["weekly-story", "upcoming", "academic-progress"],
+} as const satisfies Record<Role, readonly string[]>;
+
+export type StudentSectionId = (typeof DASHBOARD_SECTION_IDS.student)[number];
+export type TeacherSectionId = (typeof DASHBOARD_SECTION_IDS.teacher)[number];
+export type ParentSectionId = (typeof DASHBOARD_SECTION_IDS.parent)[number];
+export type DashboardSectionId = StudentSectionId | TeacherSectionId | ParentSectionId;
+
+export interface DashboardSectionLayout {
+  id: DashboardSectionId;
+  collapsed: boolean;
+}
+
+export interface StoredLayoutV2 {
+  version: 2;
+  sections: DashboardSectionLayout[];
+  hidden: DashboardSectionId[];
+  selectedStudentId?: string;
+}
+
+/** Eski kayıtları okuyup sıfırlayabilmek için gevşek disk sözleşmesi. */
+export type StoredLayout = StoredLayoutV2 | { version: number; [key: string]: unknown };
+
+interface DashboardBase {
   firstName: string;
-  stats: DashboardStat[];
-  homework: HomeworkItem[];
-  schedule: ScheduleItem[];
-  events: EventItem[];
-  exams: ExamItem[];
-  books: BookItem[];
-  pendingBooks: PendingBookItem[];
-  people: PersonItem[];
-  notifications: AppNotification[];
-  /** Yalnızca veli rolünde dolu: çocuk başına haftalık takip özeti. */
-  weeklySummary: WeeklySummaryChild[];
-  /** Yalnızca öğrenci rolünde dolu: çalışma serisi (streak) özeti. */
-  studyStreak?: StudyStreakInfo | null;
+  todayLabel: string;
+  priorities: PriorityItem[];
 }
+
+export interface StudentDashboardData extends DashboardBase {
+  role: "student";
+  homework: HomeworkItem[];
+  todaySchedule: ScheduleItem[];
+  upcomingEvents: EventItem[];
+  recentExams: ExamItem[];
+  goal: DailyGoalSummary;
+  studyStreak: { current: number; best: number; weekDays: number };
+}
+
+export interface TeacherDashboardData extends DashboardBase {
+  role: "teacher";
+  students: Array<{ id: string; name: string; grade: number | null }>;
+  actionHomework: HomeworkItem[];
+  pendingBooks: PendingBookItem[];
+  events: EventItem[];
+  radar: TeacherRadarSignal[];
+  studentGoals: Array<{ studentId: string; studentName: string; goal: DailyGoalSummary }>;
+  homeworkBooks: Array<{
+    id: string;
+    name: string;
+    subject: string | null;
+    grade: number | null;
+    sections: Array<{ id: string; name: string; testCount: number }>;
+  }>;
+}
+
+export interface ParentDashboardData extends DashboardBase {
+  role: "parent";
+  selectedStudentId: string | null;
+  children: ParentChildContext[];
+  selectedHomework: HomeworkItem[];
+  selectedSchedule: ScheduleItem[];
+  selectedExams: ExamItem[];
+  weeklyStory: WeeklySummaryChild[];
+  upcomingEvents: EventItem[];
+}
+
+export type DashboardData =
+  StudentDashboardData | TeacherDashboardData | ParentDashboardData;

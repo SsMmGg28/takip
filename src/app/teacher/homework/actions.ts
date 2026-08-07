@@ -1,7 +1,7 @@
 "use server";
 
 import { randomUUID } from "crypto";
-import { revalidatePath } from "next/cache";
+import { refresh } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { assertTeacherAction } from "@/lib/auth";
 import { getParentIdsByStudent, notifyUsers } from "@/lib/notifications";
@@ -9,12 +9,8 @@ import { parseTestEntries } from "@/lib/homework-parse";
 import { ATTACHMENT_TYPES, sanitizeFileName, validateUpload } from "@/lib/uploads";
 import type { Homework, HomeworkTest } from "@/lib/types";
 
-function revalidateHomeworkPaths(studentIds: string[]) {
-  revalidatePath("/teacher/homework");
-  for (const id of studentIds) revalidatePath(`/teacher/homework/${id}`);
-  revalidatePath("/student/homework");
-  revalidatePath("/parent/homework");
-}
+// Mutasyon sonrası yalnız mevcut görünüm tazelenir (refresh); diğer rol
+// sayfaları dinamik olduğundan bir sonraki gezinmede zaten güncel gelir.
 
 async function notifyHomeworkAudience(
   studentIds: string[],
@@ -124,7 +120,7 @@ export async function createHomework(formData: FormData) {
       : `"${title}"`,
   });
 
-  revalidateHomeworkPaths(studentIds);
+  refresh();
 }
 
 /**
@@ -204,7 +200,7 @@ export async function updateHomework(formData: FormData) {
     body: `"${title}" ödevinde değişiklik yapıldı, kontrol et.`,
   });
 
-  revalidateHomeworkPaths(studentIds);
+  refresh();
 }
 
 /**
@@ -326,7 +322,7 @@ export async function checkHomework(formData: FormData) {
     ]);
   }
 
-  revalidateHomeworkPaths([hw.student_id]);
+  refresh();
 }
 
 /**
@@ -386,7 +382,7 @@ export async function reassignMissingTests(formData: FormData) {
     body: `"${hw.title}" ödevinden ${missing.length} test yeniden gönderildi.`,
   });
 
-  revalidateHomeworkPaths([hw.student_id]);
+  refresh();
 }
 
 async function removeAttachmentIfOrphan(
@@ -422,7 +418,7 @@ export async function deleteHomework(formData: FormData) {
   await removeAttachmentIfOrphan(hw.attachment_path, [id]);
   await supabase.from("homework").delete().eq("id", id);
 
-  revalidateHomeworkPaths([hw.student_id]);
+  refresh();
 }
 
 /** Toplu gönderimin tamamını (tüm öğrencilerdeki kopyalarıyla) siler. */
@@ -443,5 +439,5 @@ export async function deleteHomeworkGroup(formData: FormData) {
   );
   await supabase.from("homework").delete().eq("assignment_group_id", groupId);
 
-  revalidateHomeworkPaths(rows.map((r) => r.student_id));
+  refresh();
 }

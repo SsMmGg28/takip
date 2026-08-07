@@ -13,6 +13,10 @@ export const metadata = { title: "Denemeler" };
 export default async function StudentExamsPage() {
   const profile = await requireRole(["student"]);
 
+  // Analiz, sınıf kontrolüyle eşzamanlı başlar; takip kapalıysa sonuç kullanılmaz
+  // (erken dönüşte olası hatanın unhandled rejection olmaması için sessize alınır).
+  const overviewPromise = getExamOverview(profile.id);
+  overviewPromise.catch(() => undefined);
   const { grade, targetScore } = await getStudentExamInfo(profile.id);
   if (!examsEnabledForGrade(grade)) {
     return (
@@ -27,7 +31,7 @@ export default async function StudentExamsPage() {
     );
   }
 
-  const overview = await getExamOverview(profile.id);
+  const overview = await overviewPromise;
 
   return (
     <>

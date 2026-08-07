@@ -15,7 +15,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import {
   copyWeekToCurrent,
   notifyScheduleAssigned,
-  setScheduleAutoRepeat,
+  setOwnScheduleAutoRepeat,
 } from "@/lib/actions/schedule";
 import { formatWeekRange } from "@/lib/week";
 
@@ -111,14 +111,8 @@ export function NotifyScheduleButton({
   );
 }
 
-/** Öğretmenin "program her hafta otomatik devam etsin" anahtarı. */
-export function AutoRepeatToggle({
-  studentId,
-  initialEnabled,
-}: {
-  studentId: string;
-  initialEnabled: boolean;
-}) {
+/** Öğrencinin "program her hafta otomatik devam etsin" tercihi. */
+export function AutoRepeatToggle({ initialEnabled }: { initialEnabled: boolean }) {
   const [enabled, setEnabled] = useState(initialEnabled);
   const [pending, setPending] = useState(false);
 
@@ -126,10 +120,7 @@ export function AutoRepeatToggle({
     setEnabled(next);
     setPending(true);
     try {
-      const fd = new FormData();
-      fd.set("student_id", studentId);
-      fd.set("enabled", String(next));
-      await setScheduleAutoRepeat(fd);
+      await setOwnScheduleAutoRepeat(next);
       toast.success(
         next
           ? "Program artık her hafta otomatik devam edecek."

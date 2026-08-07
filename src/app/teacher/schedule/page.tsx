@@ -1,4 +1,5 @@
 import { Users } from "lucide-react";
+import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
@@ -8,6 +9,8 @@ import type { Profile } from "@/lib/types";
 export const metadata = { title: "Çalışma Programı" };
 
 export default async function TeacherScheduleOverviewPage() {
+  // Sayfa düzeyi rol koruması (savunma derinliği); header adasıyla tekilleşir.
+  await requireRole(["teacher"]);
   const supabase = await createClient();
   const { data: students } = await supabase
     .from("profiles")

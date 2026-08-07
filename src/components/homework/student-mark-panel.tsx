@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { Check, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -30,46 +30,57 @@ export function StudentMarkPanel({
   tests: StudentMarkTest[];
   markedDone: boolean;
 }) {
-  const [pending, startTransition] = useTransition();
+  // Yalnız tıklanan öğe kilitlenir; paylaşılan bir pending bayrağı tüm
+  // chip'leri bloklayıp art arda işaretlemeyi engelliyordu.
+  const [inflight, setInflight] = useState<Set<string>>(new Set());
+  const [doneInflight, setDoneInflight] = useState(false);
   const [marks, setMarks] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(tests.map((t) => [`${t.sectionId}:${t.testNumber}`, t.marked])),
   );
   const [done, setDone] = useState(markedDone);
 
-  function toggleTest(t: StudentMarkTest) {
+  async function toggleTest(t: StudentMarkTest) {
     const key = `${t.sectionId}:${t.testNumber}`;
+    if (inflight.has(key)) return;
     const next = !marks[key];
     setMarks((prev) => ({ ...prev, [key]: next }));
-    startTransition(async () => {
-      const fd = new FormData();
-      fd.set("homework_id", homeworkId);
-      fd.set("section_id", t.sectionId);
-      fd.set("test_number", String(t.testNumber));
-      fd.set("marked", String(next));
-      try {
-        await setStudentTestMark(fd);
-      } catch (e) {
-        setMarks((prev) => ({ ...prev, [key]: !next }));
-        toast.error(e instanceof Error ? e.message : "Bir hata oluştu.");
-      }
-    });
+    setInflight((prev) => new Set(prev).add(key));
+    const fd = new FormData();
+    fd.set("homework_id", homeworkId);
+    fd.set("section_id", t.sectionId);
+    fd.set("test_number", String(t.testNumber));
+    fd.set("marked", String(next));
+    try {
+      await setStudentTestMark(fd);
+    } catch (e) {
+      setMarks((prev) => ({ ...prev, [key]: !next }));
+      toast.error(e instanceof Error ? e.message : "Bir hata oluştu.");
+    } finally {
+      setInflight((prev) => {
+        const copy = new Set(prev);
+        copy.delete(key);
+        return copy;
+      });
+    }
   }
 
-  function toggleDone() {
+  async function toggleDone() {
+    if (doneInflight) return;
     const next = !done;
     setDone(next);
-    startTransition(async () => {
-      const fd = new FormData();
-      fd.set("homework_id", homeworkId);
-      fd.set("done", String(next));
-      try {
-        await setStudentHomeworkDone(fd);
-        toast.success(next ? "Tamamladın olarak işaretlendi." : "İşaret kaldırıldı.");
-      } catch (e) {
-        setDone(!next);
-        toast.error(e instanceof Error ? e.message : "Bir hata oluştu.");
-      }
-    });
+    setDoneInflight(true);
+    const fd = new FormData();
+    fd.set("homework_id", homeworkId);
+    fd.set("done", String(next));
+    try {
+      await setStudentHomeworkDone(fd);
+      toast.success(next ? "Tamamladın olarak işaretlendi." : "İşaret kaldırıldı.");
+    } catch (e) {
+      setDone(!next);
+      toast.error(e instanceof Error ? e.message : "Bir hata oluştu.");
+    } finally {
+      setDoneInflight(false);
+    }
   }
 
   if (tests.length === 0) {
@@ -77,10 +88,10 @@ export function StudentMarkPanel({
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <button
           type="button"
-          disabled={pending}
+          disabled={doneInflight}
           onClick={toggleDone}
           className={cn(
-            "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all hover:-translate-y-0.5 active:translate-y-0",
+            "inline-flex min-h-11 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all hover:-translate-y-0.5 active:translate-y-0",
             done
               ? "border-success/40 bg-success/10 text-success"
               : "border-input bg-background text-muted-foreground hover:bg-accent",
@@ -89,7 +100,7 @@ export function StudentMarkPanel({
           <CheckCircle2 className="h-3.5 w-3.5" />
           {done ? "Tamamladım (işaretli)" : "Tamamladım olarak işaretle"}
         </button>
-        <span className="text-[11px] text-muted-foreground">
+        <span className="text-xs text-muted-foreground">
           Öğretmen kontrolüyle kesinleşir.
         </span>
       </div>
@@ -108,11 +119,11 @@ export function StudentMarkPanel({
             <button
               key={key}
               type="button"
-              disabled={pending}
+              disabled={inflight.has(key)}
               onClick={() => toggleTest(t)}
               aria-pressed={on}
               className={cn(
-                "inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium transition-all hover:-translate-y-0.5 active:translate-y-0",
+                "inline-flex min-h-11 items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium transition-all hover:-translate-y-0.5 active:translate-y-0",
                 on
                   ? "border-primary/40 bg-primary/10 text-primary"
                   : "border-input bg-muted/40 text-muted-foreground hover:bg-accent",
@@ -124,7 +135,7 @@ export function StudentMarkPanel({
           );
         })}
       </div>
-      <p className="text-[11px] text-muted-foreground">
+      <p className="text-xs text-muted-foreground">
         {markedCount}/{tests.length} testi yaptım olarak işaretledin — öğretmen
         kontrolüyle kesinleşir.
       </p>

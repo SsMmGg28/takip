@@ -1,13 +1,11 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { refresh } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getParentIdsByStudent, notifyUsers } from "@/lib/notifications";
 
 function revalidateCalendarPaths() {
-  revalidatePath("/teacher/calendar");
-  revalidatePath("/student/calendar");
-  revalidatePath("/parent/calendar");
+  refresh();
 }
 
 /** Etkinlik ilgililerine bildirim: öğrenciye özelse öğrenci+velisi, genelse tüm öğrenci+veliler. */

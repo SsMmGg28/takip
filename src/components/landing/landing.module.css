@@ -1,0 +1,1070 @@
+.page {
+  --student: oklch(0.62 0.22 286);
+  --student-soft: oklch(0.79 0.14 205);
+  --parent: oklch(0.68 0.19 28);
+  --parent-soft: oklch(0.82 0.16 125);
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  overflow-x: clip;
+}
+
+.backgroundGrid {
+  position: absolute;
+  inset: 0;
+  z-index: -3;
+  opacity: 0.42;
+  background-image:
+    linear-gradient(
+      color-mix(in oklch, var(--primary) 8%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      color-mix(in oklch, var(--primary) 8%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 48px 48px;
+  mask-image: linear-gradient(to bottom, black, transparent 44%);
+}
+
+.glow {
+  position: absolute;
+  z-index: -2;
+  width: min(46rem, 90vw);
+  aspect-ratio: 1;
+  border-radius: 999px;
+  filter: blur(90px);
+  opacity: 0.14;
+  pointer-events: none;
+}
+
+.glowOne {
+  top: -18rem;
+  left: -18rem;
+  background: var(--student);
+}
+
+.glowTwo {
+  top: 20rem;
+  right: -20rem;
+  background: var(--parent);
+}
+
+.mobileChapterNav {
+  overscroll-behavior-inline: contain;
+  scroll-snap-type: inline proximity;
+  scrollbar-width: none;
+}
+
+.mobileChapterNav::-webkit-scrollbar,
+.featureRail::-webkit-scrollbar,
+.guideRail::-webkit-scrollbar {
+  display: none;
+}
+
+.hero {
+  padding-block: clamp(3.5rem, 8vw, 7.5rem) clamp(4.5rem, 8vw, 7rem);
+}
+
+.heroCopy {
+  max-width: 54rem;
+  margin-inline: auto;
+  text-align: center;
+}
+
+.heroBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 2.25rem;
+  padding: 0.35rem 0.85rem;
+  border: 1px solid color-mix(in oklch, var(--primary) 24%, var(--border));
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--card) 78%, transparent);
+  color: var(--muted-foreground);
+  font-size: 0.82rem;
+  font-weight: 600;
+  box-shadow: 0 12px 40px -26px var(--primary);
+}
+
+.heroBadge svg {
+  width: 1rem;
+  color: var(--primary);
+}
+
+.heroTitle {
+  margin-top: 1.5rem;
+  text-wrap: balance;
+  font-size: clamp(2.75rem, 8vw, 6.8rem);
+  font-weight: 780;
+  line-height: 0.94;
+  letter-spacing: -0.065em;
+}
+
+.heroTitle span {
+  display: block;
+  background: linear-gradient(105deg, var(--brand-from), var(--student), var(--brand-to));
+  background-clip: text;
+  color: transparent;
+}
+
+.heroDescription {
+  max-width: 42rem;
+  margin: 1.6rem auto 0;
+  color: var(--muted-foreground);
+  font-size: clamp(1rem, 2vw, 1.18rem);
+  line-height: 1.7;
+  text-wrap: pretty;
+}
+
+.heroFacts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.65rem;
+  margin-top: 1.7rem;
+}
+
+.heroFacts span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--muted-foreground);
+  font-size: 0.82rem;
+}
+
+.heroFacts svg {
+  width: 0.95rem;
+  color: var(--success);
+}
+
+.explorer {
+  --role: var(--student);
+  --role-soft: var(--student-soft);
+  display: grid;
+  gap: clamp(2rem, 6vw, 5rem);
+  align-items: center;
+  min-width: 0;
+  max-width: 70rem;
+  margin: clamp(3.2rem, 7vw, 5rem) auto 0;
+  text-align: left;
+}
+
+.explorer.parent {
+  --role: var(--parent);
+  --role-soft: var(--parent-soft);
+}
+
+.roleTabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.45rem;
+  padding: 0.35rem;
+  border: 1px solid var(--border);
+  border-radius: 1.2rem;
+  background: color-mix(in oklch, var(--card) 80%, transparent);
+  box-shadow: 0 18px 50px -35px var(--foreground);
+}
+
+.roleTab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  min-height: 3.15rem;
+  border-radius: 0.9rem;
+  color: var(--muted-foreground);
+  font-weight: 680;
+}
+
+.roleTab svg {
+  width: 1.1rem;
+}
+
+.roleTabActive {
+  background: var(--role);
+  color: white;
+  box-shadow: 0 12px 28px -14px var(--role);
+}
+
+.roleSummary {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-top: 1.6rem;
+  padding: 0 0.35rem;
+}
+
+.roleSummary > div {
+  min-width: 0;
+}
+
+.roleSummary > div p:last-child {
+  margin-top: 0.25rem;
+  color: var(--muted-foreground);
+  line-height: 1.55;
+}
+
+.roleIcon {
+  display: grid;
+  flex: 0 0 auto;
+  width: 3.1rem;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 1rem;
+  background: color-mix(in oklch, var(--role) 14%, var(--card));
+  color: var(--role);
+}
+
+.roleIcon svg {
+  width: 1.35rem;
+}
+
+.kicker {
+  color: var(--role) !important;
+  font-size: 0.75rem;
+  font-weight: 750;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.featureRail {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding: 0.25rem 0.1rem 0.8rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.featureButton {
+  display: grid;
+  flex: 0 0 78%;
+  grid-template-columns: 2.6rem minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: center;
+  min-height: 4.35rem;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 1.15rem;
+  background: color-mix(in oklch, var(--card) 80%, transparent);
+  color: var(--muted-foreground);
+  font-size: 0.88rem;
+  font-weight: 650;
+  text-align: left;
+  scroll-snap-align: start;
+}
+
+.featureButtonIcon {
+  display: grid;
+  width: 2.6rem;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 0.85rem;
+  background: var(--secondary);
+  color: var(--secondary-foreground);
+}
+
+.featureButtonIcon svg,
+.featureChevron {
+  width: 1rem;
+}
+
+.featureChevron {
+  opacity: 0.45;
+}
+
+.featureButtonActive {
+  border-color: color-mix(in oklch, var(--role) 45%, var(--border));
+  background: color-mix(in oklch, var(--role) 8%, var(--card));
+  color: var(--foreground);
+  box-shadow: 0 14px 36px -28px var(--role);
+}
+
+.featureButtonActive .featureButtonIcon {
+  background: var(--role);
+  color: white;
+}
+
+.featureButtonActive .featureChevron {
+  color: var(--role);
+  opacity: 1;
+  transform: translateX(2px);
+}
+
+.phoneStage {
+  position: relative;
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  min-height: 39rem;
+  place-items: center;
+}
+
+.phoneStage::before {
+  position: absolute;
+  inset: 10% 4%;
+  z-index: -2;
+  border-radius: 44% 56% 51% 49% / 44% 41% 59% 56%;
+  background: linear-gradient(145deg, var(--role), var(--role-soft));
+  opacity: 0.17;
+  content: "";
+  filter: blur(1px);
+  transform: rotate(-5deg);
+}
+
+.orbitOne,
+.orbitTwo {
+  position: absolute;
+  z-index: -1;
+  border: 1px dashed color-mix(in oklch, var(--role) 50%, transparent);
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+.orbitOne {
+  width: 80%;
+  aspect-ratio: 1;
+}
+
+.orbitTwo {
+  width: 62%;
+  aspect-ratio: 1;
+  transform: rotate(28deg);
+}
+
+.phone {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 21rem;
+  min-width: 0;
+  min-height: 38rem;
+  padding: 0.75rem;
+  border: 1px solid color-mix(in oklch, var(--role) 30%, var(--border));
+  border-radius: 2.6rem;
+  background: color-mix(in oklch, var(--background) 93%, var(--role) 7%);
+  box-shadow:
+    0 50px 90px -48px var(--role),
+    0 20px 50px -28px var(--foreground),
+    inset 0 0 0 5px color-mix(in oklch, var(--card) 70%, transparent);
+  animation: panel-enter 420ms cubic-bezier(0.2, 0, 0, 1) both;
+}
+
+.phoneTop {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 0.15rem 0.7rem 0.75rem;
+  color: var(--muted-foreground);
+  font-family: var(--font-geist-mono);
+  font-size: 0.62rem;
+  font-weight: 650;
+}
+
+.phonePill {
+  width: 4.2rem;
+  height: 1.25rem;
+  border-radius: 999px;
+  background: var(--foreground);
+}
+
+.phoneStatus {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.16rem;
+}
+
+.phoneStatus span {
+  width: 0.22rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  background: var(--foreground);
+}
+
+.phoneStatus span:nth-child(2) {
+  height: 0.72rem;
+}
+
+.phoneStatus span:nth-child(3) {
+  height: 0.9rem;
+}
+
+.phoneHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.35rem 0.65rem 1rem;
+}
+
+.phoneHeader > div {
+  display: grid;
+  min-width: 0;
+  gap: 0.2rem;
+}
+
+.phoneEyebrow,
+.detailEyebrow {
+  color: var(--role);
+  font-size: 0.66rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.phoneHeader strong {
+  font-size: 1rem;
+}
+
+.bellButton {
+  position: relative;
+  display: grid;
+  width: 2.45rem;
+  aspect-ratio: 1;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 0.85rem;
+  background: var(--card);
+}
+
+.bellButton svg {
+  width: 1rem;
+}
+
+.bellButton i {
+  position: absolute;
+  top: 0.42rem;
+  right: 0.45rem;
+  width: 0.42rem;
+  aspect-ratio: 1;
+  border: 2px solid var(--card);
+  border-radius: 999px;
+  background: var(--role);
+}
+
+.metricCard {
+  margin: 0 0.25rem;
+  padding: 1rem;
+  border-radius: 1.35rem;
+  background: linear-gradient(
+    140deg,
+    var(--role),
+    color-mix(in oklch, var(--role) 65%, var(--role-soft))
+  );
+  color: white;
+  box-shadow: 0 18px 35px -22px var(--role);
+}
+
+.metricTopline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.metricIcon {
+  display: grid;
+  width: 2.15rem;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 0.75rem;
+  background: rgb(255 255 255 / 16%);
+}
+
+.metricIcon svg,
+.metricBadge svg {
+  width: 0.95rem;
+}
+
+.metricBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.58rem;
+  font-weight: 650;
+  opacity: 0.88;
+}
+
+.metricValue {
+  display: block;
+  margin-top: 1rem;
+  font-family: var(--font-geist-mono);
+  font-size: 2.25rem;
+  font-weight: 730;
+  letter-spacing: -0.07em;
+}
+
+.metricLabel {
+  display: block;
+  margin-top: -0.2rem;
+  font-size: 0.72rem;
+  opacity: 0.82;
+}
+
+.progressTrack {
+  height: 0.34rem;
+  margin-top: 0.9rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 20%);
+}
+
+.progressFill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: white;
+  transform-origin: left;
+  animation: progress-grow 760ms 120ms cubic-bezier(0.2, 0, 0, 1) both;
+}
+
+.detailCard {
+  margin: 0.8rem 0.25rem 0;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 1.35rem;
+  background: color-mix(in oklch, var(--card) 92%, transparent);
+}
+
+.detailCard h3 {
+  margin-top: 0.35rem;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.detailCard > p {
+  margin-top: 0.55rem;
+  color: var(--muted-foreground);
+  font-size: 0.72rem;
+  line-height: 1.55;
+}
+
+.detailNote {
+  display: flex;
+  gap: 0.45rem;
+  align-items: flex-start;
+  margin-top: 0.85rem;
+  padding: 0.65rem;
+  border-radius: 0.85rem;
+  background: color-mix(in oklch, var(--role) 8%, var(--secondary));
+  color: var(--muted-foreground);
+  font-size: 0.65rem;
+  line-height: 1.45;
+}
+
+.detailNote svg {
+  flex: 0 0 auto;
+  width: 0.85rem;
+  color: var(--role);
+}
+
+.miniNav {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  margin: 0.75rem 0.25rem 0;
+  padding: 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 1.1rem;
+  background: var(--card);
+}
+
+.miniNav span {
+  display: grid;
+  place-items: center;
+  min-height: 2.2rem;
+  color: var(--muted-foreground);
+}
+
+.miniNav svg {
+  width: 1rem;
+}
+
+.miniNavActive {
+  border-radius: 0.75rem;
+  background: color-mix(in oklch, var(--role) 12%, var(--card));
+  color: var(--role) !important;
+}
+
+.section {
+  padding-block: clamp(4.5rem, 9vw, 8rem);
+  scroll-margin-top: 7rem;
+}
+
+.sectionTint {
+  position: relative;
+}
+
+.sectionTint::before {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-block: 1px solid color-mix(in oklch, var(--border) 70%, transparent);
+  background: color-mix(in oklch, var(--card) 55%, transparent);
+  content: "";
+}
+
+.sectionHeader {
+  display: grid;
+  gap: 0.8rem;
+  max-width: 46rem;
+  margin-bottom: clamp(2rem, 5vw, 3.5rem);
+}
+
+.sectionHeaderCentered {
+  margin-inline: auto;
+  text-align: center;
+}
+
+.sectionLabel {
+  color: var(--primary);
+  font-size: 0.75rem;
+  font-weight: 760;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.sectionTitle {
+  font-size: clamp(2rem, 5vw, 4.2rem);
+  font-weight: 760;
+  line-height: 1.02;
+  letter-spacing: -0.05em;
+  text-wrap: balance;
+}
+
+.sectionDescription {
+  color: var(--muted-foreground);
+  font-size: clamp(0.96rem, 1.5vw, 1.08rem);
+  line-height: 1.7;
+  text-wrap: pretty;
+}
+
+.guideRail {
+  display: flex;
+  gap: 1rem;
+  padding: 0.2rem 0.1rem 1.2rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.guideCard {
+  --guide-accent: var(--student);
+  flex: 0 0 min(88%, 24rem);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 1.45rem;
+  background: color-mix(in oklch, var(--card) 90%, transparent);
+  box-shadow: 0 20px 55px -45px var(--foreground);
+  scroll-snap-align: start;
+}
+
+.parentGuide .guideCard {
+  --guide-accent: var(--parent);
+}
+
+.guideCard summary {
+  display: grid;
+  grid-template-columns: 3rem 1fr auto;
+  gap: 0.9rem;
+  align-items: center;
+  min-height: 6rem;
+  padding: 1rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+.guideCard summary::-webkit-details-marker {
+  display: none;
+}
+
+.guideCard summary:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: -4px;
+  border-radius: 1.25rem;
+}
+
+.guideIcon {
+  display: grid;
+  width: 3rem;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 1rem;
+  background: color-mix(in oklch, var(--guide-accent) 13%, var(--card));
+  color: var(--guide-accent);
+}
+
+.guideIcon svg {
+  width: 1.25rem;
+}
+
+.guideCard h3 {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.guideCard summary p {
+  margin-top: 0.25rem;
+  color: var(--muted-foreground);
+  font-size: 0.74rem;
+  line-height: 1.4;
+}
+
+.summaryChevron {
+  width: 1.05rem;
+  color: var(--muted-foreground);
+}
+
+.guideCard[open] .summaryChevron {
+  color: var(--guide-accent);
+  transform: rotate(90deg);
+}
+
+.guideBody {
+  padding: 0 1.1rem 1.2rem;
+  animation: details-open 220ms ease both;
+}
+
+.guideBody ol {
+  display: grid;
+  gap: 0.7rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  counter-reset: guide-step;
+}
+
+.guideBody li {
+  display: grid;
+  grid-template-columns: 1.4rem 1fr;
+  gap: 0.65rem;
+  color: var(--muted-foreground);
+  font-size: 0.82rem;
+  line-height: 1.55;
+  counter-increment: guide-step;
+}
+
+.guideBody li::before {
+  display: grid;
+  width: 1.4rem;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--guide-accent) 14%, var(--card));
+  color: var(--guide-accent);
+  content: counter(guide-step);
+  font-family: var(--font-geist-mono);
+  font-size: 0.63rem;
+  font-weight: 750;
+}
+
+.commonGrid {
+  display: grid;
+  gap: 1rem;
+}
+
+.commonCard {
+  position: relative;
+  min-height: 15rem;
+  overflow: hidden;
+  padding: 1.35rem;
+  border: 1px solid var(--border);
+  border-radius: 1.5rem;
+  background: var(--card);
+}
+
+.commonCard::after {
+  position: absolute;
+  right: -3rem;
+  bottom: -4rem;
+  width: 10rem;
+  aspect-ratio: 1;
+  border-radius: 999px;
+  background: var(--card-accent, var(--primary));
+  opacity: 0.11;
+  content: "";
+  filter: blur(10px);
+}
+
+.commonCardIcon {
+  display: grid;
+  width: 3rem;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 1rem;
+  background: color-mix(in oklch, var(--card-accent, var(--primary)) 13%, var(--card));
+  color: var(--card-accent, var(--primary));
+}
+
+.commonCardIcon svg {
+  width: 1.25rem;
+}
+
+.commonCard h3 {
+  margin-top: 1.3rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.commonCard p {
+  margin-top: 0.55rem;
+  color: var(--muted-foreground);
+  font-size: 0.86rem;
+  line-height: 1.65;
+}
+
+.startGrid {
+  position: relative;
+  display: grid;
+  gap: 1rem;
+}
+
+.startGrid::before {
+  position: absolute;
+  top: 2.25rem;
+  bottom: 2.25rem;
+  left: 1.55rem;
+  z-index: -1;
+  width: 1px;
+  background: linear-gradient(var(--student), var(--brand-to), var(--parent));
+  content: "";
+  opacity: 0.45;
+}
+
+.startStep {
+  display: grid;
+  grid-template-columns: 3.1rem 1fr;
+  gap: 1rem;
+  align-items: start;
+  padding: 1.2rem;
+  border: 1px solid var(--border);
+  border-radius: 1.4rem;
+  background: color-mix(in oklch, var(--card) 92%, transparent);
+}
+
+.stepNumber {
+  display: grid;
+  width: 3.1rem;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 1rem;
+  background: linear-gradient(145deg, var(--brand-from), var(--brand-to));
+  color: white;
+  font-family: var(--font-geist-mono);
+  font-size: 0.86rem;
+  font-weight: 750;
+  box-shadow: 0 12px 24px -16px var(--primary);
+}
+
+.startStep h3 {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.startStep p {
+  margin-top: 0.4rem;
+  color: var(--muted-foreground);
+  font-size: 0.84rem;
+  line-height: 1.6;
+}
+
+.loginNote {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-top: 1rem;
+  padding: clamp(1.4rem, 4vw, 2.2rem);
+  border: 1px solid color-mix(in oklch, var(--primary) 30%, var(--border));
+  border-radius: 1.6rem;
+  background:
+    radial-gradient(
+      circle at 90% 10%,
+      color-mix(in oklch, var(--student) 18%, transparent),
+      transparent 35%
+    ),
+    color-mix(in oklch, var(--card) 90%, transparent);
+}
+
+.loginNote h3 {
+  font-size: clamp(1.25rem, 3vw, 1.8rem);
+  font-weight: 720;
+  letter-spacing: -0.03em;
+}
+
+.loginNote p {
+  max-width: 42rem;
+  margin-top: 0.4rem;
+  color: var(--muted-foreground);
+  line-height: 1.6;
+}
+
+@keyframes panel-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes progress-grow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes details-open {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+}
+
+@media (min-width: 640px) {
+  .featureButton {
+    flex-basis: 46%;
+  }
+
+  .commonGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .startGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .startGrid::before {
+    display: none;
+  }
+
+  .loginNote {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+@media (max-width: 639px) {
+  .hero {
+    padding-block: 2.5rem 4.5rem;
+  }
+
+  .heroTitle {
+    font-size: clamp(2.3rem, 12vw, 3.1rem);
+    letter-spacing: -0.055em;
+  }
+
+  .heroFacts {
+    justify-content: flex-start;
+  }
+
+  .explorer {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.75rem;
+    width: 100%;
+    margin-top: 2.5rem;
+  }
+
+  .explorerIntro,
+  .phoneStage {
+    min-width: 0;
+  }
+
+  .phoneStage {
+    min-height: 0;
+    overflow: clip;
+  }
+
+  .phone {
+    min-height: 0;
+    padding: 0.65rem;
+    border-radius: 2rem;
+  }
+
+  .phoneTop {
+    padding-inline: 0.55rem;
+    padding-bottom: 0.6rem;
+  }
+
+  .phoneHeader {
+    padding-inline: 0.55rem;
+  }
+
+  .metricCard,
+  .detailCard,
+  .miniNav {
+    margin-inline: 0;
+  }
+
+  .metricCard,
+  .detailCard {
+    padding: 0.85rem;
+  }
+
+  .detailCard h3 {
+    font-size: 0.94rem;
+  }
+}
+
+@media (min-width: 900px) {
+  .explorer {
+    grid-template-columns: minmax(0, 1fr) minmax(21rem, 0.9fr);
+  }
+
+  .featureRail {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    overflow: visible;
+  }
+
+  .featureButton {
+    min-width: 0;
+  }
+
+  .guideRail {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    overflow: visible;
+  }
+
+  .guideCard {
+    min-width: 0;
+  }
+
+  .commonGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .startGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .featureButton:hover,
+  .guideCard:hover,
+  .commonCard:hover,
+  .startStep:hover {
+    transform: translateY(-3px);
+    border-color: color-mix(in oklch, var(--primary) 30%, var(--border));
+    box-shadow: 0 18px 45px -36px var(--foreground);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .phone,
+  .progressFill,
+  .guideBody {
+    animation: none;
+  }
+
+  .featureButtonActive .featureChevron {
+    transform: none;
+  }
+}

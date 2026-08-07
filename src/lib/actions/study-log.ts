@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { refresh } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { todayInIstanbul } from "@/lib/week";
 
@@ -57,8 +57,7 @@ export async function addStudyLog(formData: FormData) {
   });
   if (error) throw new Error(error.message);
 
-  revalidatePath("/student");
-  revalidatePath("/student/gunluk");
+  refresh();
 }
 
 /** Öğrenci kendi çalışma kaydını siler (RLS own-only). */
@@ -78,6 +77,5 @@ export async function deleteStudyLog(formData: FormData) {
   if (error) throw new Error(error.message);
   if (!deleted?.length) throw new Error("Kayıt bulunamadı veya silme yetkin yok.");
 
-  revalidatePath("/student");
-  revalidatePath("/student/gunluk");
+  refresh();
 }

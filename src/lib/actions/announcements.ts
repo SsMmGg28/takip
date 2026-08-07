@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { refresh } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { assertTeacherAction } from "@/lib/auth";
@@ -9,9 +9,7 @@ import { ATTACHMENT_TYPES, sanitizeFileName, validateUpload } from "@/lib/upload
 import type { AnnouncementAudience, AnnouncementScope } from "@/lib/types";
 
 function revalidateAnnouncementPaths() {
-  revalidatePath("/teacher/announcements");
-  revalidatePath("/student/announcements");
-  revalidatePath("/parent/announcements");
+  refresh();
 }
 
 /**

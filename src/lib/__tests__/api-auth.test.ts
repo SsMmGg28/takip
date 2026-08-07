@@ -17,6 +17,7 @@ function profileOf(role: Profile["role"]): Profile {
     full_name: "Test Kullanıcı",
     phone: null,
     must_change_password: false,
+    theme_color: "blue",
     created_at: "2026-01-01T00:00:00Z",
   };
 }
