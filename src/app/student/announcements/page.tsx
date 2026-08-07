@@ -22,6 +22,7 @@ export default async function AnnouncementsPage() {
   return (
     <>
       <PageHeader
+        guideAnchor="page-announcements"
         title="Duyurular"
         description="Öğretmenin paylaştığı duyurular ve belgeler."
       />

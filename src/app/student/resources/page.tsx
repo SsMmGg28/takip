@@ -15,6 +15,7 @@ export default async function StudentResourcesPage() {
   return (
     <>
       <PageHeader
+        guideAnchor="page-resources"
         title="Kitaplığım"
         description="Velinin senin için seçtiği kaynak kitaplar. Bir kitabı aç, çözdüğün testleri işaretle."
       />

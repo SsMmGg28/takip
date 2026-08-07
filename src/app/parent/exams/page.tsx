@@ -19,6 +19,7 @@ export default async function ParentExamsPage() {
   return (
     <>
       <PageHeader
+        guideAnchor="page-exams"
         title="Deneme Analizi"
         description="Analiz görmek veya deneme eklemek için öğrenci seç."
       />

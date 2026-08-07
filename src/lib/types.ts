@@ -29,6 +29,14 @@ export interface ParentStudentLink {
   created_at: string;
 }
 
+export interface UserGuideProgress {
+  user_id: string;
+  guide_id: string;
+  version: number;
+  outcome: "completed" | "skipped";
+  updated_at: string;
+}
+
 // Kaynak kitap kataloğu --------------------------------------------------
 
 export interface ResourceBook {

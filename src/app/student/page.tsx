@@ -8,5 +8,9 @@ export default async function StudentHomePage() {
   const profile = await requireRole(["student"]);
   const [data, layout] = await Promise.all([getDashboardData(profile), getSavedLayout()]);
 
-  return <CustomizableDashboard data={data} initialLayout={layout} />;
+  return (
+    <div data-guide-anchor="dashboard-main">
+      <CustomizableDashboard data={data} initialLayout={layout} />
+    </div>
+  );
 }

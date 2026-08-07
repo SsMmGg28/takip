@@ -2,13 +2,18 @@ export function PageHeader({
   title,
   description,
   action,
+  guideAnchor,
 }: {
   title: string;
   description?: string;
   action?: React.ReactNode;
+  guideAnchor?: string;
 }) {
   return (
-    <div className="animate-slide-in-left flex flex-wrap items-start justify-between gap-3 pb-1">
+    <div
+      className="animate-slide-in-left flex flex-wrap items-start justify-between gap-3 pb-1"
+      data-guide-anchor={guideAnchor}
+    >
       <div className="relative">
         <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{title}</h1>
         {description && (

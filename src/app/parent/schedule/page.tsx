@@ -25,7 +25,7 @@ export default async function ParentSchedulePage({
   if (students.length === 0) {
     return (
       <>
-        <PageHeader title="Çalışma Programı" />
+        <PageHeader guideAnchor="page-schedule" title="Çalışma Programı" />
         <EmptyState title="Eşleştirilmiş öğrenci bulunamadı" />
       </>
     );
@@ -65,6 +65,7 @@ export default async function ParentSchedulePage({
   return (
     <>
       <PageHeader
+        guideAnchor="page-schedule"
         title="Çalışma Programı"
         description="Haftalık programı düzenleyebilir, geçmiş haftaları arşivden görüp tek tıkla geri getirebilirsin."
       />

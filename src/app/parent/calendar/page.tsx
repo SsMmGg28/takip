@@ -14,7 +14,7 @@ export default async function ParentCalendarPage() {
   if (students.length === 0) {
     return (
       <>
-        <PageHeader title="Takvim" />
+        <PageHeader guideAnchor="page-calendar" title="Takvim" />
         <EmptyState title="Henüz bir öğrenciyle eşleştirilmedin" />
       </>
     );
@@ -30,6 +30,7 @@ export default async function ParentCalendarPage() {
   return (
     <>
       <PageHeader
+        guideAnchor="page-calendar"
         title="Takvim"
         description="Tüm dersler, ödev teslim tarihleri ve hatırlatmalar."
       />

@@ -15,6 +15,7 @@ export default async function StudentHomeworkPage() {
   return (
     <>
       <PageHeader
+        guideAnchor="page-homework"
         title="Ödevlerim"
         description="Öğretmenin sana verdiği ödevler. Yaptığın testleri işaretle; öğretmen kontrolüyle kesinleşir."
       />

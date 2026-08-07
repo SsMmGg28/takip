@@ -37,6 +37,7 @@ export default async function StudentSchedulePage({
   return (
     <>
       <PageHeader
+        guideAnchor="page-schedule"
         title="Çalışma Programım"
         description="Öğretmenin ve velinin senin için hazırladığı haftalık program; geçmiş haftaları arşivden inceleyebilirsin."
       />

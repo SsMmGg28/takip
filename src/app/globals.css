@@ -363,6 +363,82 @@ body {
   animation: rise 380ms cubic-bezier(0.2, 0, 0, 1) both;
 }
 
+/* ─── Uygulama rehberi HTML/CSS maket mikro animasyonları ─── */
+@keyframes guide-card-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+.guide-card {
+  animation: guide-card-float 2.8s ease-in-out infinite;
+}
+
+@keyframes guide-tap {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.65);
+  }
+  35% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 0;
+    transform: scale(1.45);
+  }
+}
+.guide-tap {
+  animation: guide-tap 2.2s ease-out infinite;
+}
+
+@keyframes guide-check {
+  0%,
+  35% {
+    transform: scale(0.82);
+  }
+  55% {
+    transform: scale(1.16);
+  }
+  75%,
+  100% {
+    transform: scale(1);
+  }
+}
+.guide-check {
+  animation: guide-check 2.4s ease-in-out infinite;
+}
+
+@keyframes guide-progress {
+  from {
+    width: 8%;
+  }
+  to {
+    width: var(--guide-progress, 78%);
+  }
+}
+.guide-progress {
+  width: var(--guide-progress, 78%);
+  animation: guide-progress 1.8s cubic-bezier(0.2, 0, 0, 1) both;
+}
+
+@keyframes guide-chart-draw {
+  from {
+    stroke-dashoffset: 330;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.guide-chart-line {
+  color: var(--primary);
+  stroke-dasharray: 330;
+  animation: guide-chart-draw 2s ease-in-out both;
+}
+
 /* ─── Kademeli giriş (stagger) ─── */
 .stagger > * {
   animation: fade-up 380ms cubic-bezier(0.2, 0, 0, 1) both;

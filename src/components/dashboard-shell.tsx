@@ -5,6 +5,7 @@ import { NotificationsBell } from "@/components/notifications-bell";
 import { ServiceWorkerRegistrar } from "@/components/push-manager";
 import { SignOutButton } from "@/components/sign-out-button";
 import { Brand } from "@/components/brand";
+import { GuideRuntime } from "@/components/guides/guide-runtime";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { requireRole } from "@/lib/auth";
@@ -82,6 +83,7 @@ export async function DashboardShell({
               </span>
             </Link>
             <NotificationsBell userId={profile.id} />
+            {role !== "teacher" && <GuideRuntime role={role} />}
             <ThemeToggle />
             <SignOutButton />
           </div>

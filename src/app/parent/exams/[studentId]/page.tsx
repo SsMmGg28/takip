@@ -42,6 +42,7 @@ export default async function ParentStudentExamsPage({
   return (
     <>
       <PageHeader
+        guideAnchor="page-exams"
         title={student.full_name}
         description={`${grade}. sınıf — deneme analizi ve geçmiş denemeler`}
         action={
